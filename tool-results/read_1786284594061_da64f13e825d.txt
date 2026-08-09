@@ -1,0 +1,1953 @@
+    50→  2373→            name: 'Luxury LED Panel',
+    51→  2374→            supplier: 'Mali Lumière',
+    52→  2375→            category: 'lighting',
+    53→  2376→            emoji: '💡',
+    54→  2377→            cost: 150000,
+    55→  2378→            price: 210000,
+    56→  2379→            stock: 30,
+    57→  2380→            inStock: 30,
+    58→  2381→            specs: '600×600mm, 4000K, dimmable, 50W',
+    59→  2382→            description: 'High-end LED ceiling panel with daylight simulation. Local assembly.',
+    60→  2383→            origin: 'Mali (assembled)',
+    61→  2384→            leadTime: 3
+    62→  2385→        }, {
+    63→  2386→            id: 'p5',
+    64→  2387→            name: 'Steelcase Please',
+    65→  2388→            supplier: 'Steelcase EU',
+    66→  2389→            category: 'seating',
+    67→  2390→            emoji: '🪑',
+    68→  2391→            cost: 780000,
+    69→  2392→            price: 1050000,
+    70→  2393→            stock: 10,
+    71→  2394→            inStock: 5,
+    72→  2395→            specs: 'Executive chair, leather, lumbar support',
+    73→  2396→            description: 'Premium executive seating with polished aluminum base.',
+    74→  2397→            origin: 'Italy',
+    75→  2398→            leadTime: 14
+    76→  2399→        }, {
+    77→  2400→            id: 'p6',
+    78→  2401→            name: 'Frezza Meeting Table',
+    79→  2402→            supplier: 'Frezza IT',
+    80→  2403→            category: 'desks',
+    81→  2404→            emoji: '🪵',
+    82→  2405→            cost: 2400000,
+    83→  2406→            price: 3200000,
+    84→  2407→            stock: 6,
+    85→  2408→            inStock: 4,
+    86→  2409→            specs: '300×120cm, oval, power outlets',
+    87→  2410→            description: 'Large conference table with integrated power and data ports.',
+    88→  2411→            origin: 'Italy',
+    89→  2412→            leadTime: 12
+    90→  2413→        }, {
+    91→  2414→            id: 'p7',
+    92→  2415→            name: 'Dieffebi Glass Wall',
+    93→  2416→            supplier: 'Dieffebi FR',
+    94→  2417→            category: 'walls',
+    95→  2418→            emoji: '🪟',
+    96→  2419→            cost: 450000,
+    97→  2420→            price: 590000,
+    98→  2421→            stock: 20,
+    99→  2422→            inStock: 12,
+   100→  2423→            specs: 'Full glass, 2.5m, soundproof, sliding',
+   101→  2424→            description: 'Elegant glass partition with sliding doors. Modern aesthetic.',
+   102→  2425→            origin: 'France',
+   103→  2426→            leadTime: 10
+   104→  2427→        }, {
+   105→  2428→            id: 'p8',
+   106→  2429→            name: 'SmartTrack Lighting',
+   107→  2430→            supplier: 'Mali Lumière',
+   108→  2431→            category: 'lighting',
+   109→  2432→            emoji: '💡',
+   110→  2433→            cost: 98000,
+   111→  2434→            price: 135000,
+   112→  2435→            stock: 60,
+   113→  2436→            inStock: 48,
+   114→  2437→            specs: 'Track system, 24V, dimmable LEDs',
+   115→  2438→            description: 'Versatile track lighting for galleries, showrooms, and offices.',
+   116→  2439→            origin: 'Mali (assembled)',
+   117→  2440→            leadTime: 2
+   118→  2441→        }, {
+   119→  2442→            id: 'p9',
+   120→  2443→            name: 'Steelcase Storage Cabinet',
+   121→  2444→            supplier: 'Steelcase EU',
+   122→  2445→            category: 'storage',
+   123→  2446→            emoji: '🗄️',
+   124→  2447→            cost: 550000,
+   125→  2448→            price: 750000,
+   126→  2449→            stock: 15,
+   127→  2450→            inStock: 9,
+   128→  2451→            specs: '120×45×180cm, lockable, 4 shelves',
+   129→  2452→            description: 'Secure storage cabinet for offices. Powder-coated steel.',
+   130→  2453→            origin: 'Italy',
+   131→  2454→            leadTime: 14
+   132→  2455→        }, {
+   133→  2456→            id: 'p10',
+   134→  2457→            name: 'Frezza Sideboard',
+   135→  2458→            supplier: 'Frezza IT',
+   136→  2459→            category: 'storage',
+   137→  2460→            emoji: '🗄️',
+   138→  2461→            cost: 380000,
+   139→  2462→            price: 510000,
+   140→  2463→            stock: 8,
+   141→  2464→            inStock: 6,
+   142→  2465→            specs: '150×50×75cm, wood veneer, 2 doors',
+   143→  2466→            description: 'Elegant sideboard for meeting rooms and reception areas.',
+   144→  2467→            origin: 'Italy',
+   145→  2468→            leadTime: 10
+   146→  2469→        }];
+   147→  2470→
+   148→  2471→        const PROJECTS_DATA = [{
+   149→  2472→            id: 'pr1',
+   150→  2473→            name: 'BCG Tower',
+   151→  2474→            client: 'BCG',
+   152→  2475→            budget: 48000000,
+   153→  2476→            spent: 31000000,
+   154→  2477→            status: 'active',
+   155→  2478→            phase: 'Installation',
+   156→  2479→            startDate: '2026-06-01',
+   157→  2480→            endDate: '2026-10-15',
+   158→  2481→            location: 'Bamako, Mali',
+   159→  2482→            items: ['p1', 'p2', 'p3', 'p4']
+   160→  2483→        }, {
+   161→  2484→            id: 'pr2',
+   162→  2485→            name: 'Banque Nationale',
+   163→  2486→            client: 'BNP',
+   164→  2487→            budget: 35000000,
+   165→  2488→            spent: 18000000,
+   166→  2489→            status: 'active',
+   167→  2490→            phase: 'Procurement',
+   168→  2491→            startDate: '2026-07-15',
+   169→  2492→            endDate: '2026-11-30',
+   170→  2493→            location: 'Bamako, Mali',
+   171→  2494→            items: ['p3', 'p4', 'p5', 'p9']
+   172→  2495→        }, {
+   173→  2496→            id: 'pr3',
+   174→  2497→            name: 'Radisson Blu',
+   175→  2498→            client: 'Radisson',
+   176→  2499→            budget: 62000000,
+   177→  2500→            spent: 55000000,
+   178→  2501→            status: 'active',
+   179→  2502→            phase: 'Final Installation',
+   180→  2503→            startDate: '2026-03-01',
+   181→  2504→            endDate: '2026-09-30',
+   182→  2505→            location: 'Bamako, Mali',
+   183→  2506→            items: ['p2', 'p6', 'p7', 'p8', 'p10']
+   184→  2507→        }, {
+   185→  2508→            id: 'pr4',
+   186→  2509→            name: 'UN Office Bamako',
+   187→  2510→            client: 'UN',
+   188→  2511→            budget: 28000000,
+   189→  2512→            spent: 27000000,
+   190→  2513→            status: 'completed',
+   191→  2514→            phase: 'Completed',
+   192→  2515→            startDate: '2025-11-01',
+   193→  2516→            endDate: '2026-04-30',
+   194→  2517→            location: 'Bamako, Mali',
+   195→  2518→            items: ['p1', 'p4', 'p8', 'p9']
+   196→  2519→        }, {
+   197→  2520→            id: 'pr5',
+   198→  2521→            name: 'Mali Digital Hub',
+   199→  2522→            client: 'Ministère',
+   200→  2523→            budget: 22000000,
+   201→  2524→            spent: 8200000,
+   202→  2525→            status: 'active',
+   203→  2526→            phase: 'Design',
+   204→  2527→            startDate: '2026-08-01',
+   205→  2528→            endDate: '2026-12-20',
+   206→  2529→            location: 'Bamako, Mali',
+   207→  2530→            items: ['p2', 'p3', 'p8', 'p10']
+   208→  2531→        }];
+   209→  2532→
+   210→  2533→        const LOGISTICS_EVENTS = [
+   211→  2534→            { title: 'Shipped · Milan (Frezza)', desc: 'Container #FR-8821 · 42 units', eta: '✅ Arrived', dot: 'green',
+   212→  2535→                timestamp: '2026-08-07' },
+   213→  2536→            { title: 'In-Transit · Dakar Port', desc: 'Steelcase container · Customs clearance', eta: '2 days',
+   214→  2537→                dot: 'gold', timestamp: '2026-08-06' },
+   215→  2538→            { title: 'Overland · Kayes → Bamako', desc: 'Truck #ML-204 · 60% of route', eta: '3 days', dot: '',
+   216→  2539→                timestamp: '2026-08-05' },
+   217→  2540→            { title: 'Final Delivery · BCG Site', desc: 'Installation crew on standby', eta: '5 days', dot: '',
+   218→  2541→                timestamp: '2026-08-04' },
+   219→  2542→            { title: 'Customs Clearance · Dakar', desc: 'Container #FR-8823 · Frezza desks', eta: '⚠️ 4 days',
+   220→  2543→                dot: 'red', timestamp: '2026-08-03' }
+   221→  2544→        ];
+   222→  2545→
+   223→  2546→        const AFTERSALES_TICKETS = [
+   224→  2547→            { id: 'T-102', title: '🪑 Hydraulic adjustment', desc: 'Steelcase Gesture · BCG Tower', status: 'In Progress',
+   225→  2548→                statusClass: 'orange', priority: 'high', created: '2026-08-05' },
+   226→  2549→            { id: 'T-103', title: '🔩 Panel replacement', desc: 'Dieffebi Wall · BNP', status: 'Pending Part',
+   227→  2550→                statusClass: 'blue', priority: 'medium', created: '2026-08-03' },
+   228→  2551→            { id: 'T-098', title: '💡 LED flickering', desc: 'Luxury LED · BCG Tower', status: 'Resolved',
+   229→  2552→                statusClass: 'green', priority: 'low', created: '2026-07-28' },
+   230→  2553→            { id: 'T-104', title: '🔧 Desk leveling', desc: 'Frezza F1 Desk · Radisson', status: 'New',
+   231→  2554→                statusClass: 'purple', priority: 'medium', created: '2026-08-07' }
+   232→  2555→        ];
+   233→  2556→
+   234→  2557→        const PURCHASE_ORDERS = [
+   235→  2558→            { id: 'PO-8821', supplier: 'Steelcase · Milan → Dakar', status: 'In Transit', statusClass: 'orange',
+   236→  2559→                amount: 14200000, date: '2026-07-25', eta: '2026-08-12' },
+   237→  2560→            { id: 'PO-8823', supplier: 'Frezza · Italy → Dakar', status: 'Awaiting Shipment', statusClass: 'blue',
+   238→  2561→                amount: 8700000, date: '2026-08-01', eta: '2026-08-18' },
+   239→  2562→            { id: 'PO-8815', supplier: 'Dieffebi · France', status: 'Delivered', statusClass: 'green', amount: 5100000,
+   240→  2563→                date: '2026-07-15', eta: '2026-07-28' },
+   241→  2564→            { id: 'PO-8827', supplier: 'Mali Lumière · Local', status: 'Processing', statusClass: 'purple', amount: 2200000,
+   242→  2565→                date: '2026-08-06', eta: '2026-08-20' }
+   243→  2566→        ];
+   244→  2567→
+   245→  2568→        // ─── FINANCE DATA ───
+   246→  2569→        let expenses = [
+   247→  2570→            { id: 'e1', title: 'Office Rent · June', amount: 2800000, category: 'Rent', date: '2026-06-01',
+   248→  2571→                status: 'Paid', approval: 'Approved', createdBy: 'Mamadou D.' },
+   249→  2572→            { id: 'e2', title: 'Staff Salaries · July', amount: 4500000, category: 'Salaries', date: '2026-07-31',
+   250→  2573→                status: 'Paid', approval: 'Approved', createdBy: 'Aïssata T.' },
+   251→  2574→            { id: 'e3', title: 'Electricity & Water', amount: 620000, category: 'Utilities', date: '2026-07-15',
+   252→  2575→                status: 'Paid', approval: 'Approved', createdBy: 'Mamadou D.' },
+   253→  2576→            { id: 'e4', title: 'Marketing Campaign', amount: 850000, category: 'Marketing', date: '2026-07-20',
+   254→  2577→                status: 'Pending', approval: 'Pending', createdBy: 'Souleymane K.' },
+   255→  2578→            { id: 'e5', title: 'Transport · Dakar-Bamako', amount: 1200000, category: 'Transport', date: '2026-08-05',
+   256→  2579→                status: 'Pending', approval: 'Pending', createdBy: 'Fatoumata C.' },
+   257→  2580→            { id: 'e6', title: 'Office Supplies', amount: 240000, category: 'Supplies', date: '2026-08-02',
+   258→  2581→                status: 'Paid', approval: 'Approved', createdBy: 'Mamadou D.' }
+   259→  2582→        ];
+   260→  2583→
+   261→  2584→        let invoices = [
+   262→  2585→            { id: 'inv-1', client: 'BCG', amount: 12500000, date: '2026-07-15', status: 'Pending', dueDate: '2026-08-15',
+   263→  2586→                paidAmount: 0 },
+   264→  2587→            { id: 'inv-2', client: 'BNP', amount: 8700000, date: '2026-07-20', status: 'Pending', dueDate: '2026-08-20',
+   265→  2588→                paidAmount: 0 },
+   266→  2589→            { id: 'inv-3', client: 'Radisson', amount: 4200000, date: '2026-06-30', status: 'Paid', dueDate: '2026-07-30',
+   267→  2590→                paidAmount: 4200000 },
+   268→  2591→            { id: 'inv-4', client: 'UN', amount: 5600000, date: '2026-07-05', status: 'Overdue', dueDate: '2026-08-05',
+   269→  2592→                paidAmount: 0 }
+   270→  2593→        ];
+   271→  2594→
+   272→  2595→        let bills = [
+   273→  2596→            { id: 'bill-1', supplier: 'Steelcase', amount: 8200000, date: '2026-07-10', status: 'Pending',
+   274→  2597→                dueDate: '2026-08-10' },
+   275→  2598→            { id: 'bill-2', supplier: 'Frezza', amount: 4600000, date: '2026-07-25', status: 'Pending',
+   276→  2599→                dueDate: '2026-08-25' },
+   277→  2600→            { id: 'bill-3', supplier: 'Dieffebi', amount: 2100000, date: '2026-06-20', status: 'Paid',
+   278→  2601→                dueDate: '2026-07-20' }
+   279→  2602→        ];
+   280→  2603→
+   281→  2604→        let teamMembers = [
+   282→  2605→            { id: 't1', name: 'Mamadou Diallo', role: 'CEO / Founder', status: 'Active' },
+   283→  2606→            { id: 't2', name: 'Aïssata Traoré', role: 'Commercial Director', status: 'Active' },
+   284→  2607→            { id: 't3', name: 'Souleymane Keïta', role: 'Supply Chain Manager', status: 'Active' },
+   285→  2608→            { id: 't4', name: 'Fatoumata Coulibaly', role: 'Finance Controller', status: 'Active' },
+   286→  2609→            { id: 't5', name: 'Ibrahim Sangaré', role: 'Senior Sales Consultant', status: 'On Leave' }
+   287→  2610→        ];
+   288→  2611→
+   289→  2612→        // ─── RECURRING EXPENSES ───
+   290→  2613→        let recurringExpenses = [
+   291→  2614→            { id: 'r1', title: 'Office Rent', amount: 2800000, frequency: 'Monthly', nextDate: '2026-09-01' },
+   292→  2615→            { id: 'r2', title: 'Software Subscriptions', amount: 450000, frequency: 'Monthly', nextDate: '2026-09-15' },
+   293→  2616→            { id: 'r3', title: 'Insurance Premium', amount: 1200000, frequency: 'Yearly', nextDate: '2027-01-01' }
+   294→  2617→        ];
+   295→  2618→
+   296→  2619→        // ─── BUDGET VS ACTUAL ───
+   297→  2620→        let budgetData = {
+   298→  2621→            'Salaries': { budget: 5000000, actual: 4500000 },
+   299→  2622→            'Rent': { budget: 3000000, actual: 2800000 },
+   300→  2623→            'Utilities': { budget: 700000, actual: 620000 },
+   301→  2624→            'Marketing': { budget: 1000000, actual: 850000 },
+   302→  2625→            'Transport': { budget: 800000, actual: 1200000 },
+   303→  2626→            'Supplies': { budget: 300000, actual: 240000 },
+   304→  2627→            'Operations': { budget: 1500000, actual: 800000 }
+   305→  2628→        };
+   306→  2629→
+   307→  2630→        // ─── AUDIT TRAIL ───
+   308→  2631→        let auditTrail = [];
+   309→  2632→
+   310→  2633→        // ──────────────────────────────────────────────────────────────
+   311→  2634→        //  STATE
+   312→  2635→        // ──────────────────────────────────────────────────────────────
+   313→  2636→
+   314→  2637→        let proposals = [];
+   315→  2638→        let currentProposal = null;
+   316→  2639→        let editingProposalId = null;
+   317→  2640→        let currentProject = 'bcg';
+   318→  2641→        let currentCurrency = 'XOF';
+   319→  2642→        let currentView = 'dashboard';
+   320→  2643→        let activityLog = [];
+   321→  2644→        let isDarkMode = false;
+   322→  2645→
+   323→  2646→        const currencySymbols = { XOF: 'CFA', EUR: '€', USD: '$' };
+   324→  2647→        const exchangeRates = { XOF: 1, EUR: 0.0015, USD: 0.0016 };
+   325→  2648→        const VAT_RATE = 0.18;
+   326→  2649→
+   327→  2650→        // ──────────────────────────────────────────────────────────────
+   328→  2651→        //  HELPERS
+   329→  2652→        // ──────────────────────────────────────────────────────────────
+   330→  2653→
+   331→  2654→        function formatPrice(amount) {
+   332→  2655→            const symbol = currencySymbols[currentCurrency];
+   333→  2656→            const rate = exchangeRates[currentCurrency];
+   334→  2657→            const converted = amount * rate;
+   335→  2658→            if (currentCurrency === 'XOF') {
+   336→  2659→                if (converted >= 1000000) return `${symbol} ${(converted / 1000000).toFixed(1)}M`;
+   337→  2660→                if (converted >= 1000) return `${symbol} ${(converted / 1000).toFixed(1)}k`;
+   338→  2661→                return `${symbol} ${Math.round(converted)}`;
+   339→  2662→            }
+   340→  2663→            if (converted >= 1000) return `${symbol} ${(converted / 1000).toFixed(1)}k`;
+   341→  2664→            return `${symbol} ${converted.toFixed(2)}`;
+   342→  2665→        }
+   343→  2666→
+   344→  2667→        function formatPriceFull(amount) {
+   345→  2668→            const symbol = currencySymbols[currentCurrency];
+   346→  2669→            const rate = exchangeRates[currentCurrency];
+   347→  2670→            const converted = amount * rate;
+   348→  2671→            if (currentCurrency === 'XOF') {
+   349→  2672→                return `${symbol} ${Math.round(converted).toLocaleString()}`;
+   350→  2673→            }
+   351→  2674→            return `${symbol} ${converted.toFixed(2)}`;
+   352→  2675→        }
+   353→  2676→
+   354→  2677→        function getProduct(id) { return PRODUCTS.find(p => p.id === id); }
+   355→  2678→
+   356→  2679→        function getProjectByKey(key) {
+   357→  2680→            if (key === 'bcg') return PROJECTS_DATA.find(p => p.name.includes('BCG'));
+   358→  2681→            if (key === 'bnp') return PROJECTS_DATA.find(p => p.name.includes('Banque'));
+   359→  2682→            return null;
+   360→  2683→        }
+   361→  2684→
+   362→  2685→        function getProjectInventory(projectKey) {
+   363→  2686→            const project = PROJECTS_DATA.find(p => {
+   364→  2687→                const key = p.name.toLowerCase().replace(/\s/g, '');
+   365→  2688→                return key.includes(projectKey) || projectKey.includes(key);
+   366→  2689→            });
+   367→  2690→            if (!project) return [];
+   368→  2691→            return project.items.map(id => {
+   369→  2692→                const prod = getProduct(id);
+   370→  2693→                if (!prod) return null;
+   371→  2694→                const stockPct = prod.inStock / prod.stock;
+   372→  2695→                let status = 'OK',
+   373→  2696→                    statusClass = 'green';
+   374→  2697→                if (stockPct < 0.3) { status = 'Critical';
+   375→  2698→                    statusClass = 'red'; } else if (stockPct < 0.6) { status = 'Low';
+   376→  2699→                    statusClass = 'orange'; }
+   377→  2700→                return { ...prod, qty: `${prod.inStock}/${prod.stock}`, status, statusClass };
+   378→  2701→            }).filter(Boolean);
+   379→  2702→        }
+   380→  2703→
+   381→  2704→        function getStatusCounts() {
+   382→  2705→            const critical = [];
+   383→  2706→            const low = [];
+   384→  2707→            PRODUCTS.forEach(p => {
+   385→  2708→                const pct = p.inStock / p.stock;
+   386→  2709→                if (pct < 0.3) critical.push(p.name);
+   387→  2710→                else if (pct < 0.6) low.push(p.name);
+   388→  2711→            });
+   389→  2712→            return { critical, low, total: critical.length + low.length };
+   390→  2713→        }
+   391→  2714→
+   392→  2715→        function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+   393→  2716→
+   394→  2717→        function getTimestamp() { return new Date().toISOString(); }
+   395→  2718→
+   396→  2719→        function formatDate(d) {
+   397→  2720→            if (!d) return 'N/A';
+   398→  2721→            const dt = new Date(d);
+   399→  2722→            return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+   400→  2723→        }
+   401→  2724→
+   402→  2725→        function timeAgo(date) {
+   403→  2726→            const diff = Date.now() - new Date(date).getTime();
+   404→  2727→            const mins = Math.floor(diff / 60000);
+   405→  2728→            if (mins < 1) return 'Just now';
+   406→  2729→            if (mins < 60) return `${mins}m ago`;
+   407→  2730→            const hrs = Math.floor(mins / 60);
+   408→  2731→            if (hrs < 24) return `${hrs}h ago`;
+   409→  2732→            return `${Math.floor(hrs / 24)}d ago`;
+   410→  2733→        }
+   411→  2734→
+   412→  2735→        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+   413→  2736→
+   414→  2737→        function navigateTo(view) {
+   415→  2738→            const navItem = document.querySelector(`.nav-item[data-view="${view}"]`);
+   416→  2739→            if (navItem) navItem.click();
+   417→  2740→        }
+   418→  2741→
+   419→  2742→        // ──────────────────────────────────────────────────────────────
+   420→  2743→        //  TOAST SYSTEM
+   421→  2744→        // ──────────────────────────────────────────────────────────────
+   422→  2745→
+   423→  2746→        function showToast(message, type = 'info', icon = '📢') {
+   424→  2747→            const container = document.getElementById('toastContainer');
+   425→  2748→            const toast = document.createElement('div');
+   426→  2749→            toast.className = `toast ${type}`;
+   427→  2750→            toast.innerHTML = `
+   428→  2751→                    <span class="toast-icon">${icon}</span>
+   429→  2752→                    <span class="toast-msg">${message}</span>
+   430→  2753→                    <button class="toast-close">✕</button>
+   431→  2754→                `;
+   432→  2755→            toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+   433→  2756→            container.appendChild(toast);
+   434→  2757→            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
+   435→  2758→        }
+   436→  2759→
+   437→  2760→        // ──────────────────────────────────────────────────────────────
+   438→  2761→        //  ACTIVITY LOG
+   439→  2762→        // ──────────────────────────────────────────────────────────────
+   440→  2763→
+   441→  2764→        function addActivity(action, details, icon = '📌') {
+   442→  2765→            activityLog.unshift({ id: generateId(), action, details, icon, timestamp: getTimestamp() });
+   443→  2766→            if (activityLog.length > 50) activityLog.pop();
+   444→  2767→            renderActivityLog();
+   445→  2768→            try { localStorage.setItem('future_os_activity', JSON.stringify(activityLog)); } catch (e) {}
+   446→  2769→            // Add to audit trail
+   447→  2770→            auditTrail.push({
+   448→  2771→                id: generateId(),
+   449→  2772→                action,
+   450→  2773→                details,
+   451→  2774→                user: 'Mamadou D.',
+   452→  2775→                timestamp: getTimestamp()
+   453→  2776→            });
+   454→  2777→            try { localStorage.setItem('future_os_audit', JSON.stringify(auditTrail)); } catch (e) {}
+   455→  2778→        }
+   456→  2779→
+   457→  2780→        function renderActivityLog() {
+   458→  2781→            const container = document.getElementById('activityLog');
+   459→  2782→            if (!container) return;
+   460→  2783→            if (activityLog.length === 0) {
+   461→  2784→                container.innerHTML =
+   462→  2785→                    `<div class="empty-state" style="padding:20px;"><p style="font-size:13px;">No recent activity</p></div>`;
+   463→  2786→                return;
+   464→  2787→            }
+   465→  2788→            container.innerHTML = activityLog.slice(0, 15).map(a => `
+   466→  2789→                    <div class="activity-item">
+   467→  2790→                        <span class="act-icon">${a.icon}</span>
+   468→  2791→                        <span class="act-time">${timeAgo(a.timestamp)}</span>
+   469→  2792→                        <span class="act-text"><strong>${a.action}</strong> ${a.details}</span>
+   470→  2793→                    </div>
+   471→  2794→                `).join('');
+   472→  2795→        }
+   473→  2796→
+   474→  2797→        // ──────────────────────────────────────────────────────────────
+   475→  2798→        //  RENDER: INVENTORY
+   476→  2799→        // ──────────────────────────────────────────────────────────────
+   477→  2800→
+   478→  2801→        function renderInventory() {
+   479→  2802→            const data = getProjectInventory(currentProject);
+   480→  2803→            const tbody = document.getElementById('inventoryBody');
+   481→  2804→            if (!tbody) return;
+   482→  2805→            if (data.length === 0) {
+   483→  2806→                tbody.innerHTML =
+   484→  2807→                    `<tr><td colspan="4" style="text-align:center;color:#999;padding:24px;">No inventory data for this project</td></tr>`;
+   485→  2808→                return;
+   486→  2809→            }
+   487→  2810→            tbody.innerHTML = data.map(item => `
+   488→  2811→                    <tr onclick="openModal('${item.name}', '${item.supplier}', '${item.qty}', ${item.cost}, '${item.status}', '${item.description || ''}', '${item.origin || ''}')">
+   489→  2812→                        <td><strong>${item.emoji || '📦'} ${item.name}</strong></td>
+   490→  2813→                        <td>${item.supplier}</td>
+   491→  2814→                        <td>${item.qty}</td>
+   492→  2815→                        <td><span class="status ${item.statusClass}">${item.status}</span></td>
+   493→  2816→                    </tr>
+   494→  2817→                `).join('');
+   495→  2818→            document.getElementById('tableProjectName').innerText = currentProject.toUpperCase();
+   496→  2819→
+   497→  2820→            const total = data.reduce((sum, i) => sum + i.cost * (parseInt(i.qty.split('/')[0]) || 0), 0);
+   498→  2821→            document.getElementById('totalValue').innerText = formatPrice(total);
+   499→  2822→            document.getElementById('totalValueSub').innerText = `${data.length} items in project`;
+   500→  2823→
+   501→  2824→            const counts = getStatusCounts();
+   502→  2825→            document.getElementById('alertBadge').innerText = counts.total;
+   503→  2826→            document.getElementById('alertSub').innerText = counts.total > 0 ?
+   504→  2827→                `${counts.critical.length} critical, ${counts.low.length} low` :
+   505→  2828→                'All clear';
+   506→  2829→            document.getElementById('notifCount').innerText = counts.total;
+   507→  2830→            const dot = document.getElementById('notifDot');
+   508→  2831→            if (counts.total > 0) { dot.style.display = 'flex';
+   509→  2832→                dot.innerText = counts.total; } else { dot.style.display = 'none'; }
+   510→  2833→            document.getElementById('inventoryBadge').innerText = data.length;
+   511→  2834→            updateChart(data);
+   512→  2835→            updateWidgets();
+   513→  2836→        }
+   514→  2837→
+   515→  2838→        function renderFullInventory() {
+   516→  2839→            const tbody = document.getElementById('fullInventoryBody');
+   517→  2840→            if (!tbody) return;
+   518→  2841→            const allItems = [];
+   519→  2842→            PROJECTS_DATA.forEach(proj => {
+   520→  2843→                const key = proj.name.toLowerCase().replace(/\s/g, '');
+   521→  2844→                const data = getProjectInventory(key);
+   522→  2845→                data.forEach(item => { allItems.push({ ...item, project: proj.name }); });
+   523→  2846→            });
+   524→  2847→            if (allItems.length === 0) {
+   525→  2848→                tbody.innerHTML =
+   526→  2849→                    `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No inventory items found</td></tr>`;
+   527→  2850→                return;
+   528→  2851→            }
+   529→  2852→            tbody.innerHTML = allItems.map(item => `
+   530→  2853→                    <tr>
+   531→  2854→                        <td><strong>${item.emoji || '📦'} ${item.name}</strong></td>
+   532→  2855→                        <td>${item.supplier}</td>
+   533→  2856→                        <td>${item.project}</td>
+   534→  2857→                        <td>${item.qty}</td>
+   535→  2858→                        <td>${formatPrice(item.cost)}</td>
+   536→  2859→                        <td><span class="status ${item.statusClass}">${item.status}</span></td>
+   537→  2860→                    </tr>
+   538→  2861→                `).join('');
+   539→  2862→        }
+   540→  2863→
+   541→  2864→        // ──────────────────────────────────────────────────────────────
+   542→  2865→        //  RENDER: CHART
+   543→  2866→        // ──────────────────────────────────────────────────────────────
+   544→  2867→
+   545→  2868→        function updateChart(data) {
+   546→  2869→            const container = document.getElementById('chartContainer');
+   547→  2870→            if (!container) return;
+   548→  2871→            const bars = container.querySelectorAll('.chart-bar');
+   549→  2872→            const project = getProjectByKey(currentProject);
+   550→  2873→            document.getElementById('chartProjectName').innerText = project ? project.name : 'BCG Tower';
+   551→  2874→            const categories = ['Steelcase', 'Frezza', 'Dieffebi', 'Lighting', 'Logistics'];
+   552→  2875→            const values = categories.map(cat => {
+   553→  2876→                const items = data.filter(i => i.name.includes(cat) || i.supplier.includes(cat));
+   554→  2877→                return items.reduce((sum, i) => sum + (i.cost * (parseInt(i.qty.split('/')[0]) || 0)), 0);
+   555→  2878→            });
+   556→  2879→            const maxVal = Math.max(...values, 1);
+   557→  2880→            bars.forEach((bar, idx) => {
+   558→  2881→                const fill = bar.querySelector('.fill');
+   559→  2882→                const val = values[idx] || 0;
+   560→  2883→                const pct = (val / maxVal) * 100;
+   561→  2884→                fill.style.height = Math.max(pct, 5) + '%';
+   562→  2885→                const label = bar.querySelector('.label');
+   563→  2886→                if (label) label.textContent = categories[idx] || 'Other';
+   564→  2887→            });
+   565→  2888→        }
+   566→  2889→
+   567→  2890→        // ──────────────────────────────────────────────────────────────
+   568→  2891→        //  RENDER: LOGISTICS
+   569→  2892→        // ──────────────────────────────────────────────────────────────
+   570→  2893→
+   571→  2894→        function renderLogistics() {
+   572→  2895→            const container = document.getElementById('logisticsList');
+   573→  2896→            if (!container) return;
+   574→  2897→            const events = LOGISTICS_EVENTS.slice(0, 5);
+   575→  2898→            container.innerHTML = events.map(item => `
+   576→  2899→                    <div class="log-item" onclick="showToast('📦 ${item.title}: ${item.desc}', 'info', '🚛')">
+   577→  2900→                        <div class="dot ${item.dot}"></div>
+   578→  2901→                        <div class="content"><div class="title">${item.title}</div><div class="desc">${item.desc} · ${timeAgo(item.timestamp)}</div></div>
+   579→  2902→                        <div class="eta">${item.eta}</div>
+   580→  2903→                    </div>
+   581→  2904→                `).join('');
+   582→  2905→        }
+   583→  2906→
+   584→  2907→        // ──────────────────────────────────────────────────────────────
+   585→  2908→        //  RENDER: PROPOSALS
+   586→  2909→        // ──────────────────────────────────────────────────────────────
+   587→  2910→
+   588→  2911→        function renderProposalList() {
+   589→  2912→            const container = document.getElementById('proposalList');
+   590→  2913→            if (!container) return;
+   591→  2914→            if (proposals.length === 0) {
+   592→  2915→                container.innerHTML = `
+   593→  2916→                        <div class="empty-state">
+   594→  2917→                            <div class="empty-icon">📄</div>
+   595→  2918→                            <h4>No proposals yet</h4>
+   596→  2919→                            <p>Click <strong>+ New Proposal</strong> to create your first visual proposal.</p>
+   597→  2920→                        </div>
+   598→  2921→                    `;
+   599→  2922→                document.getElementById('proposalBadge').innerText = '0';
+   600→  2923→                document.getElementById('dashProposalCount').innerText = '0';
+   601→  2924→                document.getElementById('dashProposalSub').innerText = 'No proposals';
+   602→  2925→                return;
+   603→  2926→            }
+   604→  2927→            const statusMap = { draft: '🟡 Draft', sent: '🔵 Sent', approved: '🟢 Approved', rejected: '🔴 Rejected' };
+   605→  2928→            container.innerHTML = proposals.map((p) => {
+   606→  2929→                const total = p.items.reduce((sum, i) => {
+   607→  2930→                    const prod = getProduct(i.productId);
+   608→  2931→                    return sum + (prod ? prod.price * i.qty : 0);
+   609→  2932→                }, 0);
+   610→  2933→                const markup = total * 0.3;
+   611→  2934→                const grand = total + markup;
+   612→  2935→                return `
+   613→  2936→                        <div class="proposal-list-item" onclick="openProposalDetail('${p.id}')">
+   614→  2937→                            <div class="pl-left">
+   615→  2938→                                <div class="pl-title">${p.client} · ${p.project}</div>
+   616→  2939→                                <div class="pl-meta">${formatDate(p.date)} · ${p.items.length} items · ${p.id}</div>
+   617→  2940→                            </div>
+   618→  2941→                            <div class="pl-right">
+   619→  2942→                                <div class="pl-amount">${formatPrice(grand)}</div>
+   620→  2943→                                <div class="pl-status">${statusMap[p.status] || '🟡 Draft'}</div>
+   621→  2944→                            </div>
+   622→  2945→                        </div>
+   623→  2946→                    `;
+   624→  2947→            }).join('');
+   625→  2948→            document.getElementById('proposalBadge').innerText = proposals.length;
+   626→  2949→            document.getElementById('dashProposalCount').innerText = proposals.length;
+   627→  2950→            document.getElementById('dashProposalSub').innerText = proposals.length > 0 ?
+   628→  2951→                `${proposals.filter(p => p.status === 'draft').length} drafts ready` :
+   629→  2952→                'No proposals';
+   630→  2953→        }
+   631→  2954→
+   632→  2955→        function openProposalDetail(id) {
+   633→  2956→            const p = proposals.find(pr => pr.id === id);
+   634→  2957→            if (!p) return;
+   635→  2958→            const total = p.items.reduce((sum, i) => {
+   636→  2959→                const prod = getProduct(i.productId);
+   637→  2960→                return sum + (prod ? prod.price * i.qty : 0);
+   638→  2961→            }, 0);
+   639→  2962→            const markup = total * 0.3;
+   640→  2963→            const grand = total + markup;
+   641→  2964→            const statusMap = { draft: '🟡 Draft', sent: '🔵 Sent', approved: '🟢 Approved', rejected: '🔴 Rejected' };
+   642→  2965→            document.getElementById('modalTitle').innerText = `📄 ${p.client} · ${p.project}`;
+   643→  2966→            document.getElementById('modalBody').innerHTML = `
+   644→  2967→                    <div class="detail-row"><span>Client</span><strong>${p.client}</strong></div>
+   645→  2968→                    <div class="detail-row"><span>Project</span><strong>${p.project}</strong></div>
+   646→  2969→                    <div class="detail-row"><span>Date</span><strong>${formatDate(p.date)}</strong></div>
+   647→  2970→                    <div class="detail-row"><span>Status</span><strong>${statusMap[p.status] || 'Draft'}</strong></div>
+   648→  2971→                    <div class="detail-row"><span>Created</span><strong>${timeAgo(p.createdAt)}</strong></div>
+   649→  2972→                    ${p.sentAt ? `<div class="detail-row"><span>Sent</span><strong>${timeAgo(p.sentAt)}</strong></div>` : ''}
+   650→  2973→                    <div style="margin:12px 0; border-top:1px solid #eee; padding-top:12px;">
+   651→  2974→                        <strong>Items (${p.items.length})</strong>
+   652→  2975→                        ${p.items.map(it => {
+   653→  2976→                            const prod = getProduct(it.productId);
+   654→  2977→                            return prod ? `<div style="display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid #f6f6f6;">
+   655→  2978→                                <span>${prod.emoji} ${prod.name} ×${it.qty}</span>
+   656→  2979→                                <span>${formatPrice(prod.price * it.qty)}</span>
+   657→  2980→                            </div>` : '';
+   658→  2981→                        }).join('')}
+   659→  2982→                    </div>
+   660→  2983→                    <div class="detail-row"><span>Subtotal</span><strong>${formatPrice(total)}</strong></div>
+   661→  2984→                    <div class="detail-row"><span>Markup (30%)</span><strong>${formatPrice(markup)}</strong></div>
+   662→  2985→                    <div class="detail-row" style="font-weight:700; font-size:18px;"><span>Grand Total</span><strong>${formatPrice(grand)}</strong></div>
+   663→  2986→                    <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+   664→  2987→                        ${p.status === 'draft' ? `
+   665→  2988→                            <button onclick="sendProposal('${p.id}')" style="background:#0b0b0b; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">📧 Send to Client</button>
+   666→  2989→                        ` : `
+   667→  2990→                            <button onclick="showToast('Proposal already sent to ${p.client}', 'info', '📧')" style="background:#666; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">Already Sent</button>
+   668→  2991→                        `}
+   669→  2992→                        <button onclick="printProposalDetail('${p.id}')" style="background:#1e7a1e; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">📄 PDF</button>
+   670→  2993→                        <button onclick="deleteProposal('${p.id}')" style="background:#d32f2f; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">🗑️ Delete</button>
+   671→  2994→                        <button onclick="document.getElementById('detailModal').classList.remove('open')" style="background:transparent; border:1px solid #ddd; padding:10px 20px; border-radius:40px; cursor:pointer;">Close</button>
+   672→  2995→                    </div>
+   673→  2996→                `;
+   674→  2997→            document.getElementById('detailModal').classList.add('open');
+   675→  2998→        }
+   676→  2999→
+   677→  3000→        async function sendProposal(id) {
+   678→  3001→            const p = proposals.find(pr => pr.id === id);
+   679→  3002→            if (p) { p.status = 'sent';
+   680→  3003→                p.sentAt = getTimestamp(); }
+   681→  3004→            try { localStorage.setItem('future_os_proposals', JSON.stringify(proposals)); } catch (e) {}
+   682→  3005→            showToast(`✅ Proposal sent to client!`, 'success', '📧');
+   683→  3006→            renderProposalList();
+   684→  3007→            addActivity('Sent proposal', `ID: ${id}`, '📧');
+   685→  3008→            document.getElementById('detailModal').classList.remove('open');
+   686→  3009→        }
+   687→  3010→
+   688→  3011→        async function deleteProposal(id) {
+   689→  3012→            if (!confirm('Delete this proposal?')) return;
+   690→  3013→            proposals = proposals.filter(p => p.id !== id);
+   691→  3014→            try { localStorage.setItem('future_os_proposals', JSON.stringify(proposals)); } catch (e) {}
+   692→  3015→            showToast('🗑️ Proposal deleted', 'warning', '🗑️');
+   693→  3016→            renderProposalList();
+   694→  3017→            document.getElementById('detailModal').classList.remove('open');
+   695→  3018→            addActivity('Deleted proposal', `ID: ${id}`, '🗑️');
+   696→  3019→        }
+   697→  3020→
+   698→  3021→        function printProposalDetail(id) {
+   699→  3022→            const p = proposals.find(pr => pr.id === id);
+   700→  3023→            if (!p) return;
+   701→  3024→            let subtotal = 0;
+   702→  3025→            let itemsHtml = p.items.map(item => {
+   703→  3026→                const prod = getProduct(item.productId);
+   704→  3027→                if (!prod) return '';
+   705→  3028→                const lineTotal = prod.price * item.qty;
+   706→  3029→                subtotal += lineTotal;
+   707→  3030→                return `
+   708→  3031→                        <tr>
+   709→  3032→                            <td style="padding:8px 4px; border-bottom:1px solid #eee;">${prod.emoji} ${prod.name}</td>
+   710→  3033→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${prod.supplier}</td>
+   711→  3034→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${item.qty}</td>
+   712→  3035→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(prod.price)}</td>
+   713→  3036→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(lineTotal)}</td>
+   714→  3037→                        </tr>
+   715→  3038→                    `;
+   716→  3039→            }).join('');
+   717→  3040→            const markup = subtotal * 0.3;
+   718→  3041→            const grand = subtotal + markup;
+   719→  3042→            const symbol = currencySymbols[currentCurrency];
+   720→  3043→            const printWin = window.open('', '_blank', 'width=900,height=700');
+   721→  3044→            printWin.document.write(`
+   722→  3045→                    <html><head><title>Proposal · ${p.client}</title>
+   723→  3046→                    <style>
+   724→  3047→                        body { font-family: 'Inter', sans-serif; padding:40px; color:#121212; }
+   725→  3048→                        .header { border-bottom: 3px solid #c8a45c; padding-bottom:16px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; }
+   726→  3049→                        .header h1 { font-size:28px; font-weight:700; }
+   727→  3050→                        .header h1 span { color:#c8a45c; }
+   728→  3051→                        .header .meta { font-size:14px; color:#666; }
+   729→  3052→                        table { width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; }
+   730→  3053→                        th { text-align:left; padding:10px 4px; border-bottom:2px solid #ddd; font-weight:600; }
+   731→  3054→                        td { padding:8px 4px; border-bottom:1px solid #f0f0f0; }
+   732→  3055→                        .totals { margin-top:20px; text-align:right; }
+   733→  3056→                        .totals .row { display:flex; justify-content:flex-end; gap:40px; padding:4px 0; }
+   734→  3057→                        .totals .row.grand { font-size:22px; font-weight:700; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px; }
+   735→  3058→                        .footer { margin-top:40px; border-top:1px solid #eee; padding-top:20px; font-size:12px; color:#999; display:flex; justify-content:space-between; }
+   736→  3059→                        .badge { background:#c8a45c; color:#000; padding:2px 16px; border-radius:30px; font-weight:600; font-size:12px; display:inline-block; }
+   737→  3060→                    </style>
+   738→  3061→                    </head><body>
+   739→  3062→                    <div class="header">
+   740→  3063→                        <div><h1>future<span>.</span> concept</h1><div style="font-size:13px; color:#666;">Bamako · Mali</div></div>
+   741→  3064→                        <div class="meta">
+   742→  3065→                            <div><strong>${p.client}</strong></div>
+   743→  3066→                            <div>${p.project}</div>
+   744→  3067→                            <div>${formatDate(p.date)}</div>
+   745→  3068→                        </div>
+   746→  3069→                    </div>
+   747→  3070→                    <h2 style="margin:0 0 4px 0;">Commercial Proposal</h2>
+   748→  3071→                    <div style="margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap;">
+   749→  3072→                        <span class="badge">${p.status.toUpperCase()}</span>
+   750→  3073→                        <span style="font-size:13px; color:#666;">Prepared for ${p.client}</span>
+   751→  3074→                    </div>
+   752→  3075→                    <table>
+   753→  3076→                        <thead><tr><th>Item</th><th>Supplier</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+   754→  3077→                        <tbody>${itemsHtml || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">No items</td></tr>'}</tbody>
+   755→  3078→                    </table>
+   756→  3079→                    <div class="totals">
+   757→  3080→                        <div class="row"><span>Subtotal</span><span>${formatPriceFull(subtotal)}</span></div>
+   758→  3081→                        <div class="row"><span>Markup (30%)</span><span>${formatPriceFull(markup)}</span></div>
+   759→  3082→                        <div class="row grand"><span>Grand Total</span><span>${formatPriceFull(grand)}</span></div>
+   760→  3083→                    </div>
+   761→  3084→                    <div class="footer">
+   762→  3085→                        <div>Generated by Future OS · Vision & Cost</div>
+   763→  3086→                        <div>${new Date().toLocaleDateString()}</div>
+   764→  3087→                    </div>
+   765→  3088→                    <div style="margin-top:16px; font-size:11px; color:#aaa; text-align:center; border-top:1px solid #f0f0f0; padding-top:12px;">
+   766→  3089→                        This is a commercial proposal. All prices are in ${symbol}. Terms & conditions apply.
+   767→  3090→                    </div>
+   768→  3091→                    <script>
+   769→  3092→                        setTimeout(() => { window.print(); }, 500);
+   770→  3093→                    <\/script>
+   771→  3094→                    </body></html>
+   772→  3095→                `);
+   773→  3096→            printWin.document.close();
+   774→  3097→        }
+   775→  3098→
+   776→  3099→        // ──────────────────────────────────────────────────────────────
+   777→  3100→        //  RENDER: CATALOG
+   778→  3101→        // ──────────────────────────────────────────────────────────────
+   779→  3102→
+   780→  3103→        function renderCatalog(gridId, searchId, filterContainerId, isFull = false) {
+   781→  3104→            const grid = document.getElementById(gridId);
+   782→  3105→            if (!grid) return;
+   783→  3106→            const search = document.getElementById(searchId);
+   784→  3107→            const query = search ? search.value.toLowerCase() : '';
+   785→  3108→            const activeFilter = document.querySelector(`#${filterContainerId} .active`);
+   786→  3109→            const category = activeFilter ? activeFilter.dataset.cat : 'all';
+   787→  3110→
+   788→  3111→            let filtered = PRODUCTS;
+   789→  3112→            if (category !== 'all') {
+   790→  3113→                filtered = filtered.filter(p => p.category === category);
+   791→  3114→            }
+   792→  3115→            if (query) {
+   793→  3116→                filtered = filtered.filter(p =>
+   794→  3117→                    p.name.toLowerCase().includes(query) ||
+   795→  3118→                    p.supplier.toLowerCase().includes(query) ||
+   796→  3119→                    p.category.includes(query) ||
+   797→  3120→                    p.origin.toLowerCase().includes(query)
+   798→  3121→                );
+   799→  3122→            }
+   800→  3123→
+   801→  3124→            if (filtered.length === 0) {
+   802→  3125→                grid.innerHTML =
+   803→  3126→                    `<div style="grid-column:1/-1; text-align:center; padding:40px 0; color:#999;"><div style="font-size:32px;">🔍</div><p>No products found</p></div>`;
+   804→  3127→                return;
+   805→  3128→            }
+   806→  3129→
+   807→  3130→            grid.innerHTML = filtered.map(p => {
+   808→  3131→                const stockClass = p.inStock <= 3 ? 'critical' : p.inStock <= 8 ? 'low' : '';
+   809→  3132→                return `
+   810→  3133→                        <div class="product-card" draggable="true" data-id="${p.id}" data-emoji="${p.emoji}" data-name="${p.name}" data-price="${p.price}">
+   811→  3134→                            <div class="stock-badge ${stockClass}">${p.inStock}/${p.stock}</div>
+   812→  3135→                            <div class="img-placeholder">${p.emoji}</div>
+   813→  3136→                            <div class="p-name">${p.name}</div>
+   814→  3137→                            <div class="p-supplier">${p.supplier}</div>
+   815→  3138→                            <div class="p-price">${formatPrice(p.price)}</div>
+   816→  3139→                            ${isFull ? `<div style="font-size:10px; color:#999; margin-top:2px;">${p.origin} · ${p.leadTime}d lead</div>` : ''}
+   817→  3140→                            <button class="add-btn" data-id="${p.id}">+ Add</button>
+   818→  3141→                        </div>
+   819→  3142→                    `;
+   820→  3143→            }).join('');
+   821→  3144→
+   822→  3145→            grid.querySelectorAll('.add-btn').forEach(btn => {
+   823→  3146→                btn.addEventListener('click', function(e) {
+   824→  3147→                    e.stopPropagation();
+   825→  3148→                    const id = this.dataset.id;
+   826→  3149→                    if (document.getElementById('proposalBuilderContainer').style.display === 'block') {
+   827→  3150→                        addToProposal(id);
+   828→  3151→                    } else {
+   829→  3152→                        showToast('Open a proposal first (click + New Proposal)', 'warning', '⚠️');
+   830→  3153→                    }
+   831→  3154→                });
+   832→  3155→            });
+   833→  3156→
+   834→  3157→            grid.querySelectorAll('.product-card[draggable="true"]').forEach(el => {
+   835→  3158→                el.addEventListener('dragstart', function(e) {
+   836→  3159→                    e.dataTransfer.setData('text/plain', this.dataset.id);
+   837→  3160→                    this.style.opacity = '0.5';
+   838→  3161→                });
+   839→  3162→                el.addEventListener('dragend', function(e) { this.style.opacity = '1'; });
+   840→  3163→            });
+   841→  3164→        }
+   842→  3165→
+   843→  3166→        // ──────────────────────────────────────────────────────────────
+   844→  3167→        //  RENDER: PROJECT P&L
+   845→  3168→        // ──────────────────────────────────────────────────────────────
+   846→  3169→
+   847→  3170→        function renderProjectPnL() {
+   848→  3171→            const container = document.getElementById('projectPnLContainer');
+   849→  3172→            if (!container) return;
+   850→  3173→            const projects = PROJECTS_DATA;
+   851→  3174→            container.innerHTML = projects.map(p => {
+   852→  3175→                const used = p.spent / p.budget;
+   853→  3176→                const remaining = p.budget - p.spent;
+   854→  3177→                const barClass = used > 0.9 ? 'danger' : used > 0.7 ? 'warning' : '';
+   855→  3178→                const isComplete = p.status === 'completed';
+   856→  3179→                return `
+   857→  3180→                        <div class="pnl-card" onclick="openProjectDetail('${p.id}')">
+   858→  3181→                            <div class="pnl-name">${p.name}</div>
+   859→  3182→                            <div class="pnl-budget">${p.client} · ${p.phase}</div>
+   860→  3183→                            <div class="pnl-bar"><div class="pnl-fill ${barClass}" style="width:${Math.min(used * 100, 100)}%;"></div></div>
+   861→  3184→                            <div class="pnl-row"><span class="pnl-label">Budget</span><span class="pnl-value">${formatPrice(p.budget)}</span></div>
+   862→  3185→                            <div class="pnl-row"><span class="pnl-label">Spent</span><span class="pnl-value">${formatPrice(p.spent)}</span></div>
+   863→  3186→                            <div class="pnl-row"><span class="pnl-label">Remaining</span><span class="pnl-value ${remaining > 0 ? 'positive' : 'negative'}">${formatPrice(remaining)}</span></div>
+   864→  3187→                            <div class="pnl-row" style="margin-top:6px; font-size:11px; color:#999; border-top:1px solid #f0f0f0; padding-top:6px;">
+   865→  3188→                                <span>${isComplete ? '✅ Completed' : '🔄 ' + p.phase}</span>
+   866→  3189→                                <span>${p.location}</span>
+   867→  3190→                            </div>
+   868→  3191→                        </div>
+   869→  3192→                    `;
+   870→  3193→            }).join('');
+   871→  3194→            document.getElementById('activeProjectsCount').innerText = projects.filter(p => p.status === 'active').length;
+   872→  3195→            document.getElementById('activeProjectsSub').innerText =
+   873→  3196→                `${projects.filter(p => p.phase.includes('Installation')).length} in installation`;
+   874→  3197→            document.getElementById('totalProducts').innerText = PRODUCTS.length;
+   875→  3198→        }
+   876→  3199→
+   877→  3200→        function openProjectDetail(id) {
+   878→  3201→            const p = PROJECTS_DATA.find(pr => pr.id === id);
+   879→  3202→            if (!p) return;
+   880→  3203→            const used = p.spent / p.budget;
+   881→  3204→            const remaining = p.budget - p.spent;
+   882→  3205→            document.getElementById('modalTitle').innerText = `◰ ${p.name}`;
+   883→  3206→            document.getElementById('modalBody').innerHTML = `
+   884→  3207→                    <div class="detail-row"><span>Client</span><strong>${p.client}</strong></div>
+   885→  3208→                    <div class="detail-row"><span>Phase</span><strong>${p.phase}</strong></div>
+   886→  3209→                    <div class="detail-row"><span>Location</span><strong>${p.location}</strong></div>
+   887→  3210→                    <div class="detail-row"><span>Start Date</span><strong>${formatDate(p.startDate)}</strong></div>
+   888→  3211→                    <div class="detail-row"><span>End Date</span><strong>${formatDate(p.endDate)}</strong></div>
+   889→  3212→                    <div class="detail-row"><span>Budget</span><strong>${formatPrice(p.budget)}</strong></div>
+   890→  3213→                    <div class="detail-row"><span>Spent</span><strong>${formatPrice(p.spent)}</strong></div>
+   891→  3214→                    <div class="detail-row"><span>Remaining</span><strong style="color:${remaining > 0 ? '#1e7a1e' : '#d32f2f'}">${formatPrice(remaining)}</strong></div>
+   892→  3215→                    <div class="detail-row"><span>Progress</span><strong>${Math.round(used * 100)}%</strong></div>
+   893→  3216→                    <div style="margin-top:16px; padding:12px; background:#f8f8f8; border-radius:12px; font-size:13px;">
+   894→  3217→                        <strong>🛠️ ${p.items.length} product types</strong>
+   895→  3218→                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+   896→  3219→                            ${p.items.map(id => {
+   897→  3220→                                const prod = getProduct(id);
+   898→  3221→                                return prod ? `<span style="background:#fff; padding:4px 12px; border-radius:20px; border:1px solid #eee; font-size:11px;">${prod.emoji} ${prod.name}</span>` : '';
+   899→  3222→                            }).join('')}
+   900→  3223→                        </div>
+   901→  3224→                    </div>
+   902→  3225→                    <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+   903→  3226→                        <button onclick="showToast('📊 Generating project report for ${p.name}...', 'info', '📊')" style="background:#0b0b0b; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">📊 Full Report</button>
+   904→  3227→                        <button onclick="document.getElementById('detailModal').classList.remove('open')" style="background:transparent; border:1px solid #ddd; padding:10px 20px; border-radius:40px; cursor:pointer;">Close</button>
+   905→  3228→                    </div>
+   906→  3229→                `;
+   907→  3230→            document.getElementById('detailModal').classList.add('open');
+   908→  3231→        }
+   909→  3232→
+   910→  3233→        // ──────────────────────────────────────────────────────────────
+   911→  3234→        //  RENDER: PROCUREMENT
+   912→  3235→        // ──────────────────────────────────────────────────────────────
+   913→  3236→
+   914→  3237→        function renderProcurement() {
+   915→  3238→            const container = document.getElementById('procurementContainer');
+   916→  3239→            if (!container) return;
+   917→  3240→            document.getElementById('procurementBadge').innerText = PURCHASE_ORDERS.filter(o => o.status !== 'Delivered')
+   918→  3241→                .length;
+   919→  3242→            container.innerHTML = PURCHASE_ORDERS.map(o => `
+   920→  3243→                    <div class="expense-item" onclick="showToast('🚢 ${o.id}: ${o.supplier} · ETA ${o.eta}', 'info', '📦')">
+   921→  3244→                        <div class="ei-left">
+   922→  3245→                            <div class="ei-title">${o.id}</div>
+   923→  3246→                            <div class="ei-meta">${o.supplier} · Ordered ${formatDate(o.date)}</div>
+   924→  3247→                        </div>
+   925→  3248→                        <div class="ei-right">
+   926→  3249→                            <div class="ei-amount">${formatPrice(o.amount)}</div>
+   927→  3250→                            <div class="ei-status"><span class="status ${o.statusClass}">${o.status}</span> · ETA ${o.eta}</div>
+   928→  3251→                        </div>
+   929→  3252→                    </div>
+   930→  3253→                `).join('');
+   931→  3254→        }
+   932→  3255→
+   933→  3256→        // ──────────────────────────────────────────────────────────────
+   934→  3257→        //  RENDER: AFTER-SALES
+   935→  3258→        // ──────────────────────────────────────────────────────────────
+   936→  3259→
+   937→  3260→        function renderAfterSales() {
+   938→  3261→            const container = document.getElementById('aftersalesContainer');
+   939→  3262→            if (!container) return;
+   940→  3263→            document.getElementById('aftersalesBadge').innerText = AFTERSALES_TICKETS.filter(t => t.status !== 'Resolved')
+   941→  3264→                .length;
+   942→  3265→            container.innerHTML = AFTERSALES_TICKETS.map(t => `
+   943→  3266→                    <div class="after-sales-ticket" onclick="showToast('🛠️ ${t.title}: ${t.desc} · Priority: ${t.priority}', 'info', '🔧')">
+   944→  3267→                        <div>
+   945→  3268→                            <strong>${t.title}</strong>
+   946→  3269→                            <br><span style="font-size:12px;color:#777;">${t.desc}</span>
+   947→  3270→                            <br><span style="font-size:10px;color:#999;">${t.id} · Created ${formatDate(t.created)}</span>
+   948→  3271→                        </div>
+   949→  3272→                        <div style="text-align:right;">
+   950→  3273→                            <span class="status ${t.statusClass}">${t.status}</span>
+   951→  3274→                            <div style="font-size:10px;color:#999;margin-top:4px;">${t.priority}</div>
+   952→  3275→                        </div>
+   953→  3276→                    </div>
+   954→  3277→                `).join('');
+   955→  3278→            updateWidgets();
+   956→  3279→        }
+   957→  3280→
+   958→  3281→        // ──────────────────────────────────────────────────────────────
+   959→  3282→        //  PROPOSAL BUILDER
+   960→  3283→        // ──────────────────────────────────────────────────────────────
+   961→  3284→
+   962→  3285→        function addToProposal(productId) {
+   963→  3286→            if (!currentProposal) {
+   964→  3287→                currentProposal = {
+   965→  3288→                    id: 'prop_' + generateId(),
+   966→  3289→                    client: document.getElementById('proposalClient').value || 'New Client',
+   967→  3290→                    project: document.getElementById('proposalProject').value || 'New Project',
+   968→  3291→                    date: document.getElementById('proposalDate').value || getTimestamp().slice(0, 10),
+   969→  3292→                    items: [],
+   970→  3293→                    status: 'draft',
+   971→  3294→                    createdAt: getTimestamp()
+   972→  3295→                };
+   973→  3296→            }
+   974→  3297→            const existing = currentProposal.items.find(i => i.productId === productId);
+   975→  3298→            if (existing) { existing.qty += 1; } else { currentProposal.items.push({ productId, qty: 1 }); }
+   976→  3299→            renderProposalCanvas();
+   977→  3300→            document.getElementById('proposalBuilderContainer').style.display = 'block';
+   978→  3301→            document.getElementById('builderTitle').innerText = editingProposalId ? '✏️ Edit Proposal' : '✏️ New Proposal';
+   979→  3302→            showToast(`✅ Added ${getProduct(productId)?.name || 'item'} to proposal`, 'success', '➕');
+   980→  3303→            addActivity('Added item to proposal', `${getProduct(productId)?.name || 'Item'}`, '➕');
+   981→  3304→        }
+   982→  3305→
+   983→  3306→        function removeFromProposal(productId) {
+   984→  3307→            if (!currentProposal) return;
+   985→  3308→            currentProposal.items = currentProposal.items.filter(i => i.productId !== productId);
+   986→  3309→            renderProposalCanvas();
+   987→  3310→        }
+   988→  3311→
+   989→  3312→        function updateProposalQty(productId, delta) {
+   990→  3313→            if (!currentProposal) return;
+   991→  3314→            const item = currentProposal.items.find(i => i.productId === productId);
+   992→  3315→            if (!item) return;
+   993→  3316→            item.qty = Math.max(1, item.qty + delta);
+   994→  3317→            renderProposalCanvas();
+   995→  3318→        }
+   996→  3319→
+   997→  3320→        function renderProposalCanvas() {
+   998→  3321→            const container = document.getElementById('canvasItems');
+   999→  3322→            if (!container) return;
+  1000→  3323→            if (!currentProposal || currentProposal.items.length === 0) {
+  1001→  3324→                container.innerHTML = `
+  1002→  3325→                        <div class="empty-state">
+  1003→  3326→                            <div class="empty-icon">🛒</div>
+  1004→  3327→                            <h4>Your proposal is empty</h4>
+  1005→  3328→                            <p>Browse the catalog and click <strong>+ Add</strong> to build your proposal.</p>
+  1006→  3329→                        </div>
+  1007→  3330→                    `;
+  1008→  3331→                document.getElementById('canvasSubtotal').innerText = formatPrice(0);
+  1009→  3332→                document.getElementById('canvasMarkup').innerText = formatPrice(0);
+  1010→  3333→                document.getElementById('canvasGrandTotal').innerText = formatPrice(0);
+  1011→  3334→                return;
+  1012→  3335→            }
+  1013→  3336→
+  1014→  3337→            let subtotal = 0;
+  1015→  3338→            container.innerHTML = currentProposal.items.map(item => {
+  1016→  3339→                const prod = getProduct(item.productId);
+  1017→  3340→                if (!prod) return '';
+  1018→  3341→                const lineTotal = prod.price * item.qty;
+  1019→  3342→                subtotal += lineTotal;
+  1020→  3343→                return `
+  1021→  3344→                        <div class="canvas-item">
+  1022→  3345→                            <div class="ci-thumb">${prod.emoji}</div>
+  1023→  3346→                            <div class="ci-info">
+  1024→  3347→                                <div class="ci-name">${prod.name}</div>
+  1025→  3348→                                <div class="ci-supplier">${prod.supplier} · ${formatPrice(prod.price)}/u</div>
+  1026→  3349→                            </div>
+  1027→  3350→                            <div class="ci-qty">
+  1028→  3351→                                <button onclick="updateProposalQty('${prod.id}', -1)">−</button>
+  1029→  3352→                                <span>${item.qty}</span>
+  1030→  3353→                                <button onclick="updateProposalQty('${prod.id}', 1)">+</button>
+  1031→  3354→                            </div>
+  1032→  3355→                            <div class="ci-price">${formatPrice(lineTotal)}</div>
+  1033→  3356→                            <button class="ci-remove" onclick="removeFromProposal('${prod.id}')">✕</button>
+  1034→  3357→                        </div>
+  1035→  3358→                    `;
+  1036→  3359→            }).join('');
+  1037→  3360→
+  1038→  3361→            const markup = subtotal * 0.3;
+  1039→  3362→            const grand = subtotal + markup;
+  1040→  3363→            document.getElementById('canvasSubtotal').innerText = formatPrice(subtotal);
+  1041→  3364→            document.getElementById('canvasMarkup').innerText = formatPrice(markup);
+  1042→  3365→            document.getElementById('canvasGrandTotal').innerText = formatPrice(grand);
+  1043→  3366→        }
+  1044→  3367→
+  1045→  3368→        async function saveCurrentProposal() {
+  1046→  3369→            if (!currentProposal || currentProposal.items.length === 0) {
+  1047→  3370→                showToast('Please add at least one item to the proposal.', 'warning', '⚠️');
+  1048→  3371→                return;
+  1049→  3372→            }
+  1050→  3373→            currentProposal.client = document.getElementById('proposalClient').value || 'New Client';
+  1051→  3374→            currentProposal.project = document.getElementById('proposalProject').value || 'New Project';
+  1052→  3375→            currentProposal.date = document.getElementById('proposalDate').value || getTimestamp().slice(0, 10);
+  1053→  3376→            currentProposal.status = 'draft';
+  1054→  3377→            if (!currentProposal.createdAt) currentProposal.createdAt = getTimestamp();
+  1055→  3378→
+  1056→  3379→            const idx = proposals.findIndex(p => p.id === currentProposal.id);
+  1057→  3380→            if (idx !== -1) { proposals[idx] = { ...currentProposal }; } else { proposals.push({ ...currentProposal }); }
+  1058→  3381→            try { localStorage.setItem('future_os_proposals', JSON.stringify(proposals)); } catch (e) {}
+  1059→  3382→            showToast(`✅ Proposal saved for ${currentProposal.client}`, 'success', '💾');
+  1060→  3383→            addActivity('Saved proposal', `${currentProposal.client} · ${currentProposal.project}`, '💾');
+  1061→  3384→            renderProposalList();
+  1062→  3385→            closeProposalBuilder();
+  1063→  3386→        }
+  1064→  3387→
+  1065→  3388→        function closeProposalBuilder() {
+  1066→  3389→            document.getElementById('proposalBuilderContainer').style.display = 'none';
+  1067→  3390→            currentProposal = null;
+  1068→  3391→            editingProposalId = null;
+  1069→  3392→            renderProposalList();
+  1070→  3393→        }
+  1071→  3394→
+  1072→  3395→        function clearProposalBuilder() {
+  1073→  3396→            if (currentProposal && currentProposal.items.length > 0) {
+  1074→  3397→                if (!confirm('Clear all items from this proposal?')) return;
+  1075→  3398→            }
+  1076→  3399→            currentProposal = null;
+  1077→  3400→            editingProposalId = null;
+  1078→  3401→            renderProposalCanvas();
+  1079→  3402→            document.getElementById('proposalClient').value = '';
+  1080→  3403→            document.getElementById('proposalProject').value = '';
+  1081→  3404→            document.getElementById('proposalDate').value = getTimestamp().slice(0, 10);
+  1082→  3405→            showToast('Proposal cleared', 'warning', '🧹');
+  1083→  3406→        }
+  1084→  3407→
+  1085→  3408→        function printProposal() {
+  1086→  3409→            if (!currentProposal || currentProposal.items.length === 0) {
+  1087→  3410→                showToast('Please add items to your proposal first.', 'warning', '⚠️');
+  1088→  3411→                return;
+  1089→  3412→            }
+  1090→  3413→            currentProposal.client = document.getElementById('proposalClient').value || 'New Client';
+  1091→  3414→            currentProposal.project = document.getElementById('proposalProject').value || 'New Project';
+  1092→  3415→            currentProposal.date = document.getElementById('proposalDate').value || getTimestamp().slice(0, 10);
+  1093→  3416→
+  1094→  3417→            let subtotal = 0;
+  1095→  3418→            let itemsHtml = currentProposal.items.map(item => {
+  1096→  3419→                const prod = getProduct(item.productId);
+  1097→  3420→                if (!prod) return '';
+  1098→  3421→                const lineTotal = prod.price * item.qty;
+  1099→  3422→                subtotal += lineTotal;
+  1100→  3423→                return `
+  1101→  3424→                        <tr>
+  1102→  3425→                            <td style="padding:8px 4px; border-bottom:1px solid #eee;">${prod.emoji} ${prod.name}</td>
+  1103→  3426→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${prod.supplier}</td>
+  1104→  3427→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${item.qty}</td>
+  1105→  3428→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(prod.price)}</td>
+  1106→  3429→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(lineTotal)}</td>
+  1107→  3430→                        </tr>
+  1108→  3431→                    `;
+  1109→  3432→            }).join('');
+  1110→  3433→
+  1111→  3434→            const markup = subtotal * 0.3;
+  1112→  3435→            const grand = subtotal + markup;
+  1113→  3436→            const symbol = currencySymbols[currentCurrency];
+  1114→  3437→
+  1115→  3438→            const printWin = window.open('', '_blank', 'width=900,height=700');
+  1116→  3439→            printWin.document.write(`
+  1117→  3440→                    <html><head><title>Proposal · ${currentProposal.client}</title>
+  1118→  3441→                    <style>
+  1119→  3442→                        body { font-family: 'Inter', sans-serif; padding:40px; color:#121212; }
+  1120→  3443→                        .header { border-bottom: 3px solid #c8a45c; padding-bottom:16px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; }
+  1121→  3444→                        .header h1 { font-size:28px; font-weight:700; }
+  1122→  3445→                        .header h1 span { color:#c8a45c; }
+  1123→  3446→                        .header .meta { font-size:14px; color:#666; }
+  1124→  3447→                        table { width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; }
+  1125→  3448→                        th { text-align:left; padding:10px 4px; border-bottom:2px solid #ddd; font-weight:600; }
+  1126→  3449→                        td { padding:8px 4px; border-bottom:1px solid #f0f0f0; }
+  1127→  3450→                        .totals { margin-top:20px; text-align:right; }
+  1128→  3451→                        .totals .row { display:flex; justify-content:flex-end; gap:40px; padding:4px 0; }
+  1129→  3452→                        .totals .row.grand { font-size:22px; font-weight:700; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px; }
+  1130→  3453→                        .footer { margin-top:40px; border-top:1px solid #eee; padding-top:20px; font-size:12px; color:#999; display:flex; justify-content:space-between; }
+  1131→  3454→                        .badge { background:#c8a45c; color:#000; padding:2px 16px; border-radius:30px; font-weight:600; font-size:12px; display:inline-block; }
+  1132→  3455→                    </style>
+  1133→  3456→                    </head><body>
+  1134→  3457→                    <div class="header">
+  1135→  3458→                        <div><h1>future<span>.</span> concept</h1><div style="font-size:13px; color:#666;">Bamako · Mali</div></div>
+  1136→  3459→                        <div class="meta">
+  1137→  3460→                            <div><strong>${currentProposal.client}</strong></div>
+  1138→  3461→                            <div>${currentProposal.project}</div>
+  1139→  3462→                            <div>${formatDate(currentProposal.date)}</div>
+  1140→  3463→                        </div>
+  1141→  3464→                    </div>
+  1142→  3465→                    <h2 style="margin:0 0 4px 0;">Commercial Proposal</h2>
+  1143→  3466→                    <div style="margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap;">
+  1144→  3467→                        <span class="badge">DRAFT</span>
+  1145→  3468→                        <span style="font-size:13px; color:#666;">Prepared for ${currentProposal.client}</span>
+  1146→  3469→                    </div>
+  1147→  3470→                    <table>
+  1148→  3471→                        <thead><tr><th>Item</th><th>Supplier</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+  1149→  3472→                        <tbody>${itemsHtml}</tbody>
+  1150→  3473→                    </table>
+  1151→  3474→                    <div class="totals">
+  1152→  3475→                        <div class="row"><span>Subtotal</span><span>${formatPriceFull(subtotal)}</span></div>
+  1153→  3476→                        <div class="row"><span>Markup (30%)</span><span>${formatPriceFull(markup)}</span></div>
+  1154→  3477→                        <div class="row grand"><span>Grand Total</span><span>${formatPriceFull(grand)}</span></div>
+  1155→  3478→                    </div>
+  1156→  3479→                    <div class="footer">
+  1157→  3480→                        <div>Generated by Future OS · Vision & Cost</div>
+  1158→  3481→                        <div>${new Date().toLocaleDateString()}</div>
+  1159→  3482→                    </div>
+  1160→  3483→                    <div style="margin-top:16px; font-size:11px; color:#aaa; text-align:center; border-top:1px solid #f0f0f0; padding-top:12px;">
+  1161→  3484→                        This is a commercial proposal. All prices are in ${symbol}. Terms & conditions apply.
+  1162→  3485→                    </div>
+  1163→  3486→                    <script>
+  1164→  3487→                        setTimeout(() => { window.print(); }, 500);
+  1165→  3488→                    <\/script>
+  1166→  3489→                    </body></html>
+  1167→  3490→                `);
+  1168→  3491→            printWin.document.close();
+  1169→  3492→        }
+  1170→  3493→
+  1171→  3494→        // ──────────────────────────────────────────────────────────────
+  1172→  3495→        //  RENDER: FINANCE
+  1173→  3496→        // ──────────────────────────────────────────────────────────────
+  1174→  3497→
+  1175→  3498→        function renderFinance() {
+  1176→  3499→            renderExpenses();
+  1177→  3500→            renderInvoices();
+  1178→  3501→            renderBills();
+  1179→  3502→            renderCashFlow();
+  1180→  3503→            renderBudget();
+  1181→  3504→            renderRecurring();
+  1182→  3505→            renderTax();
+  1183→  3506→            updateFinanceSummary();
+  1184→  3507→            updateWidgets();
+  1185→  3508→            const totalExp = expenses.reduce((s, e) => s + e.amount, 0);
+  1186→  3509→            document.getElementById('financeBadge').innerText = totalExp > 0 ? '💰' : '!';
+  1187→  3510→        }
+  1188→  3511→
+  1189→  3512→        function renderExpenses() {
+  1190→  3513→            const container = document.getElementById('expenseList');
+  1191→  3514→            if (!container) return;
+  1192→  3515→            if (expenses.length === 0) {
+  1193→  3516→                container.innerHTML =
+  1194→  3517→                    `<div class="empty-state"><div class="empty-icon">📋</div><h4>No expenses recorded</h4><p>Add your first expense using the form above.</p></div>`;
+  1195→  3518→                return;
+  1196→  3519→            }
+  1197→  3520→            container.innerHTML = expenses.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(e => `
+  1198→  3521→                    <div class="expense-item" onclick="openExpenseDetail('${e.id}')">
+  1199→  3522→                        <div class="ei-left">
+  1200→  3523→                            <div class="ei-title">${e.title}</div>
+  1201→  3524→                            <div class="ei-meta">${e.category} · ${formatDate(e.date)} · <span class="status ${e.status === 'Paid' ? 'green' : e.status === 'Pending' ? 'orange' : 'red'}">${e.status}</span> · <span style="color:#999;">${e.approval || 'Approved'}</span></div>
+  1202→  3525→                        </div>
+  1203→  3526→                        <div class="ei-right">
+  1204→  3527→                            <div class="ei-amount">${formatPrice(e.amount)}</div>
+  1205→  3528→                            <div class="ei-status" style="color:#999;">by ${e.createdBy || 'System'}</div>
+  1206→  3529→                        </div>
+  1207→  3530→                    </div>
+  1208→  3531→                `).join('');
+  1209→  3532→        }
+  1210→  3533→
+  1211→  3534→        function openExpenseDetail(id) {
+  1212→  3535→            const e = expenses.find(exp => exp.id === id);
+  1213→  3536→            if (!e) return;
+  1214→  3537→            document.getElementById('modalTitle').innerText = `📋 ${e.title}`;
+  1215→  3538→            document.getElementById('modalBody').innerHTML = `
+  1216→  3539→                    <div class="detail-row"><span>Category</span><strong>${e.category}</strong></div>
+  1217→  3540→                    <div class="detail-row"><span>Amount</span><strong>${formatPrice(e.amount)}</strong></div>
+  1218→  3541→                    <div class="detail-row"><span>Date</span><strong>${formatDate(e.date)}</strong></div>
+  1219→  3542→                    <div class="detail-row"><span>Status</span><strong>${e.status}</strong></div>
+  1220→  3543→                    <div class="detail-row"><span>Approval</span><strong>${e.approval || 'Approved'}</strong></div>
+  1221→  3544→                    <div class="detail-row"><span>Created By</span><strong>${e.createdBy || 'System'}</strong></div>
+  1222→  3545→                    <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+  1223→  3546→                        <button onclick="updateExpenseStatus('${e.id}','Paid')" style="background:#1e7a1e; color:#fff; border:none; padding:8px 16px; border-radius:30px; cursor:pointer;">✅ Mark Paid</button>
+  1224→  3547→                        <button onclick="updateExpenseStatus('${e.id}','Pending')" style="background:#f9a825; color:#000; border:none; padding:8px 16px; border-radius:30px; cursor:pointer;">⏳ Pending</button>
+  1225→  3548→                        <button onclick="deleteExpense('${e.id}')" style="background:#d32f2f; color:#fff; border:none; padding:8px 16px; border-radius:30px; cursor:pointer;">🗑️ Delete</button>
+  1226→  3549→                        <button onclick="document.getElementById('detailModal').classList.remove('open')" style="background:transparent; border:1px solid #ddd; padding:8px 16px; border-radius:30px; cursor:pointer;">Close</button>
+  1227→  3550→                    </div>
+  1228→  3551→                `;
+  1229→  3552→            document.getElementById('detailModal').classList.add('open');
+  1230→  3553→        }
+  1231→  3554→
+  1232→  3555→        function updateExpenseStatus(id, status) {
+  1233→  3556→            const e = expenses.find(exp => exp.id === id);
+  1234→  3557→            if (e) { e.status = status;
+  1235→  3558→                e.approval = status === 'Paid' ? 'Approved' : e.approval; }
+  1236→  3559→            renderFinance();
+  1237→  3560→            addActivity('Updated expense status', `${e.title} → ${status}`, '📋');
+  1238→  3561→            showToast(`✅ Expense status updated to ${status}`, 'success', '✅');
+  1239→  3562→            document.getElementById('detailModal').classList.remove('open');
+  1240→  3563→        }
+  1241→  3564→
+  1242→  3565→        function deleteExpense(id) {
+  1243→  3566→            if (!confirm('Delete this expense?')) return;
+  1244→  3567→            expenses = expenses.filter(e => e.id !== id);
+  1245→  3568→            renderFinance();
+  1246→  3569→            addActivity('Deleted expense', `ID: ${id}`, '🗑️');
+  1247→  3570→            showToast('🗑️ Expense deleted', 'warning', '🗑️');
+  1248→  3571→            document.getElementById('detailModal').classList.remove('open');
+  1249→  3572→        }
+  1250→  3573→
+  1251→  3574→        function renderInvoices() {
+  1252→  3575→            const container = document.getElementById('invoiceList');
+  1253→  3576→            if (!container) return;
+  1254→  3577→            if (invoices.length === 0) {
+  1255→  3578→                container.innerHTML =
+  1256→  3579→                    `<div class="empty-state"><div class="empty-icon">📄</div><h4>No invoices</h4><p>Add client invoices to track accounts receivable.</p></div>`;
+  1257→  3580→                return;
+  1258→  3581→            }
+  1259→  3582→            container.innerHTML = invoices.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(inv => {
+  1260→  3583→                const statusClass = inv.status === 'Paid' ? 'green' : inv.status === 'Overdue' ? 'red' : 'orange';
+  1261→  3584→                const remaining = inv.amount - (inv.paidAmount || 0);
+  1262→  3585→                return `
+  1263→  3586→                        <div class="expense-item" onclick="showToast('📄 ${inv.client}: ${formatPrice(inv.amount)} · Due ${formatDate(inv.dueDate)}', 'info', '📄')">
+  1264→  3587→                            <div class="ei-left">
+  1265→  3588→                                <div class="ei-title">${inv.client}</div>
+  1266→  3589→                                <div class="ei-meta">Due ${formatDate(inv.dueDate)} · ${formatDate(inv.date)} ${inv.paidAmount > 0 ? `· Paid ${formatPrice(inv.paidAmount)}` : ''}</div>
+  1267→  3590→                            </div>
+  1268→  3591→                            <div class="ei-right">
+  1269→  3592→                                <div class="ei-amount">${formatPrice(inv.amount)}</div>
+  1270→  3593→                                <div class="ei-status"><span class="status ${statusClass}">${inv.status}</span> ${inv.status === 'Partial' ? `· Remaining ${formatPrice(remaining)}` : ''}</div>
+  1271→  3594→                            </div>
+  1272→  3595→                        </div>
+  1273→  3596→                    `;
+  1274→  3597→            }).join('');
+  1275→  3598→        }
+  1276→  3599→
+  1277→  3600→        function renderBills() {
+  1278→  3601→            const container = document.getElementById('billList');
+  1279→  3602→            if (!container) return;
+  1280→  3603→            if (bills.length === 0) {
+  1281→  3604→                container.innerHTML =
+  1282→  3605→                    `<div class="empty-state"><div class="empty-icon">📑</div><h4>No bills</h4><p>Add supplier bills to track accounts payable.</p></div>`;
+  1283→  3606→                return;
+  1284→  3607→            }
+  1285→  3608→            container.innerHTML = bills.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).map(bill => {
+  1286→  3609→                const statusClass = bill.status === 'Paid' ? 'green' : bill.status === 'Overdue' ? 'red' : 'orange';
+  1287→  3610→                return `
+  1288→  3611→                        <div class="expense-item" onclick="showToast('📑 ${bill.supplier}: ${formatPrice(bill.amount)} · Due ${formatDate(bill.dueDate)}', 'info', '📑')">
+  1289→  3612→                            <div class="ei-left">
+  1290→  3613→                                <div class="ei-title">${bill.supplier}</div>
+  1291→  3614→                                <div class="ei-meta">Due ${formatDate(bill.dueDate)} · ${formatDate(bill.date)}</div>
+  1292→  3615→                            </div>
+  1293→  3616→                            <div class="ei-right">
+  1294→  3617→                                <div class="ei-amount">${formatPrice(bill.amount)}</div>
+  1295→  3618→                                <div class="ei-status"><span class="status ${statusClass}">${bill.status}</span></div>
+  1296→  3619→                            </div>
+  1297→  3620→                        </div>
+  1298→  3621→                    `;
+  1299→  3622→            }).join('');
+  1300→  3623→        }
+  1301→  3624→
+  1302→  3625→        function renderCashFlow() {
+  1303→  3626→            const now = new Date();
+  1304→  3627→            const thirtyDaysAgo = new Date(now);
+  1305→  3628→            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  1306→  3629→
+  1307→  3630→            const cashIn = invoices
+  1308→  3631→                .filter(inv => new Date(inv.date) >= thirtyDaysAgo && inv.status === 'Paid')
+  1309→  3632→                .reduce((s, inv) => s + inv.amount, 0);
+  1310→  3633→
+  1311→  3634→            const cashOut = expenses
+  1312→  3635→                .filter(e => new Date(e.date) >= thirtyDaysAgo && e.status === 'Paid')
+  1313→  3636→                .reduce((s, e) => s + e.amount, 0);
+  1314→  3637→
+  1315→  3638→            document.getElementById('cashInflow').innerText = formatPrice(cashIn);
+  1316→  3639→            document.getElementById('cashOutflow').innerText = formatPrice(cashOut);
+  1317→  3640→            const net = cashIn - cashOut;
+  1318→  3641→            document.getElementById('netCashFlow').innerText = formatPrice(net);
+  1319→  3642→            document.getElementById('netCashFlow').style.color = net >= 0 ? '#1e7a1e' : '#d32f2f';
+  1320→  3643→        }
+  1321→  3644→
+  1322→  3645→        function renderBudget() {
+  1323→  3646→            const container = document.getElementById('budgetList');
+  1324→  3647→            if (!container) return;
+  1325→  3648→            const entries = Object.entries(budgetData);
+  1326→  3649→            if (entries.length === 0) {
+  1327→  3650→                container.innerHTML =
+  1328→  3651→                    `<div class="empty-state"><div class="empty-icon">📊</div><h4>No budget data</h4><p>Set up budget categories to track performance.</p></div>`;
+  1329→  3652→                return;
+  1330→  3653→            }
+  1331→  3654→            container.innerHTML = entries.map(([category, data]) => {
+  1332→  3655→                const variance = data.actual - data.budget;
+  1333→  3656→                const pct = data.budget > 0 ? (data.actual / data.budget) * 100 : 0;
+  1334→  3657→                const isOver = variance > 0;
+  1335→  3658→                return `
+  1336→  3659→                        <div class="budget-bar">
+  1337→  3660→                            <div class="bb-label">${category}</div>
+  1338→  3661→                            <div class="bb-track">
+  1339→  3662→                                <div class="bb-fill budget" style="width:${Math.min(pct, 100)}%;"></div>
+  1340→  3663→                                <div class="bb-fill actual" style="width:${Math.min(pct, 100)}%;"></div>
+  1341→  3664→                            </div>
+  1342→  3665→                            <div class="bb-values">${formatPrice(data.budget)} / ${formatPrice(data.actual)}</div>
+  1343→  3666→                            <div class="bb-variance ${isOver ? 'negative' : 'positive'}">${isOver ? '+' : ''}${formatPrice(Math.abs(variance))}</div>
+  1344→  3667→                        </div>
+  1345→  3668→                    `;
+  1346→  3669→            }).join('');
+  1347→  3670→        }
+  1348→  3671→
+  1349→  3672→        function renderRecurring() {
+  1350→  3673→            const container = document.getElementById('recurringList');
+  1351→  3674→            if (!container) return;
+  1352→  3675→            if (recurringExpenses.length === 0) {
+  1353→  3676→                container.innerHTML =
+  1354→  3677→                    `<div class="empty-state"><div class="empty-icon">🔄</div><h4>No recurring expenses</h4><p>Add recurring expenses to automate tracking.</p></div>`;
+  1355→  3678→                return;
+  1356→  3679→            }
+  1357→  3680→            container.innerHTML = recurringExpenses.map(r => `
+  1358→  3681→                    <div class="expense-item" onclick="showToast('🔄 ${r.title}: ${formatPrice(r.amount)} · ${r.frequency} · Next: ${formatDate(r.nextDate)}', 'info', '🔄')">
+  1359→  3682→                        <div class="ei-left">
+  1360→  3683→                            <div class="ei-title">${r.title}</div>
+  1361→  3684→                            <div class="ei-meta">${r.frequency} · Next: ${formatDate(r.nextDate)}</div>
+  1362→  3685→                        </div>
+  1363→  3686→                        <div class="ei-right">
+  1364→  3687→                            <div class="ei-amount">${formatPrice(r.amount)}</div>
+  1365→  3688→                            <div class="ei-status"><button onclick="deleteRecurring('${r.id}')" style="background:transparent; border:none; color:#d32f2f; cursor:pointer;">✕</button></div>
+  1366→  3689→                        </div>
+  1367→  3690→                    </div>
+  1368→  3691→                `).join('');
+  1369→  3692→        }
+  1370→  3693→
+  1371→  3694→        function deleteRecurring(id) {
+  1372→  3695→            if (!confirm('Delete this recurring expense?')) return;
+  1373→  3696→            recurringExpenses = recurringExpenses.filter(r => r.id !== id);
+  1374→  3697→            renderFinance();
+  1375→  3698→            showToast('🗑️ Recurring expense deleted', 'warning', '🗑️');
+  1376→  3699→        }
+  1377→  3700→
+  1378→  3701→        function renderTax() {
+  1379→  3702→            const totalVATCollected = invoices
+  1380→  3703→                .filter(inv => inv.status === 'Paid' || inv.status === 'Partial')
+  1381→  3704→                .reduce((s, inv) => s + (inv.amount * VAT_RATE), 0);
+  1382→  3705→
+  1383→  3706→            const totalVATPaid = expenses
+  1384→  3707→                .filter(e => e.status === 'Paid')
+  1385→  3708→                .reduce((s, e) => s + (e.amount * VAT_RATE), 0);
+  1386→  3709→
+  1387→  3710→            document.getElementById('taxCollected').innerText = formatPrice(totalVATCollected);
+  1388→  3711→            document.getElementById('taxPaid').innerText = formatPrice(totalVATPaid);
+  1389→  3712→            const netVAT = totalVATCollected - totalVATPaid;
+  1390→  3713→            document.getElementById('taxNet').innerText = formatPrice(netVAT);
+  1391→  3714→            document.getElementById('taxNet').style.color = netVAT >= 0 ? '#d32f2f' : '#1e7a1e';
+  1392→  3715→        }
+  1393→  3716→
+  1394→  3717→        function updateFinanceSummary() {
+  1395→  3718→            const totalRevenue = invoices
+  1396→  3719→                .filter(inv => inv.status === 'Paid')
+  1397→  3720→                .reduce((s, inv) => s + inv.amount, 0) +
+  1398→  3721→                PROJECTS_DATA.reduce((s, p) => s + p.spent, 0) * 0.35;
+  1399→  3722→
+  1400→  3723→            const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0) +
+  1401→  3724→                PURCHASE_ORDERS.reduce((s, po) => s + po.amount, 0) * 0.2;
+  1402→  3725→
+  1403→  3726→            const netProfit = totalRevenue - totalExpenses;
+  1404→  3727→
+  1405→  3728→            const arOutstanding = invoices
+  1406→  3729→                .filter(inv => inv.status !== 'Paid')
+  1407→  3730→                .reduce((s, inv) => s + (inv.amount - (inv.paidAmount || 0)), 0);
+  1408→  3731→
+  1409→  3732→            document.getElementById('finTotalRevenue').innerText = formatPrice(totalRevenue);
+  1410→  3733→            document.getElementById('finTotalExpenses').innerText = formatPrice(totalExpenses);
+  1411→  3734→            document.getElementById('finNetProfit').innerText = formatPrice(netProfit);
+  1412→  3735→            document.getElementById('finProfitSub').innerText = netProfit >= 0 ? '⬆ Profitable' : '⬇ Loss';
+  1413→  3736→            document.getElementById('finProfitSub').className = `fs-sub ${netProfit >= 0 ? 'positive' : 'negative'}`;
+  1414→  3737→            document.getElementById('finAROutstanding').innerText = formatPrice(arOutstanding);
+  1415→  3738→            document.getElementById('finARSub').innerText =
+  1416→  3739→                `${invoices.filter(inv => inv.status !== 'Paid').length} invoices pending`;
+  1417→  3740→        }
+  1418→  3741→
+  1419→  3742→        // ──────────────────────────────────────────────────────────────
+  1420→  3743→        //  RENDER: TEAM
+  1421→  3744→        // ──────────────────────────────────────────────────────────────
+  1422→  3745→
+  1423→  3746→        function renderTeam() {
+  1424→  3747→            const container = document.getElementById('teamList');
+  1425→  3748→            if (!container) return;
+  1426→  3749→            document.getElementById('teamBadge').innerText = teamMembers.filter(m => m.status === 'Active').length;
+  1427→  3750→            if (teamMembers.length === 0) {
+  1428→  3751→                container.innerHTML =
+  1429→  3752→                    `<div class="empty-state"><div class="empty-icon">👥</div><h4>No team members</h4><p>Add your team to get started.</p></div>`;
+  1430→  3753→                return;
+  1431→  3754→            }
+  1432→  3755→            container.innerHTML = teamMembers.map(m => `
+  1433→  3756→                    <div class="expense-item" onclick="showToast('👤 ${m.name} · ${m.role} · ${m.status}', 'info', '👤')">
+  1434→  3757→                        <div class="ei-left">
+  1435→  3758→                            <div class="ei-title">${m.name}</div>
+  1436→  3759→                            <div class="ei-meta">${m.role}</div>
+  1437→  3760→                        </div>
+  1438→  3761→                        <div class="ei-right">
+  1439→  3762→                            <div class="ei-status"><span class="status ${m.status === 'Active' ? 'green' : m.status === 'On Leave' ? 'orange' : 'red'}">${m.status}</span></div>
+  1440→  3763→                        </div>
+  1441→  3764→                    </div>
+  1442→  3765→                `).join('');
+  1443→  3766→        }
+  1444→  3767→
+  1445→  3768→        // ──────────────────────────────────────────────────────────────
+  1446→  3769→        //  WIDGETS
+  1447→  3770→        // ──────────────────────────────────────────────────────────────
+  1448→  3771→
+  1449→  3772→        function updateWidgets() {
+  1450→  3773→            const totalRevenue = invoices.filter(inv => inv.status === 'Paid')
+  1451→  3774→                .reduce((s, inv) => s + inv.amount, 0) +
+  1452→  3775→                PROJECTS_DATA.reduce((s, p) => s + p.spent, 0) * 0.35;
+  1453→  3776→            const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  1454→  3777→            const activeProjects = PROJECTS_DATA.filter(p => p.status === 'active').length;
+  1455→  3778→            const openTickets = AFTERSALES_TICKETS.filter(t => t.status !== 'Resolved').length;
+  1456→  3779→
+  1457→  3780→            document.getElementById('widgetRevenue').innerText = formatPrice(totalRevenue);
+  1458→  3781→            document.getElementById('widgetExpenses').innerText = formatPrice(totalExpenses);
+  1459→  3782→            document.getElementById('widgetProjects').innerText = activeProjects;
+  1460→  3783→            document.getElementById('widgetTickets').innerText = openTickets;
+  1461→  3784→            document.getElementById('widgetTicketChange').innerText = openTickets > 0 ? `⚠️ ${openTickets} open` : '✅ All resolved';
+  1462→  3785→            document.getElementById('widgetTicketChange').className = `w-change ${openTickets > 0 ? 'negative' : 'positive'}`;
+  1463→  3786→        }
+  1464→  3787→
+  1465→  3788→        // ──────────────────────────────────────────────────────────────
+  1466→  3789→        //  REPORTS
+  1467→  3790→        // ──────────────────────────────────────────────────────────────
+  1468→  3791→
+  1469→  3792→        function generateReport(type) {
+  1470→  3793→            const output = document.getElementById('reportOutput');
+  1471→  3794→            const content = document.getElementById('reportContent');
+  1472→  3795→            output.style.display = 'block';
+  1473→  3796→
+  1474→  3797→            if (type === 'pnl') {
+  1475→  3798→                const revenue = invoices.filter(inv => inv.status === 'Paid').reduce((s, inv) => s + inv.amount, 0) +
+  1476→  3799→                    PROJECTS_DATA.reduce((s, p) => s + p.spent, 0) * 0.35;
+  1477→  3800→                const cogs = PRODUCTS.reduce((s, p) => s + p.cost * p.inStock, 0) * 0.3;
+  1478→  3801→                const operatingExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  1479→  3802→                const grossProfit = revenue - cogs;
+  1480→  3803→                const netIncome = grossProfit - operatingExpenses;
+  1481→  3804→
+  1482→  3805→                content.innerHTML = `
+  1483→  3806→                        <h3>📈 Profit & Loss Statement</h3>
+  1484→  3807→                        <div style="margin-top:16px;">
+  1485→  3808→                            <div class="detail-row"><span>Revenue</span><strong>${formatPrice(revenue)}</strong></div>
+  1486→  3809→                            <div class="detail-row"><span>Cost of Goods Sold (COGS)</span><strong>${formatPrice(cogs)}</strong></div>
+  1487→  3810→                            <div class="detail-row" style="font-weight:600;"><span>Gross Profit</span><strong>${formatPrice(grossProfit)}</strong></div>
+  1488→  3811→                            <div class="detail-row"><span>Operating Expenses</span><strong>${formatPrice(operatingExpenses)}</strong></div>
+  1489→  3812→                            <div class="detail-row" style="font-weight:700; font-size:18px; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px;">
+  1490→  3813→                                <span>Net Income</span>
+  1491→  3814→                                <strong style="color:${netIncome >= 0 ? '#1e7a1e' : '#d32f2f'}">${formatPrice(netIncome)}</strong>
+  1492→  3815→                            </div>
+  1493→  3816→                            <div style="margin-top:16px; font-size:12px; color:#999; text-align:center;">
+  1494→  3817→                                Generated on ${new Date().toLocaleString()}
+  1495→  3818→                            </div>
+  1496→  3819→                            <button onclick="printReport()" style="margin-top:16px; background:#c8a45c; color:#000; border:none; padding:10px 24px; border-radius:40px; font-weight:600; cursor:pointer; width:100%;">🖨️ Print Report</button>
+  1497→  3820→                        </div>
+  1498→  3821→                    `;
+  1499→  3822→            } else if (type === 'balance') {
+  1500→  3823→                const assets = invoices.filter(inv => inv.status === 'Paid').reduce((s, inv) => s + inv.amount, 0) +
+  1501→  3824→                    PRODUCTS.reduce((s, p) => s + p.cost * p.inStock, 0);
+  1502→  3825→                const liabilities = bills.filter(b => b.status !== 'Paid').reduce((s, b) => s + b.amount, 0) +
+  1503→  3826→                    expenses.filter(e => e.status === 'Pending').reduce((s, e) => s + e.amount, 0);
+  1504→  3827→                const equity = assets - liabilities;
+  1505→  3828→
+  1506→  3829→                content.innerHTML = `
+  1507→  3830→                        <h3>⚖️ Balance Sheet</h3>
+  1508→  3831→                        <div style="margin-top:16px;">
+  1509→  3832→                            <h4 style="color:#1e7a1e;">Assets</h4>
+  1510→  3833→                            <div class="detail-row"><span>Accounts Receivable</span><strong>${formatPrice(invoices.filter(inv => inv.status === 'Paid').reduce((s, inv) => s + inv.amount, 0))}</strong></div>
+  1511→  3834→                            <div class="detail-row"><span>Inventory</span><strong>${formatPrice(PRODUCTS.reduce((s, p) => s + p.cost * p.inStock, 0))}</strong></div>
+  1512→  3835→                            <div class="detail-row" style="font-weight:600; border-top:1px solid #eee;"><span>Total Assets</span><strong>${formatPrice(assets)}</strong></div>
+  1513→  3836→                            <h4 style="color:#d32f2f; margin-top:12px;">Liabilities</h4>
+  1514→  3837→                            <div class="detail-row"><span>Accounts Payable</span><strong>${formatPrice(bills.filter(b => b.status !== 'Paid').reduce((s, b) => s + b.amount, 0))}</strong></div>
+  1515→  3838→                            <div class="detail-row"><span>Accrued Expenses</span><strong>${formatPrice(expenses.filter(e => e.status === 'Pending').reduce((s, e) => s + e.amount, 0))}</strong></div>
+  1516→  3839→                            <div class="detail-row" style="font-weight:600; border-top:1px solid #eee;"><span>Total Liabilities</span><strong>${formatPrice(liabilities)}</strong></div>
+  1517→  3840→                            <h4 style="color:#c8a45c; margin-top:12px;">Equity</h4>
+  1518→  3841→                            <div class="detail-row" style="font-weight:600; border-top:1px solid #eee;"><span>Total Equity</span><strong>${formatPrice(equity)}</strong></div>
+  1519→  3842→                            <div class="detail-row" style="font-weight:700; font-size:18px; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px;">
+  1520→  3843→                                <span>Assets = Liabilities + Equity</span>
+  1521→  3844→                                <strong>${formatPrice(assets)} = ${formatPrice(liabilities)} + ${formatPrice(equity)}</strong>
+  1522→  3845→                            </div>
+  1523→  3846→                            <button onclick="printReport()" style="margin-top:16px; background:#c8a45c; color:#000; border:none; padding:10px 24px; border-radius:40px; font-weight:600; cursor:pointer; width:100%;">🖨️ Print Report</button>
+  1524→  3847→                        </div>
+  1525→  3848→                    `;
+  1526→  3849→            } else if (type === 'cashflow') {
+  1527→  3850→                const operating = invoices.filter(inv => inv.status === 'Paid').reduce((s, inv) => s + inv.amount, 0) -
+  1528→  3851→                    expenses.filter(e => e.status === 'Paid').reduce((s, e) => s + e.amount, 0);
+  1529→  3852→                const investing = -PURCHASE_ORDERS.reduce((s, po) => s + po.amount, 0) * 0.3;
+  1530→  3853→                const financing = 0;
+  1531→  3854→                const netCash = operating + investing + financing;
+  1532→  3855→
+  1533→  3856→                content.innerHTML = `
+  1534→  3857→                        <h3>💵 Cash Flow Statement</h3>
+  1535→  3858→                        <div style="margin-top:16px;">
+  1536→  3859→                            <h4 style="color:#1e7a1e;">Operating Activities</h4>
+  1537→  3860→                            <div class="detail-row"><span>Cash Received from Clients</span><strong>${formatPrice(invoices.filter(inv => inv.status === 'Paid').reduce((s, inv) => s + inv.amount, 0))}</strong></div>
+  1538→  3861→                            <div class="detail-row"><span>Cash Paid for Expenses</span><strong>${formatPrice(expenses.filter(e => e.status === 'Paid').reduce((s, e) => s + e.amount, 0))}</strong></div>
+  1539→  3862→                            <div class="detail-row" style="font-weight:600; border-top:1px solid #eee;"><span>Net Operating Cash Flow</span><strong>${formatPrice(operating)}</strong></div>
+  1540→  3863→                            <h4 style="color:#d32f2f; margin-top:12px;">Investing Activities</h4>
+  1541→  3864→                            <div class="detail-row"><span>Equipment & Assets</span><strong>${formatPrice(investing)}</strong></div>
+  1542→  3865→                            <div class="detail-row" style="font-weight:600; border-top:1px solid #eee;"><span>Net Investing Cash Flow</span><strong>${formatPrice(investing)}</strong></div>
+  1543→  3866→                            <h4 style="color:#c8a45c; margin-top:12px;">Financing Activities</h4>
+  1544→  3867→                            <div class="detail-row"><span>Net Financing Cash Flow</span><strong>${formatPrice(financing)}</strong></div>
+  1545→  3868→                            <div class="detail-row" style="font-weight:700; font-size:18px; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px;">
+  1546→  3869→                                <span>Net Change in Cash</span>
+  1547→  3870→                                <strong style="color:${netCash >= 0 ? '#1e7a1e' : '#d32f2f'}">${formatPrice(netCash)}</strong>
+  1548→  3871→                            </div>
+  1549→  3872→                            <button onclick="printReport()" style="margin-top:16px; background:#c8a45c; color:#000; border:none; padding:10px 24px; border-radius:40px; font-weight:600; cursor:pointer; width:100%;">🖨️ Print Report</button>
+  1550→  3873→                        </div>
+  1551→  3874→                    `;
+  1552→  3875→            } else if (type === 'tax') {
+  1553→  3876→                const totalVATCollected = invoices.filter(inv => inv.status === 'Paid' || inv.status === 'Partial')
+  1554→  3877→                    .reduce((s, inv) => s + (inv.amount * VAT_RATE), 0);
+  1555→  3878→                const totalVATPaid = expenses.filter(e => e.status === 'Paid')
+  1556→  3879→                    .reduce((s, e) => s + (e.amount * VAT_RATE), 0);
+  1557→  3880→                const netVAT = totalVATCollected - totalVATPaid;
+  1558→  3881→
+  1559→  3882→                content.innerHTML = `
+  1560→  3883→                        <h3>🧾 Tax Summary</h3>
+  1561→  3884→                        <div style="margin-top:16px;">
+  1562→  3885→                            <div class="detail-row"><span>VAT Rate</span><strong>${(VAT_RATE * 100).toFixed(0)}%</strong></div>
+  1563→  3886→                            <div class="detail-row"><span>VAT Collected (on invoices)</span><strong>${formatPrice(totalVATCollected)}</strong></div>
+  1564→  3887→                            <div class="detail-row"><span>VAT Paid (on expenses)</span><strong>${formatPrice(totalVATPaid)}</strong></div>
+  1565→  3888→                            <div class="detail-row" style="font-weight:700; font-size:18px; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px;">
+  1566→  3889→                                <span>Net VAT Payable</span>
+  1567→  3890→                                <strong style="color:${netVAT >= 0 ? '#d32f2f' : '#1e7a1e'}">${formatPrice(netVAT)}</strong>
+  1568→  3891→                            </div>
+  1569→  3892→                            <div style="margin-top:16px; font-size:12px; color:#999; text-align:center;">
+  1570→  3893→                                ${netVAT >= 0 ? '⚠️ Amount due to tax authorities' : '✅ Refund due from tax authorities'}
+  1571→  3894→                            </div>
+  1572→  3895→                            <button onclick="printReport()" style="margin-top:16px; background:#c8a45c; color:#000; border:none; padding:10px 24px; border-radius:40px; font-weight:600; cursor:pointer; width:100%;">🖨️ Print Report</button>
+  1573→  3896→                        </div>
+  1574→  3897→                    `;
+  1575→  3898→            }
+  1576→  3899→            content.scrollIntoView({ behavior: 'smooth' });
+  1577→  3900→        }
+  1578→  3901→
+  1579→  3902→        function printReport() {
+  1580→  3903→            const content = document.getElementById('reportContent');
+  1581→  3904→            const printWin = window.open('', '_blank', 'width=900,height=700');
+  1582→  3905→            printWin.document.write(`
+  1583→  3906→                    <html><head><title>Report · Future OS</title>
+  1584→  3907→                    <style>
+  1585→  3908→                        body { font-family: 'Inter', sans-serif; padding:40px; color:#121212; }
+  1586→  3909→                        .header { border-bottom: 3px solid #c8a45c; padding-bottom:16px; margin-bottom:24px; }
+  1587→  3910→                        .header h1 { font-size:28px; font-weight:700; }
+  1588→  3911→                        .header h1 span { color:#c8a45c; }
+  1589→  3912→                        .detail-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; }
+  1590→  3913→                        .detail-row:last-child { border:none; }
+  1591→  3914→                        button { display:none; }
+  1592→  3915→                        .footer { margin-top:40px; border-top:1px solid #eee; padding-top:20px; font-size:12px; color:#999; text-align:center; }
+  1593→  3916→                    </style>
+  1594→  3917→                    </head><body>
+  1595→  3918→                    <div class="header">
+  1596→  3919→                        <h1>future<span>.</span> concept</h1>
+  1597→  3920→                        <div style="font-size:13px; color:#666;">Bamako · Mali · ${new Date().toLocaleString()}</div>
+  1598→  3921→                    </div>
+  1599→  3922→                    ${content.innerHTML.replace(/<button[^>]*>.*?<\/button>/g, '')}
+  1600→  3923→                    <div class="footer">Generated by Future OS · Vision & Cost v4.0</div>
+  1601→  3924→                    <script>
+  1602→  3925→                        setTimeout(() => { window.print(); }, 500);
+  1603→  3926→                    <\/script>
+  1604→  3927→                    </body></html>
+  1605→  3928→                `);
+  1606→  3929→            printWin.document.close();
+  1607→  3930→        }
+  1608→  3931→
+  1609→  3932→        function exportFinanceData() {
+  1610→  3933→            let csv = 'Type,Title/Client,Amount,Date,Status\n';
+  1611→  3934→            expenses.forEach(e => {
+  1612→  3935→                csv += `Expense,${e.title},${e.amount},${e.date},${e.status}\n`;
+  1613→  3936→            });
+  1614→  3937→            invoices.forEach(inv => {
+  1615→  3938→                csv += `Invoice,${inv.client},${inv.amount},${inv.date},${inv.status}\n`;
+  1616→  3939→            });
+  1617→  3940→            bills.forEach(b => {
+  1618→  3941→                csv += `Bill,${b.supplier},${b.amount},${b.date},${b.status}\n`;
+  1619→  3942→            });
+  1620→  3943→            const blob = new Blob([csv], { type: 'text/csv' });
+  1621→  3944→            const url = URL.createObjectURL(blob);
+  1622→  3945→            const a = document.createElement('a');
+  1623→  3946→            a.href = url;
+  1624→  3947→            a.download = `finance_data_${getTimestamp().slice(0,10)}.csv`;
+  1625→  3948→            a.click();
+  1626→  3949→            URL.revokeObjectURL(url);
+  1627→  3950→            showToast('📥 Financial data exported as CSV', 'success', '📥');
+  1628→  3951→            addActivity('Exported financial data', 'CSV download', '📥');
+  1629→  3952→        }
+  1630→  3953→
+  1631→  3954→        // ──────────────────────────────────────────────────────────────
+  1632→  3955→        //  FINANCE FORMS
+  1633→  3956→        // ──────────────────────────────────────────────────────────────
+  1634→  3957→
+  1635→  3958→        function setupFinanceForms() {
+  1636→  3959→            document.getElementById('expenseSubmitBtn').addEventListener('click', function() {
+  1637→  3960→                const title = document.getElementById('expenseTitle').value.trim();
+  1638→  3961→                const amount = parseFloat(document.getElementById('expenseAmount').value);
+  1639→  3962→                const category = document.getElementById('expenseCategory').value;
+  1640→  3963→                const approval = document.getElementById('expenseApproval').value;
+  1641→  3964→                if (!title || !amount || amount <= 0) {
+  1642→  3965→                    showToast('Please enter a valid title and amount.', 'warning', '⚠️');
+  1643→  3966→                    return;
+  1644→  3967→                }
+  1645→  3968→                expenses.push({
+  1646→  3969→                    id: 'e' + generateId(),
+  1647→  3970→                    title,
+  1648→  3971→                    amount,
+  1649→  3972→                    category,
+  1650→  3973→                    date: getTimestamp().slice(0, 10),
+  1651→  3974→                    status: 'Pending',
+  1652→  3975→                    approval: approval,
+  1653→  3976→                    createdBy: 'Mamadou D.'
+  1654→  3977→                });
+  1655→  3978→                document.getElementById('expenseTitle').value = '';
+  1656→  3979→                document.getElementById('expenseAmount').value = '';
+  1657→  3980→                renderFinance();
+  1658→  3981→                addActivity('Added expense', `${title} · ${formatPrice(amount)}`, '📉');
+  1659→  3982→                showToast(`✅ Expense added: ${title}`, 'success', '✅');
+  1660→  3983→            });
+  1661→  3984→
+  1662→  3985→            document.getElementById('invoiceSubmitBtn').addEventListener('click', function() {
+  1663→  3986→                const client = document.getElementById('invoiceClient').value.trim();
+  1664→  3987→                const amount = parseFloat(document.getElementById('invoiceAmount').value);
+  1665→  3988→                const date = document.getElementById('invoiceDate').value || getTimestamp().slice(0, 10);
+  1666→  3989→                const status = document.getElementById('invoiceStatus').value;
+  1667→  3990→                if (!client || !amount || amount <= 0) {
+  1668→  3991→                    showToast('Please enter a valid client and amount.', 'warning', '⚠️');
+  1669→  3992→                    return;
+  1670→  3993→                }
+  1671→  3994→                const dueDate = new Date(date);
+  1672→  3995→                dueDate.setDate(dueDate.getDate() + 30);
+  1673→  3996→                invoices.push({
+  1674→  3997→                    id: 'inv-' + generateId(),
+  1675→  3998→                    client,
+  1676→  3999→                    amount,
+  1677→  4000→                    date,
+  1678→  4001→                    status,
+  1679→  4002→                    dueDate: dueDate.toISOString().slice(0, 10),
+  1680→  4003→                    paidAmount: 0
+  1681→  4004→                });
+  1682→  4005→                document.getElementById('invoiceClient').value = '';
+  1683→  4006→                document.getElementById('invoiceAmount').value = '';
+  1684→  4007→                renderFinance();
+  1685→  4008→                addActivity('Added invoice', `${client} · ${formatPrice(amount)}`, '📄');
+  1686→  4009→                showToast(`✅ Invoice added for ${client}`, 'success', '✅');
+  1687→  4010→            });
+  1688→  4011→
+  1689→  4012→            document.getElementById('billSubmitBtn').addEventListener('click', function() {
+  1690→  4013→                const supplier = document.getElementById('billSupplier').value.trim();
+  1691→  4014→                const amount = parseFloat(document.getElementById('billAmount').value);
+  1692→  4015→                const date = document.getElementById('billDate').value || getTimestamp().slice(0, 10);
+  1693→  4016→                const status = document.getElementById('billStatus').value;
+  1694→  4017→                if (!supplier || !amount || amount <= 0) {
+  1695→  4018→                    showToast('Please enter a valid supplier and amount.', 'warning', '⚠️');
+  1696→  4019→                    return;
+  1697→  4020→                }
+  1698→  4021→                const dueDate = new Date(date);
+  1699→  4022→                dueDate.setDate(dueDate.getDate() + 30);
+  1700→  4023→                bills.push({
+  1701→  4024→                    id: 'bill-' + generateId(),
+  1702→  4025→                    supplier,
+  1703→  4026→                    amount,
+  1704→  4027→                    date,
+  1705→  4028→                    status,
+  1706→  4029→                    dueDate: dueDate.toISOString().slice(0, 10)
+  1707→  4030→                });
+  1708→  4031→                document.getElementById('billSupplier').value = '';
+  1709→  4032→                document.getElementById('billAmount').value = '';
+  1710→  4033→                renderFinance();
+  1711→  4034→                addActivity('Added bill', `${supplier} · ${formatPrice(amount)}`, '📑');
+  1712→  4035→                showToast(`✅ Bill added for ${supplier}`, 'success', '✅');
+  1713→  4036→            });
+  1714→  4037→
+  1715→  4038→            document.getElementById('recurringSubmitBtn').addEventListener('click', function() {
+  1716→  4039→                const title = document.getElementById('recurringTitle').value.trim();
+  1717→  4040→                const amount = parseFloat(document.getElementById('recurringAmount').value);
+  1718→  4041→                const frequency = document.getElementById('recurringFrequency').value;
+  1719→  4042→                if (!title || !amount || amount <= 0) {
+  1720→  4043→                    showToast('Please enter a valid title and amount.', 'warning', '⚠️');
+  1721→  4044→                    return;
+  1722→  4045→                }
+  1723→  4046→                const nextDate = new Date();
+  1724→  4047→                if (frequency === 'Monthly') nextDate.setMonth(nextDate.getMonth() + 1);
+  1725→  4048→                else if (frequency === 'Quarterly') nextDate.setMonth(nextDate.getMonth() + 3);
+  1726→  4049→                else if (frequency === 'Yearly') nextDate.setFullYear(nextDate.getFullYear() + 1);
+  1727→  4050→                recurringExpenses.push({
+  1728→  4051→                    id: 'r' + generateId(),
+  1729→  4052→                    title,
+  1730→  4053→                    amount,
+  1731→  4054→                    frequency,
+  1732→  4055→                    nextDate: nextDate.toISOString().slice(0, 10)
+  1733→  4056→                });
+  1734→  4057→                document.getElementById('recurringTitle').value = '';
+  1735→  4058→                document.getElementById('recurringAmount').value = '';
+  1736→  4059→                renderFinance();
+  1737→  4060→                addActivity('Added recurring expense', `${title} · ${frequency}`, '🔄');
+  1738→  4061→                showToast(`✅ Recurring expense added: ${title}`, 'success', '✅');
+  1739→  4062→            });
+  1740→  4063→        }
+  1741→  4064→
+  1742→  4065→        // ──────────────────────────────────────────────────────────────
+  1743→  4066→        //  TEAM FORM
+  1744→  4067→        // ──────────────────────────────────────────────────────────────
+  1745→  4068→
+  1746→  4069→        function setupTeamForm() {
+  1747→  4070→            document.getElementById('teamSubmitBtn').addEventListener('click', function() {
+  1748→  4071→                const name = document.getElementById('teamMemberName').value.trim();
+  1749→  4072→                const role = document.getElementById('teamMemberRole').value.trim();
+  1750→  4073→                const status = document.getElementById('teamMemberStatus').value;
+  1751→  4074→                if (!name || !role) {
+  1752→  4075→                    showToast('Please enter name and role.', 'warning', '⚠️');
+  1753→  4076→                    return;
+  1754→  4077→                }
+  1755→  4078→                teamMembers.push({ id: 't' + generateId(), name, role, status });
+  1756→  4079→                document.getElementById('teamMemberName').value = '';
+  1757→  4080→                document.getElementById('teamMemberRole').value = '';
+  1758→  4081→                renderTeam();
+  1759→  4082→                addActivity('Added team member', `${name} · ${role}`, '👥');
+  1760→  4083→                showToast(`✅ ${name} added to team`, 'success', '✅');
+  1761→  4084→            });
+  1762→  4085→        }
+  1763→  4086→
+  1764→  4087→        // ──────────────────────────────────────────────────────────────
+  1765→  4088→        //  NAVIGATION & UI EVENTS
+  1766→  4089→        // ──────────────────────────────────────────────────────────────
+  1767→  4090→
+  1768→  4091→        document.querySelectorAll('.nav-item').forEach(item => {
+  1769→  4092→            item.addEventListener('click', function() {
+  1770→  4093→                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  1771→  4094→                this.classList.add('active');
+  1772→  4095→                const view = this.dataset.view;
+  1773→  4096→                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  1774→  4097→                const target = document.getElementById(`view-${view}`);
+  1775→  4098→                if (target) target.classList.add('active');
+  1776→  4099→                currentView = view;
+  1777→  4100→
+  1778→  4101→                if (view === 'inventory') renderFullInventory();
+  1779→  4102→                if (view === 'catalog') renderCatalog('catalogFullGrid', 'catalogFullSearch',
+  1780→  4103→                    'catalogFullFilters', true);
+  1781→  4104→                if (view === 'proposals') renderProposalList();
+  1782→  4105→                if (view === 'projects') renderProjectPnL();
+  1783→  4106→                if (view === 'procurement') renderProcurement();
+  1784→  4107→                if (view === 'aftersales') renderAfterSales();
+  1785→  4108→                if (view === 'finance') renderFinance();
+  1786→  4109→                if (view === 'team') renderTeam();
+  1787→  4110→                if (view === 'reports') {
+  1788→  4111→                    document.getElementById('reportOutput').style.display = 'none';
+  1789→  4112→                }
+  1790→  4113→                if (view === 'dashboard') {
+  1791→  4114→                    renderInventory();
+  1792→  4115→                    renderLogistics();
+  1793→  4116→                    renderActivityLog();
+  1794→  4117→                    updateWidgets();
+  1795→  4118→                }
+  1796→  4119→            });
+  1797→  4120→        });
+  1798→  4121→
+  1799→  4122→        document.querySelectorAll('.project-tab').forEach(tab => {
+  1800→  4123→            tab.addEventListener('click', function() {
+  1801→  4124→                document.querySelectorAll('.project-tab').forEach(t => t.classList.remove('active'));
+  1802→  4125→                this.classList.add('active');
+  1803→  4126→                const project = this.dataset.project;
+  1804→  4127→                if (project === 'all') {
+  1805→  4128→                    currentProject = 'bcg';
+  1806→  4129→                    document.getElementById('activeProjectLabel').innerText = 'All Projects';
+  1807→  4130→                } else {
+  1808→  4131→                    currentProject = project;
+  1809→  4132→                    const proj = getProjectByKey(project);
+  1810→  4133→                    document.getElementById('activeProjectLabel').innerText = proj ? proj.name : project
+  1811→  4134→                        .toUpperCase() + ' Tower';
+  1812→  4135→                }
+  1813→  4136→                renderInventory();
+  1814→  4137→            });
+  1815→  4138→        });
+  1816→  4139→
+  1817→  4140→        document.querySelectorAll('.curr-btn').forEach(btn => {
+  1818→  4141→            btn.addEventListener('click', function() {
+  1819→  4142→                document.querySelectorAll('.curr-btn').forEach(b => b.classList.remove('active'));
+  1820→  4143→                this.classList.add('active');
+  1821→  4144→                currentCurrency = this.dataset.curr;
+  1822→  4145→                updateCurrencyUI();
+  1823→  4146→                showToast(`Currency switched to ${currencySymbols[currentCurrency]}`, 'info', '💱');
+  1824→  4147→            });
+  1825→  4148→        });
+  1826→  4149→
+  1827→  4150→        function updateCurrencyUI() {
+  1828→  4151→            renderInventory();
+  1829→  4152→            renderFullInventory();
+  1830→  4153→            renderProposalList();
+  1831→  4154→            renderProjectPnL();
+  1832→  4155→            renderProcurement();
+  1833→  4156→            renderCatalog('catalogGrid', 'catalogSearch', 'catalogFilters', false);
+  1834→  4157→            renderCatalog('catalogFullGrid', 'catalogFullSearch', 'catalogFullFilters', true);
+  1835→  4158→            if (currentProposal) renderProposalCanvas();
+  1836→  4159→            renderFinance();
+  1837→  4160→            updateWidgets();
+  1838→  4161→            const data = getProjectInventory(currentProject);
+  1839→  4162→            updateChart(data);
+  1840→  4163→        }
+  1841→  4164→
+  1842→  4165→        // ──────────────────────────────────────────────────────────────
+  1843→  4166→        //  MODAL
+  1844→  4167→        // ──────────────────────────────────────────────────────────────
+  1845→  4168→
+  1846→  4169→        function openModal(name, supplier, qty, cost, status, description, origin) {
+  1847→  4170→            document.getElementById('modalTitle').innerText = name;
+  1848→  4171→            document.getElementById('modalBody').innerHTML = `
+  1849→  4172→                    <div class="detail-row"><span>Supplier</span><strong>${supplier}</strong></div>
+  1850→  4173→                    <div class="detail-row"><span>Quantity</span><strong>${qty}</strong></div>
+  1851→  4174→                    <div class="detail-row"><span>Unit Cost</span><strong>${formatPrice(cost)}</strong></div>
+  1852→  4175→                    <div class="detail-row"><span>Status</span><strong>${status}</strong></div>
+  1853→  4176→                    ${origin ? `<div class="detail-row"><span>Origin</span><strong>${origin}</strong></div>` : ''}
+  1854→  4177→                    ${description ? `<div class="detail-row"><span>Description</span><strong style="font-weight:400;max-width:200px;text-align:right;">${description}</strong></div>` : ''}
+  1855→  4178→                    <div class="detail-row"><span>Lead Time</span><strong>${Math.floor(Math.random() * 10 + 3)} days</strong></div>
+  1856→  4179→                    <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+  1857→  4180→                        <button onclick="showToast('📦 Reorder placed for ${name}', 'success', '📦')" style="background:#0b0b0b; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">🔄 Reorder</button>
+  1858→  4181→                        <button onclick="document.getElementById('detailModal').classList.remove('open')" style="background:transparent; border:1px solid #ddd; padding:10px 20px; border-radius:40px; cursor:pointer;">Close</button>
+  1859→  4182→                    </div>
+  1860→  4183→                `;
+  1861→  4184→            document.getElementById('detailModal').classList.add('open');
+  1862→  4185→        }
+  1863→  4186→
+  1864→  4187→        document.getElementById('closeModalBtn').addEventListener('click', () => {
+  1865→  4188→            document.getElementById('detailModal').classList.remove('open');
+  1866→  4189→        });
+  1867→  4190→        document.getElementById('detailModal').addEventListener('click', (e) => {
+  1868→  4191→            if (e.target === e.currentTarget) document.getElementById('detailModal').classList.remove('open');
+  1869→  4192→        });
+  1870→  4193→
+  1871→  4194→        // ──────────────────────────────────────────────────────────────
+  1872→  4195→        //  DARK MODE
+  1873→  4196→        // ──────────────────────────────────────────────────────────────
+  1874→  4197→
+  1875→  4198→        document.getElementById('themeToggle').addEventListener('click', function() {
+  1876→  4199→            isDarkMode = !isDarkMode;
+  1877→  4200→            document.body.classList.toggle('dark-mode', isDarkMode);
+  1878→  4201→            document.getElementById('themeIcon').innerText = isDarkMode ? '☀️' : '🌙';
+  1879→  4202→            try { localStorage.setItem('future_os_darkmode', JSON.stringify(isDarkMode)); } catch (e) {}
+  1880→  4203→            showToast(isDarkMode ? '🌙 Dark mode enabled' : '☀️ Light mode enabled', 'info', isDarkMode ? '🌙' : '☀️');
+  1881→  4204→        });
+  1882→  4205→
+  1883→  4206→        // ──────────────────────────────────────────────────────────────
+  1884→  4207→        //  EVENT BINDINGS
+  1885→  4208→        // ──────────────────────────────────────────────────────────────
+  1886→  4209→
+  1887→  4210→        document.getElementById('newProposalBtn').addEventListener('click', function() {
+  1888→  4211→            document.getElementById('proposalBuilderContainer').style.display = 'block';
+  1889→  4212→            document.getElementById('builderTitle').innerText = '✏️ New Proposal';
+  1890→  4213→            document.getElementById('proposalDate').value = getTimestamp().slice(0, 10);
+  1891→  4214→            const clientInput = document.getElementById('proposalClient');
+  1892→  4215→            if (!clientInput.value) clientInput.value = 'New Client';
+  1893→  4216→            const projectInput = document.getElementById('proposalProject');
+  1894→  4217→            if (!projectInput.value) projectInput.value = 'New Project';
+  1895→  4218→            currentProposal = {
+  1896→  4219→                id: 'prop_' + generateId(),
+  1897→  4220→                client: clientInput.value,
+  1898→  4221→                project: projectInput.value,
+  1899→  4222→                date: document.getElementById('proposalDate').value || getTimestamp().slice(0, 10),
+  1900→  4223→                items: [],
+  1901→  4224→                status: 'draft',
+  1902→  4225→                createdAt: getTimestamp()
+  1903→  4226→            };
+  1904→  4227→            editingProposalId = null;
+  1905→  4228→            renderProposalCanvas();
+  1906→  4229→            renderCatalog('catalogGrid', 'catalogSearch', 'catalogFilters', false);
+  1907→  4230→            document.getElementById('proposalBuilderContainer').scrollIntoView({ behavior: 'smooth' });
+  1908→  4231→            showToast('🛒 New proposal started', 'info', '📄');
+  1909→  4232→        });
+  1910→  4233→
+  1911→  4234→        document.getElementById('closeBuilderBtn').addEventListener('click', closeProposalBuilder);
+  1912→  4235→        document.getElementById('saveProposalBtn').addEventListener('click', saveCurrentProposal);
+  1913→  4236→        document.getElementById('clearProposalBtn').addEventListener('click', clearProposalBuilder);
+  1914→  4237→        document.getElementById('printProposalBtn').addEventListener('click', printProposal);
+  1915→  4238→
+  1916→  4239→        document.getElementById('addStockBtn').addEventListener('click', function() {
+  1917→  4240→            showToast('✅ Stock adjustment simulated for this project', 'success', '📦');
+  1918→  4241→            addActivity('Adjusted stock', `Project ${currentProject.toUpperCase()}`, '📦');
+  1919→  4242→        });
+  1920→  4243→
+  1921→  4244→        document.getElementById('offlineToggle').addEventListener('click', function() {
+  1922→  4245→            const isOnline = this.innerText.includes('Online');
+  1923→  4246→            if (isOnline) {
+  1924→  4247→                this.innerText = '📡 Offline Mode · Simulating sync...';
+  1925→  4248→                setTimeout(() => {
+  1926→  4249→                    this.innerText = '📶 Online · Auto-sync enabled';
+  1927→  4250→                    showToast('🔄 Synced with server', 'success', '✅');
+  1928→  4251→                    addActivity('Synced data', 'All systems online', '🔄');
+  1929→  4252→                    document.getElementById('lastSync').innerText = 'just now';
+  1930→  4253→                }, 800);
+  1931→  4254→            } else {
+  1932→  4255→                this.innerText = '📶 Online · Auto-sync enabled';
+  1933→  4256→            }
+  1934→  4257→        });
+  1935→  4258→
+  1936→  4259→        document.getElementById('supplyChainRefresh').addEventListener('click', function() {
+  1937→  4260→            this.textContent = '↻ Refreshing...';
+  1938→  4261→            setTimeout(() => {
+  1939→  4262→                renderLogistics();
+  1940→  4263→                this.textContent = '↻ Refresh';
+  1941→  4264→                showToast('🔄 Supply chain updated', 'info', '🔄');
+  1942→  4265→                document.getElementById('lastSync').innerText = 'just now';
+  1943→  4266→            }, 600);
+  1944→  4267→        });
+  1945→  4268→
+  1946→  4269→        document.getElementById('notificationBell').addEventListener('click', function() {
+  1947→  4270→            const counts = getStatusCounts();
+  1948→  4271→            const msgs = [];
+  1949→  4272→            if (counts.critical.length > 0) msgs.push(`🔴 Critical: ${counts.critical.join(', ')}`);
+  1950→  4273→            if (counts.low.length > 0) msgs.push(`🟠 Low stock: ${counts.low.join(', ')}`);
+  1951→  4274→            const pendingTickets = AFTERSALES_TICKETS.filter(t => t.status !== 'Resolved').length;
+  1952→  4275→            if (pendingTickets > 0) msgs.push(`🛠️ ${pendingTickets} open after-sales tickets`);
+  1953→  4276→            const pendingPOs = PURCHASE_ORDERS.filter(o => o.status !== 'Delivered').length;
+  1954→  4277→            if (pendingPOs > 0) msgs.push(`📦 ${pendingPOs} purchase orders in progress`);
+  1955→  4278→            const overdueInvoices = invoices.filter(inv => inv.status === 'Overdue').length;
+  1956→  4279→            if (overdueInvoices > 0) msgs.push(`💳 ${overdueInvoices} overdue invoices`);
+  1957→  4280→            const pendingExpenses = expenses.filter(e => e.status === 'Pending').length;
+  1958→  4281→            if (pendingExpenses > 0) msgs.push(`📋 ${pendingExpenses} pending expenses`);
+  1959→  4282→            if (msgs.length === 0) {
+  1960→  4283→                showToast('✅ All clear! No alerts.', 'success', '✅');
+  1961→  4284→            } else {
+  1962→  4285→                showToast(msgs.join(' · '), 'info', '🔔');
+  1963→  4286→            }
+  1964→  4287→        });
+  1965→  4288→
+  1966→  4289→        document.getElementById('clearActivityBtn').addEventListener('click', function() {
+  1967→  4290→            if (activityLog.length === 0) return;
+  1968→  4291→            if (confirm('Clear all activity log?')) {
+  1969→  4292→                activityLog = [];
+  1970→  4293→                renderActivityLog();
+  1971→  4294→                try { localStorage.setItem('future_os_activity', JSON.stringify(activityLog)); } catch (e) {}
+  1972→  4295→                showToast('🧹 Activity log cleared', 'warning', '🧹');
+  1973→  4296→            }
+  1974→  4297→        });
+  1975→  4298→
+  1976→  4299→        document.querySelectorAll('.stat-card').forEach(card => {
+  1977→  4300→            card.addEventListener('click', function() {
+  1978→  4301→                const filter = this.dataset.filter;
+  1979→  4302→                if (filter === 'alerts') {
+  1980→  4303→                    const counts = getStatusCounts();
+  1981→  4304→                    if (counts.total === 0) {
+  1982→  4305→                        showToast('✅ All inventory levels are healthy!', 'success', '✅');
+  1983→  4306→                    } else {
+  1984→  4307→                        showToast(
+  1985→  4308→                            `⚠️ ${counts.critical.length} critical, ${counts.low.length} low stock items`,
+  1986→  4309→                            'warning', '⚠️');
+  1987→  4310→                    }
+  1988→  4311→                } else if (filter === 'projects') {
+  1989→  4312→                    const active = PROJECTS_DATA.filter(p => p.status === 'active');
+  1990→  4313→                    showToast(`📋 ${active.length} active projects. ${active.filter(p => p.phase.includes('Installation')).length} in installation.`,
+  1991→  4314→                        'info', '📋');
+  1992→  4315→                } else if (filter === 'proposals') {
+  1993→  4316→                    const drafts = proposals.filter(p => p.status === 'draft');
+  1994→  4317→                    if (proposals.length === 0) {
+  1995→  4318→                        showToast('📄 No proposals yet. Click "New Proposal" to get started!', 'info', '📄');
+  1996→  4319→                    } else {
+  1997→  4320→                        showToast(`📄 ${proposals.length} total, ${drafts.length} drafts ready to send`, 'info',
+  1998→  4321→                            '📄');
+  1999→  4322→                    }
+  2000→  4323→                } else if (filter === 'value') {
+  2001→
+  2002→[showing lines 2324-4323 of 4510; use offset=4324 with limit to continue reading]
