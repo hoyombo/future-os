@@ -54,7 +54,7 @@ export function FinanceView() {
   const setRecurringExpenses = useAppStore((s) => s.setRecurringExpenses);
   const addToast = useAppStore((s) => s.addToast);
   const addActivity = useAppStore((s) => s.addActivity);
-  const service = (window as Record<string, unknown>).__appService as import('@/lib/types').IAppService | undefined;
+  const service = useAppStore((s) => s._service);
 
   // Summary cards
   const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);

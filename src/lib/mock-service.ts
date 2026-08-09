@@ -16,17 +16,39 @@ import {
 } from './mock-data';
 
 // ── LocalStorage helpers ──────────────────────────────────────
+let _quotaExceededNotified = false;
+
 function load<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;
   try {
     const raw = localStorage.getItem(`future_os_${key}`);
     return raw ? JSON.parse(raw) as T : fallback;
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 
-function save<T>(key: string, data: T): void {
-  if (typeof window === 'undefined') return;
-  try { localStorage.setItem(`future_os_${key}`, JSON.stringify(data)); } catch {}
+function save<T>(key: string, data: T): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    localStorage.setItem(`future_os_${key}`, JSON.stringify(data));
+    return true;
+  } catch (err) {
+    const isQuota = err instanceof DOMException && (
+      err.name === 'QuotaExceededError' ||
+      err.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      (err as DOMException).code === 22 ||
+      (err as DOMException).code === 1014
+    );
+    if (isQuota && !_quotaExceededNotified) {
+      _quotaExceededNotified = true;
+      // Dispatch a custom event the UI can listen to
+      window.dispatchEvent(new CustomEvent('future-os:storage-quota', {
+        detail: { key, message: 'Storage is full. Some data may not be saved. Consider exporting your data.' },
+      }));
+    }
+    return false;
+  }
 }
 
 // ── Factory ───────────────────────────────────────────────────

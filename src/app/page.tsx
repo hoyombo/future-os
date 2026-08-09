@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react';
 import { useAppStore, generateId, getTimestamp } from '@/lib/store';
 import { createAppService } from '@/lib/services';
-import type { IAppService, ViewName } from '@/lib/types';
 
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { AppTopbar } from '@/components/layout/app-topbar';
@@ -22,9 +21,6 @@ import { FinanceView } from '@/components/views/finance-view';
 import { TeamView } from '@/components/views/team-view';
 import { ReportsView } from '@/components/views/reports-view';
 
-// Make service available globally for components that need direct access
-let _service: IAppService | null = null;
-
 export default function Home() {
   const currentView = useAppStore((s) => s.currentView);
   const setProducts = useAppStore((s) => s.setProducts);
@@ -40,7 +36,9 @@ export default function Home() {
   const setAfterSalesTickets = useAppStore((s) => s.setAfterSalesTickets);
   const setActivityLog = useAppStore((s) => s.setActivityLog);
   const setBudgetData = useAppStore((s) => s.setBudgetData);
+  const setService = useAppStore((s) => s.setService);
   const addActivity = useAppStore((s) => s.addActivity);
+  const addToast = useAppStore((s) => s.addToast);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -54,29 +52,36 @@ export default function Home() {
         document.documentElement.classList.add('dark');
         useAppStore.setState({ isDarkMode: true });
       }
-    } catch {}
+    } catch {
+      // localStorage unavailable — continue with default theme
+    }
 
     // Create service and hydrate store
-    const svc = createAppService();
-    _service = svc;
-    (window as Record<string, unknown>).__appService = svc;
+    try {
+      const svc = createAppService();
+      setService(svc);
 
-    setProducts(svc.getProducts());
-    setProjects(svc.getProjects());
-    setLogisticsEvents(svc.getLogisticsEvents());
-    setProposals(svc.getProposals());
-    setExpenses(svc.getExpenses());
-    setInvoices(svc.getInvoices());
-    setBills(svc.getBills());
-    setRecurringExpenses(svc.getRecurringExpenses());
-    setTeamMembers(svc.getTeamMembers());
-    setPurchaseOrders(svc.getPurchaseOrders());
-    setAfterSalesTickets(svc.getAfterSalesTickets());
-    setActivityLog(svc.getActivityLog());
-    setBudgetData(svc.getBudgetData());
+      setProducts(svc.getProducts());
+      setProjects(svc.getProjects());
+      setLogisticsEvents(svc.getLogisticsEvents());
+      setProposals(svc.getProposals());
+      setExpenses(svc.getExpenses());
+      setInvoices(svc.getInvoices());
+      setBills(svc.getBills());
+      setRecurringExpenses(svc.getRecurringExpenses());
+      setTeamMembers(svc.getTeamMembers());
+      setPurchaseOrders(svc.getPurchaseOrders());
+      setAfterSalesTickets(svc.getAfterSalesTickets());
+      setActivityLog(svc.getActivityLog());
+      setBudgetData(svc.getBudgetData());
+    } catch (err) {
+      addToast('error', '❌', 'Failed to initialize data service. Check console for details.');
+      console.error('[Future OS] Service initialization failed:', err);
+    }
 
     // Seed initial activity if empty
-    if (svc.getActivityLog().length === 0) {
+    const currentActivity = useAppStore.getState().activityLog;
+    if (currentActivity.length === 0) {
       const seed = [
         { text: 'System initialized', detail: 'Future OS is ready', icon: '🚀', delay: 0 },
         { text: 'Inventory synced', detail: '10 products loaded', icon: '📦', delay: 100 },
@@ -95,6 +100,17 @@ export default function Home() {
         }, s.delay);
       });
     }
+
+    // Listen for localStorage quota exceeded events from mock service
+    const handleQuotaExceeded = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      addToast('error', '💾', detail?.message || 'Storage is full. Data may not be saved.');
+    };
+    window.addEventListener('future-os:storage-quota', handleQuotaExceeded);
+
+    return () => {
+      window.removeEventListener('future-os:storage-quota', handleQuotaExceeded);
+    };
   }, []);
 
   function renderView() {

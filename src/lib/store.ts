@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import type {
-  Currency, ViewName, Toast, ToastType,
+  Currency, ViewName, Toast, ToastType, IAppService,
   Product, Project, Proposal, Expense, Invoice, Bill,
   RecurringExpense, TeamMember, PurchaseOrder, AfterSalesTicket,
   ActivityEntry, LogisticsEvent, BudgetItem,
@@ -46,6 +46,7 @@ export function formatDate(dateStr: string): string {
 }
 
 export function stockStatus(inStock: number, stock: number): { label: string; className: string } {
+  if (!stock || stock <= 0) return { label: 'Unknown', className: 'status blue' };
   const ratio = inStock / stock;
   if (ratio <= 0.2) return { label: 'Critical', className: 'status red' };
   if (ratio <= 0.5) return { label: 'Low', className: 'status orange' };
@@ -53,6 +54,7 @@ export function stockStatus(inStock: number, stock: number): { label: string; cl
 }
 
 export function projectBudgetClass(spent: number, budget: number): string {
+  if (!budget || budget <= 0) return '';
   const ratio = spent / budget;
   if (ratio >= 0.95) return 'danger';
   if (ratio >= 0.75) return 'warning';
@@ -103,6 +105,14 @@ interface AppState {
   afterSalesTickets: AfterSalesTicket[];
   activityLog: ActivityEntry[];
   budgetData: Record<string, BudgetItem>;
+
+  // Activity
+  addActivity: (entry: ActivityEntry) => void;
+  clearActivity: () => void;
+
+  // Service reference
+  _service: IAppService | null;
+  setService: (s: IAppService | null) => void;
 
   // Data mutations
   setProducts: (p: Product[]) => void;
@@ -159,6 +169,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   modalContent: null,
   openModal: (title, content) => set({ modalOpen: true, modalTitle: title, modalContent: content }),
   closeModal: () => set({ modalOpen: false, modalTitle: '', modalContent: null }),
+
+  // Service
+  _service: null,
+  setService: (s) => set({ _service: s }),
+
+  // Activity
+  addActivity: (entry) => {
+    const state = get();
+    const newLog = [entry, ...state.activityLog].slice(0, 100);
+    set({ activityLog: newLog });
+    state._service?.addActivity(entry);
+  },
+  clearActivity: () => {
+    const state = get();
+    set({ activityLog: [] });
+    state._service?.clearActivity();
+  },
 
   // Data holders (hydrated on mount)
   products: [],

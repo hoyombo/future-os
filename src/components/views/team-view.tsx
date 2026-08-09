@@ -19,12 +19,11 @@ export function TeamView() {
   const setTeamMembers = useAppStore((s) => s.setTeamMembers);
   const addToast = useAppStore((s) => s.addToast);
   const addActivity = useAppStore((s) => s.addActivity);
+  const service = useAppStore((s) => s._service);
 
   const [name, setName] = useState('');
   const [role, setRole] = useState(ROLES[0]);
   const [status, setStatus] = useState<'Active' | 'On Leave' | 'Inactive'>('Active');
-
-  const service = (window as Record<string, unknown>).__appService as import('@/lib/types').IAppService | undefined;
 
   function addMember() {
     if (!name.trim()) {
