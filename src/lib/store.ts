@@ -1,0 +1,192 @@
+// ──────────────────────────────────────────────────────────────
+//  Future OS · Vision & Cost — Zustand Store
+// ──────────────────────────────────────────────────────────────
+
+import { create } from 'zustand';
+import type {
+  Currency, ViewName, Toast, ToastType,
+  Product, Project, Proposal, Expense, Invoice, Bill,
+  RecurringExpense, TeamMember, PurchaseOrder, AfterSalesTicket,
+  ActivityEntry, LogisticsEvent, BudgetItem,
+} from './types';
+
+// ── Helpers ───────────────────────────────────────────────────
+let idCounter = Date.now();
+export function generateId(): string {
+  return String(++idCounter);
+}
+
+export function getTimestamp(): string {
+  return new Date().toISOString();
+}
+
+// Currency conversion rates (from XOF)
+const RATES: Record<Currency, number> = {
+  XOF: 1,
+  EUR: 0.00152,
+  USD: 0.00164,
+};
+
+const SYMBOLS: Record<Currency, string> = {
+  XOF: 'CFA',
+  EUR: '€',
+  USD: '$',
+};
+
+export function formatPrice(amountXOF: number, currency: Currency = 'XOF'): string {
+  const converted = Math.round(amountXOF * RATES[currency]);
+  return `${SYMBOLS[currency]} ${converted.toLocaleString('en-US')}`;
+}
+
+export function formatDate(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return dateStr; }
+}
+
+export function stockStatus(inStock: number, stock: number): { label: string; className: string } {
+  const ratio = inStock / stock;
+  if (ratio <= 0.2) return { label: 'Critical', className: 'status red' };
+  if (ratio <= 0.5) return { label: 'Low', className: 'status orange' };
+  return { label: 'In Stock', className: 'status green' };
+}
+
+export function projectBudgetClass(spent: number, budget: number): string {
+  const ratio = spent / budget;
+  if (ratio >= 0.95) return 'danger';
+  if (ratio >= 0.75) return 'warning';
+  return '';
+}
+
+// ── Store ─────────────────────────────────────────────────────
+interface AppState {
+  // Navigation
+  currentView: ViewName;
+  setCurrentView: (v: ViewName) => void;
+
+  // Project context
+  currentProject: string;
+  setCurrentProject: (p: string) => void;
+
+  // Theme
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
+
+  // Currency
+  currency: Currency;
+  setCurrency: (c: Currency) => void;
+
+  // Toast notifications
+  toasts: Toast[];
+  addToast: (type: ToastType, icon: string, message: string) => void;
+  removeToast: (id: string) => void;
+
+  // Modal
+  modalOpen: boolean;
+  modalTitle: string;
+  modalContent: React.ReactNode;
+  openModal: (title: string, content: React.ReactNode) => void;
+  closeModal: () => void;
+
+  // Mock data accessors (populated on init)
+  products: Product[];
+  projects: Project[];
+  logisticsEvents: LogisticsEvent[];
+  proposals: Proposal[];
+  expenses: Expense[];
+  invoices: Invoice[];
+  bills: Bill[];
+  recurringExpenses: RecurringExpense[];
+  teamMembers: TeamMember[];
+  purchaseOrders: PurchaseOrder[];
+  afterSalesTickets: AfterSalesTicket[];
+  activityLog: ActivityEntry[];
+  budgetData: Record<string, BudgetItem>;
+
+  // Data mutations
+  setProducts: (p: Product[]) => void;
+  setProjects: (p: Project[]) => void;
+  setLogisticsEvents: (e: LogisticsEvent[]) => void;
+  setProposals: (p: Proposal[]) => void;
+  setExpenses: (e: Expense[]) => void;
+  setInvoices: (i: Invoice[]) => void;
+  setBills: (b: Bill[]) => void;
+  setRecurringExpenses: (r: RecurringExpense[]) => void;
+  setTeamMembers: (t: TeamMember[]) => void;
+  setPurchaseOrders: (p: PurchaseOrder[]) => void;
+  setAfterSalesTickets: (t: AfterSalesTicket[]) => void;
+  setActivityLog: (a: ActivityEntry[]) => void;
+  setBudgetData: (b: Record<string, BudgetItem>) => void;
+}
+
+export const useAppStore = create<AppState>((set, get) => ({
+  // Navigation
+  currentView: 'dashboard',
+  setCurrentView: (v) => set({ currentView: v }),
+
+  // Project
+  currentProject: 'bcg',
+  setCurrentProject: (p) => set({ currentProject: p }),
+
+  // Theme
+  isDarkMode: false,
+  toggleDarkMode: () => set((s) => {
+    const next = !s.isDarkMode;
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.toggle('dark', next);
+      localStorage.setItem('future_os_darkmode', JSON.stringify(next));
+    }
+    return { isDarkMode: next };
+  }),
+
+  // Currency
+  currency: 'XOF',
+  setCurrency: (c) => set({ currency: c }),
+
+  // Toasts
+  toasts: [],
+  addToast: (type, icon, message) => {
+    const id = String(Date.now());
+    set((s) => ({ toasts: [...s.toasts, { id, type, icon, message }] }));
+    setTimeout(() => get().removeToast(id), 4000);
+  },
+  removeToast: (id) => set((s) => ({ toasts: s.toasts.filter(t => t.id !== id) })),
+
+  // Modal
+  modalOpen: false,
+  modalTitle: '',
+  modalContent: null,
+  openModal: (title, content) => set({ modalOpen: true, modalTitle: title, modalContent: content }),
+  closeModal: () => set({ modalOpen: false, modalTitle: '', modalContent: null }),
+
+  // Data holders (hydrated on mount)
+  products: [],
+  projects: [],
+  logisticsEvents: [],
+  proposals: [],
+  expenses: [],
+  invoices: [],
+  bills: [],
+  recurringExpenses: [],
+  teamMembers: [],
+  purchaseOrders: [],
+  afterSalesTickets: [],
+  activityLog: [],
+  budgetData: {},
+
+  // Setters
+  setProducts: (p) => set({ products: p }),
+  setProjects: (p) => set({ projects: p }),
+  setLogisticsEvents: (e) => set({ logisticsEvents: e }),
+  setProposals: (p) => set({ proposals: p }),
+  setExpenses: (e) => set({ expenses: e }),
+  setInvoices: (i) => set({ invoices: i }),
+  setBills: (b) => set({ bills: b }),
+  setRecurringExpenses: (r) => set({ recurringExpenses: r }),
+  setTeamMembers: (t) => set({ teamMembers: t }),
+  setPurchaseOrders: (p) => set({ purchaseOrders: p }),
+  setAfterSalesTickets: (t) => set({ afterSalesTickets: t }),
+  setActivityLog: (a) => set({ activityLog: a }),
+  setBudgetData: (b) => set({ budgetData: b }),
+}));

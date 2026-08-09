@@ -1,0 +1,502 @@
+  4000→                    date,
+  4001→                    status,
+  4002→                    dueDate: dueDate.toISOString().slice(0, 10),
+  4003→                    paidAmount: 0
+  4004→                });
+  4005→                document.getElementById('invoiceClient').value = '';
+  4006→                document.getElementById('invoiceAmount').value = '';
+  4007→                renderFinance();
+  4008→                addActivity('Added invoice', `${client} · ${formatPrice(amount)}`, '📄');
+  4009→                showToast(`✅ Invoice added for ${client}`, 'success', '✅');
+  4010→            });
+  4011→
+  4012→            document.getElementById('billSubmitBtn').addEventListener('click', function() {
+  4013→                const supplier = document.getElementById('billSupplier').value.trim();
+  4014→                const amount = parseFloat(document.getElementById('billAmount').value);
+  4015→                const date = document.getElementById('billDate').value || getTimestamp().slice(0, 10);
+  4016→                const status = document.getElementById('billStatus').value;
+  4017→                if (!supplier || !amount || amount <= 0) {
+  4018→                    showToast('Please enter a valid supplier and amount.', 'warning', '⚠️');
+  4019→                    return;
+  4020→                }
+  4021→                const dueDate = new Date(date);
+  4022→                dueDate.setDate(dueDate.getDate() + 30);
+  4023→                bills.push({
+  4024→                    id: 'bill-' + generateId(),
+  4025→                    supplier,
+  4026→                    amount,
+  4027→                    date,
+  4028→                    status,
+  4029→                    dueDate: dueDate.toISOString().slice(0, 10)
+  4030→                });
+  4031→                document.getElementById('billSupplier').value = '';
+  4032→                document.getElementById('billAmount').value = '';
+  4033→                renderFinance();
+  4034→                addActivity('Added bill', `${supplier} · ${formatPrice(amount)}`, '📑');
+  4035→                showToast(`✅ Bill added for ${supplier}`, 'success', '✅');
+  4036→            });
+  4037→
+  4038→            document.getElementById('recurringSubmitBtn').addEventListener('click', function() {
+  4039→                const title = document.getElementById('recurringTitle').value.trim();
+  4040→                const amount = parseFloat(document.getElementById('recurringAmount').value);
+  4041→                const frequency = document.getElementById('recurringFrequency').value;
+  4042→                if (!title || !amount || amount <= 0) {
+  4043→                    showToast('Please enter a valid title and amount.', 'warning', '⚠️');
+  4044→                    return;
+  4045→                }
+  4046→                const nextDate = new Date();
+  4047→                if (frequency === 'Monthly') nextDate.setMonth(nextDate.getMonth() + 1);
+  4048→                else if (frequency === 'Quarterly') nextDate.setMonth(nextDate.getMonth() + 3);
+  4049→                else if (frequency === 'Yearly') nextDate.setFullYear(nextDate.getFullYear() + 1);
+  4050→                recurringExpenses.push({
+  4051→                    id: 'r' + generateId(),
+  4052→                    title,
+  4053→                    amount,
+  4054→                    frequency,
+  4055→                    nextDate: nextDate.toISOString().slice(0, 10)
+  4056→                });
+  4057→                document.getElementById('recurringTitle').value = '';
+  4058→                document.getElementById('recurringAmount').value = '';
+  4059→                renderFinance();
+  4060→                addActivity('Added recurring expense', `${title} · ${frequency}`, '🔄');
+  4061→                showToast(`✅ Recurring expense added: ${title}`, 'success', '✅');
+  4062→            });
+  4063→        }
+  4064→
+  4065→        // ──────────────────────────────────────────────────────────────
+  4066→        //  TEAM FORM
+  4067→        // ──────────────────────────────────────────────────────────────
+  4068→
+  4069→        function setupTeamForm() {
+  4070→            document.getElementById('teamSubmitBtn').addEventListener('click', function() {
+  4071→                const name = document.getElementById('teamMemberName').value.trim();
+  4072→                const role = document.getElementById('teamMemberRole').value.trim();
+  4073→                const status = document.getElementById('teamMemberStatus').value;
+  4074→                if (!name || !role) {
+  4075→                    showToast('Please enter name and role.', 'warning', '⚠️');
+  4076→                    return;
+  4077→                }
+  4078→                teamMembers.push({ id: 't' + generateId(), name, role, status });
+  4079→                document.getElementById('teamMemberName').value = '';
+  4080→                document.getElementById('teamMemberRole').value = '';
+  4081→                renderTeam();
+  4082→                addActivity('Added team member', `${name} · ${role}`, '👥');
+  4083→                showToast(`✅ ${name} added to team`, 'success', '✅');
+  4084→            });
+  4085→        }
+  4086→
+  4087→        // ──────────────────────────────────────────────────────────────
+  4088→        //  NAVIGATION & UI EVENTS
+  4089→        // ──────────────────────────────────────────────────────────────
+  4090→
+  4091→        document.querySelectorAll('.nav-item').forEach(item => {
+  4092→            item.addEventListener('click', function() {
+  4093→                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  4094→                this.classList.add('active');
+  4095→                const view = this.dataset.view;
+  4096→                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  4097→                const target = document.getElementById(`view-${view}`);
+  4098→                if (target) target.classList.add('active');
+  4099→                currentView = view;
+  4100→
+  4101→                if (view === 'inventory') renderFullInventory();
+  4102→                if (view === 'catalog') renderCatalog('catalogFullGrid', 'catalogFullSearch',
+  4103→                    'catalogFullFilters', true);
+  4104→                if (view === 'proposals') renderProposalList();
+  4105→                if (view === 'projects') renderProjectPnL();
+  4106→                if (view === 'procurement') renderProcurement();
+  4107→                if (view === 'aftersales') renderAfterSales();
+  4108→                if (view === 'finance') renderFinance();
+  4109→                if (view === 'team') renderTeam();
+  4110→                if (view === 'reports') {
+  4111→                    document.getElementById('reportOutput').style.display = 'none';
+  4112→                }
+  4113→                if (view === 'dashboard') {
+  4114→                    renderInventory();
+  4115→                    renderLogistics();
+  4116→                    renderActivityLog();
+  4117→                    updateWidgets();
+  4118→                }
+  4119→            });
+  4120→        });
+  4121→
+  4122→        document.querySelectorAll('.project-tab').forEach(tab => {
+  4123→            tab.addEventListener('click', function() {
+  4124→                document.querySelectorAll('.project-tab').forEach(t => t.classList.remove('active'));
+  4125→                this.classList.add('active');
+  4126→                const project = this.dataset.project;
+  4127→                if (project === 'all') {
+  4128→                    currentProject = 'bcg';
+  4129→                    document.getElementById('activeProjectLabel').innerText = 'All Projects';
+  4130→                } else {
+  4131→                    currentProject = project;
+  4132→                    const proj = getProjectByKey(project);
+  4133→                    document.getElementById('activeProjectLabel').innerText = proj ? proj.name : project
+  4134→                        .toUpperCase() + ' Tower';
+  4135→                }
+  4136→                renderInventory();
+  4137→            });
+  4138→        });
+  4139→
+  4140→        document.querySelectorAll('.curr-btn').forEach(btn => {
+  4141→            btn.addEventListener('click', function() {
+  4142→                document.querySelectorAll('.curr-btn').forEach(b => b.classList.remove('active'));
+  4143→                this.classList.add('active');
+  4144→                currentCurrency = this.dataset.curr;
+  4145→                updateCurrencyUI();
+  4146→                showToast(`Currency switched to ${currencySymbols[currentCurrency]}`, 'info', '💱');
+  4147→            });
+  4148→        });
+  4149→
+  4150→        function updateCurrencyUI() {
+  4151→            renderInventory();
+  4152→            renderFullInventory();
+  4153→            renderProposalList();
+  4154→            renderProjectPnL();
+  4155→            renderProcurement();
+  4156→            renderCatalog('catalogGrid', 'catalogSearch', 'catalogFilters', false);
+  4157→            renderCatalog('catalogFullGrid', 'catalogFullSearch', 'catalogFullFilters', true);
+  4158→            if (currentProposal) renderProposalCanvas();
+  4159→            renderFinance();
+  4160→            updateWidgets();
+  4161→            const data = getProjectInventory(currentProject);
+  4162→            updateChart(data);
+  4163→        }
+  4164→
+  4165→        // ──────────────────────────────────────────────────────────────
+  4166→        //  MODAL
+  4167→        // ──────────────────────────────────────────────────────────────
+  4168→
+  4169→        function openModal(name, supplier, qty, cost, status, description, origin) {
+  4170→            document.getElementById('modalTitle').innerText = name;
+  4171→            document.getElementById('modalBody').innerHTML = `
+  4172→                    <div class="detail-row"><span>Supplier</span><strong>${supplier}</strong></div>
+  4173→                    <div class="detail-row"><span>Quantity</span><strong>${qty}</strong></div>
+  4174→                    <div class="detail-row"><span>Unit Cost</span><strong>${formatPrice(cost)}</strong></div>
+  4175→                    <div class="detail-row"><span>Status</span><strong>${status}</strong></div>
+  4176→                    ${origin ? `<div class="detail-row"><span>Origin</span><strong>${origin}</strong></div>` : ''}
+  4177→                    ${description ? `<div class="detail-row"><span>Description</span><strong style="font-weight:400;max-width:200px;text-align:right;">${description}</strong></div>` : ''}
+  4178→                    <div class="detail-row"><span>Lead Time</span><strong>${Math.floor(Math.random() * 10 + 3)} days</strong></div>
+  4179→                    <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+  4180→                        <button onclick="showToast('📦 Reorder placed for ${name}', 'success', '📦')" style="background:#0b0b0b; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">🔄 Reorder</button>
+  4181→                        <button onclick="document.getElementById('detailModal').classList.remove('open')" style="background:transparent; border:1px solid #ddd; padding:10px 20px; border-radius:40px; cursor:pointer;">Close</button>
+  4182→                    </div>
+  4183→                `;
+  4184→            document.getElementById('detailModal').classList.add('open');
+  4185→        }
+  4186→
+  4187→        document.getElementById('closeModalBtn').addEventListener('click', () => {
+  4188→            document.getElementById('detailModal').classList.remove('open');
+  4189→        });
+  4190→        document.getElementById('detailModal').addEventListener('click', (e) => {
+  4191→            if (e.target === e.currentTarget) document.getElementById('detailModal').classList.remove('open');
+  4192→        });
+  4193→
+  4194→        // ──────────────────────────────────────────────────────────────
+  4195→        //  DARK MODE
+  4196→        // ──────────────────────────────────────────────────────────────
+  4197→
+  4198→        document.getElementById('themeToggle').addEventListener('click', function() {
+  4199→            isDarkMode = !isDarkMode;
+  4200→            document.body.classList.toggle('dark-mode', isDarkMode);
+  4201→            document.getElementById('themeIcon').innerText = isDarkMode ? '☀️' : '🌙';
+  4202→            try { localStorage.setItem('future_os_darkmode', JSON.stringify(isDarkMode)); } catch (e) {}
+  4203→            showToast(isDarkMode ? '🌙 Dark mode enabled' : '☀️ Light mode enabled', 'info', isDarkMode ? '🌙' : '☀️');
+  4204→        });
+  4205→
+  4206→        // ──────────────────────────────────────────────────────────────
+  4207→        //  EVENT BINDINGS
+  4208→        // ──────────────────────────────────────────────────────────────
+  4209→
+  4210→        document.getElementById('newProposalBtn').addEventListener('click', function() {
+  4211→            document.getElementById('proposalBuilderContainer').style.display = 'block';
+  4212→            document.getElementById('builderTitle').innerText = '✏️ New Proposal';
+  4213→            document.getElementById('proposalDate').value = getTimestamp().slice(0, 10);
+  4214→            const clientInput = document.getElementById('proposalClient');
+  4215→            if (!clientInput.value) clientInput.value = 'New Client';
+  4216→            const projectInput = document.getElementById('proposalProject');
+  4217→            if (!projectInput.value) projectInput.value = 'New Project';
+  4218→            currentProposal = {
+  4219→                id: 'prop_' + generateId(),
+  4220→                client: clientInput.value,
+  4221→                project: projectInput.value,
+  4222→                date: document.getElementById('proposalDate').value || getTimestamp().slice(0, 10),
+  4223→                items: [],
+  4224→                status: 'draft',
+  4225→                createdAt: getTimestamp()
+  4226→            };
+  4227→            editingProposalId = null;
+  4228→            renderProposalCanvas();
+  4229→            renderCatalog('catalogGrid', 'catalogSearch', 'catalogFilters', false);
+  4230→            document.getElementById('proposalBuilderContainer').scrollIntoView({ behavior: 'smooth' });
+  4231→            showToast('🛒 New proposal started', 'info', '📄');
+  4232→        });
+  4233→
+  4234→        document.getElementById('closeBuilderBtn').addEventListener('click', closeProposalBuilder);
+  4235→        document.getElementById('saveProposalBtn').addEventListener('click', saveCurrentProposal);
+  4236→        document.getElementById('clearProposalBtn').addEventListener('click', clearProposalBuilder);
+  4237→        document.getElementById('printProposalBtn').addEventListener('click', printProposal);
+  4238→
+  4239→        document.getElementById('addStockBtn').addEventListener('click', function() {
+  4240→            showToast('✅ Stock adjustment simulated for this project', 'success', '📦');
+  4241→            addActivity('Adjusted stock', `Project ${currentProject.toUpperCase()}`, '📦');
+  4242→        });
+  4243→
+  4244→        document.getElementById('offlineToggle').addEventListener('click', function() {
+  4245→            const isOnline = this.innerText.includes('Online');
+  4246→            if (isOnline) {
+  4247→                this.innerText = '📡 Offline Mode · Simulating sync...';
+  4248→                setTimeout(() => {
+  4249→                    this.innerText = '📶 Online · Auto-sync enabled';
+  4250→                    showToast('🔄 Synced with server', 'success', '✅');
+  4251→                    addActivity('Synced data', 'All systems online', '🔄');
+  4252→                    document.getElementById('lastSync').innerText = 'just now';
+  4253→                }, 800);
+  4254→            } else {
+  4255→                this.innerText = '📶 Online · Auto-sync enabled';
+  4256→            }
+  4257→        });
+  4258→
+  4259→        document.getElementById('supplyChainRefresh').addEventListener('click', function() {
+  4260→            this.textContent = '↻ Refreshing...';
+  4261→            setTimeout(() => {
+  4262→                renderLogistics();
+  4263→                this.textContent = '↻ Refresh';
+  4264→                showToast('🔄 Supply chain updated', 'info', '🔄');
+  4265→                document.getElementById('lastSync').innerText = 'just now';
+  4266→            }, 600);
+  4267→        });
+  4268→
+  4269→        document.getElementById('notificationBell').addEventListener('click', function() {
+  4270→            const counts = getStatusCounts();
+  4271→            const msgs = [];
+  4272→            if (counts.critical.length > 0) msgs.push(`🔴 Critical: ${counts.critical.join(', ')}`);
+  4273→            if (counts.low.length > 0) msgs.push(`🟠 Low stock: ${counts.low.join(', ')}`);
+  4274→            const pendingTickets = AFTERSALES_TICKETS.filter(t => t.status !== 'Resolved').length;
+  4275→            if (pendingTickets > 0) msgs.push(`🛠️ ${pendingTickets} open after-sales tickets`);
+  4276→            const pendingPOs = PURCHASE_ORDERS.filter(o => o.status !== 'Delivered').length;
+  4277→            if (pendingPOs > 0) msgs.push(`📦 ${pendingPOs} purchase orders in progress`);
+  4278→            const overdueInvoices = invoices.filter(inv => inv.status === 'Overdue').length;
+  4279→            if (overdueInvoices > 0) msgs.push(`💳 ${overdueInvoices} overdue invoices`);
+  4280→            const pendingExpenses = expenses.filter(e => e.status === 'Pending').length;
+  4281→            if (pendingExpenses > 0) msgs.push(`📋 ${pendingExpenses} pending expenses`);
+  4282→            if (msgs.length === 0) {
+  4283→                showToast('✅ All clear! No alerts.', 'success', '✅');
+  4284→            } else {
+  4285→                showToast(msgs.join(' · '), 'info', '🔔');
+  4286→            }
+  4287→        });
+  4288→
+  4289→        document.getElementById('clearActivityBtn').addEventListener('click', function() {
+  4290→            if (activityLog.length === 0) return;
+  4291→            if (confirm('Clear all activity log?')) {
+  4292→                activityLog = [];
+  4293→                renderActivityLog();
+  4294→                try { localStorage.setItem('future_os_activity', JSON.stringify(activityLog)); } catch (e) {}
+  4295→                showToast('🧹 Activity log cleared', 'warning', '🧹');
+  4296→            }
+  4297→        });
+  4298→
+  4299→        document.querySelectorAll('.stat-card').forEach(card => {
+  4300→            card.addEventListener('click', function() {
+  4301→                const filter = this.dataset.filter;
+  4302→                if (filter === 'alerts') {
+  4303→                    const counts = getStatusCounts();
+  4304→                    if (counts.total === 0) {
+  4305→                        showToast('✅ All inventory levels are healthy!', 'success', '✅');
+  4306→                    } else {
+  4307→                        showToast(
+  4308→                            `⚠️ ${counts.critical.length} critical, ${counts.low.length} low stock items`,
+  4309→                            'warning', '⚠️');
+  4310→                    }
+  4311→                } else if (filter === 'projects') {
+  4312→                    const active = PROJECTS_DATA.filter(p => p.status === 'active');
+  4313→                    showToast(`📋 ${active.length} active projects. ${active.filter(p => p.phase.includes('Installation')).length} in installation.`,
+  4314→                        'info', '📋');
+  4315→                } else if (filter === 'proposals') {
+  4316→                    const drafts = proposals.filter(p => p.status === 'draft');
+  4317→                    if (proposals.length === 0) {
+  4318→                        showToast('📄 No proposals yet. Click "New Proposal" to get started!', 'info', '📄');
+  4319→                    } else {
+  4320→                        showToast(`📄 ${proposals.length} total, ${drafts.length} drafts ready to send`, 'info',
+  4321→                            '📄');
+  4322→                    }
+  4323→                } else if (filter === 'value') {
+  4324→                    const total = PRODUCTS.reduce((s, p) => s + p.cost * p.inStock, 0);
+  4325→                    showToast(`📊 Total inventory value: ${formatPrice(total)} across ${PRODUCTS.length} products`,
+  4326→                        'info', '💰');
+  4327→                }
+  4328→            });
+  4329→        });
+  4330→
+  4331→        document.querySelectorAll('.finance-tab').forEach(tab => {
+  4332→            tab.addEventListener('click', function() {
+  4333→                document.querySelectorAll('.finance-tab').forEach(t => t.classList.remove('active'));
+  4334→                this.classList.add('active');
+  4335→                const target = this.dataset.ftab;
+  4336→                document.querySelectorAll('.ftab-content').forEach(el => el.style.display = 'none');
+  4337→                const content = document.getElementById(`ftab-${target}`);
+  4338→                if (content) content.style.display = 'block';
+  4339→            });
+  4340→        });
+  4341→
+  4342→        document.getElementById('addExpenseBtn').addEventListener('click', function() {
+  4343→            document.querySelector('.finance-tab[data-ftab="expenses"]').click();
+  4344→            document.getElementById('expenseTitle').focus();
+  4345→        });
+  4346→        document.getElementById('addInvoiceBtn').addEventListener('click', function() {
+  4347→            document.querySelector('.finance-tab[data-ftab="invoices"]').click();
+  4348→            document.getElementById('invoiceClient').focus();
+  4349→        });
+  4350→        document.getElementById('addRecurringBtn').addEventListener('click', function() {
+  4351→            document.querySelector('.finance-tab[data-ftab="recurring"]').click();
+  4352→            document.getElementById('recurringTitle').focus();
+  4353→        });
+  4354→
+  4355→        // ─── CATALOG FILTERS ───
+  4356→        document.querySelectorAll('#catalogFilters button').forEach(btn => {
+  4357→            btn.addEventListener('click', function() {
+  4358→                document.querySelectorAll('#catalogFilters button').forEach(b => b.classList.remove('active'));
+  4359→                this.classList.add('active');
+  4360→                renderCatalog('catalogGrid', 'catalogSearch', 'catalogFilters', false);
+  4361→            });
+  4362→        });
+  4363→
+  4364→        document.querySelectorAll('#catalogFullFilters button').forEach(btn => {
+  4365→            btn.addEventListener('click', function() {
+  4366→                document.querySelectorAll('#catalogFullFilters button').forEach(b => b.classList.remove(
+  4367→                    'active'));
+  4368→                this.classList.add('active');
+  4369→                renderCatalog('catalogFullGrid', 'catalogFullSearch', 'catalogFullFilters', true);
+  4370→            });
+  4371→        });
+  4372→
+  4373→        document.getElementById('catalogSearch').addEventListener('input', function() {
+  4374→            renderCatalog('catalogGrid', 'catalogSearch', 'catalogFilters', false);
+  4375→        });
+  4376→        document.getElementById('catalogFullSearch').addEventListener('input', function() {
+  4377→            renderCatalog('catalogFullGrid', 'catalogFullSearch', 'catalogFullFilters', true);
+  4378→        });
+  4379→
+  4380→        // ─── DRAG & DROP ───
+  4381→        document.querySelector('.proposal-canvas').addEventListener('dragover', function(e) {
+  4382→            e.preventDefault();
+  4383→            this.style.borderColor = '#c8a45c';
+  4384→        });
+  4385→        document.querySelector('.proposal-canvas').addEventListener('dragleave', function(e) {
+  4386→            this.style.borderColor = '#eee';
+  4387→        });
+  4388→        document.querySelector('.proposal-canvas').addEventListener('drop', function(e) {
+  4389→            e.preventDefault();
+  4390→            this.style.borderColor = '#eee';
+  4391→            const id = e.dataTransfer.getData('text/plain');
+  4392→            if (id && document.getElementById('proposalBuilderContainer').style.display === 'block') {
+  4393→                addToProposal(id);
+  4394→            } else if (id) {
+  4395→                showToast('Open a proposal first (click + New Proposal)', 'warning', '⚠️');
+  4396→            }
+  4397→        });
+  4398→
+  4399→        // ─── CLOCK ───
+  4400→        function updateClock() {
+  4401→            const now = new Date();
+  4402→            document.getElementById('localTime').innerText = now.toLocaleTimeString('en-GB', { hour: '2-digit',
+  4403→                minute: '2-digit' });
+  4404→            const hour = now.getHours();
+  4405→            let greeting = 'Good evening';
+  4406→            if (hour < 12) greeting = 'Good morning';
+  4407→            else if (hour < 17) greeting = 'Good afternoon';
+  4408→            document.getElementById('greeting').innerHTML =
+  4409→                `${greeting}, Team <small id="activeProjectLabel">BCG Tower</small>`;
+  4410→            const proj = getProjectByKey(currentProject);
+  4411→            document.getElementById('activeProjectLabel').innerText = proj ? proj.name : currentProject.toUpperCase() +
+  4412→                ' Tower';
+  4413→        }
+  4414→
+  4415→        function updateOnlineUsers() {
+  4416→            document.getElementById('onlineUsers').innerText = Math.floor(Math.random() * 4) + 2;
+  4417→        }
+  4418→
+  4419→        // ──────────────────────────────────────────────────────────────
+  4420→        //  INIT
+  4421→        // ──────────────────────────────────────────────────────────────
+  4422→
+  4423→        (async function init() {
+  4424→            try {
+  4425→                const savedProposals = localStorage.getItem('future_os_proposals');
+  4426→                if (savedProposals) proposals = JSON.parse(savedProposals);
+  4427→                const savedActivity = localStorage.getItem('future_os_activity');
+  4428→                if (savedActivity) activityLog = JSON.parse(savedActivity);
+  4429→                const savedAudit = localStorage.getItem('future_os_audit');
+  4430→                if (savedAudit) auditTrail = JSON.parse(savedAudit);
+  4431→                const savedDark = localStorage.getItem('future_os_darkmode');
+  4432→                if (savedDark) {
+  4433→                    isDarkMode = JSON.parse(savedDark);
+  4434→                    if (isDarkMode) {
+  4435→                        document.body.classList.add('dark-mode');
+  4436→                        document.getElementById('themeIcon').innerText = '☀️';
+  4437→                    }
+  4438→                }
+  4439→            } catch (e) {}
+  4440→
+  4441→            document.getElementById('proposalDate').value = getTimestamp().slice(0, 10);
+  4442→            document.getElementById('invoiceDate').value = getTimestamp().slice(0, 10);
+  4443→            document.getElementById('billDate').value = getTimestamp().slice(0, 10);
+  4444→
+  4445→            renderInventory();
+  4446→            renderLogistics();
+  4447→            renderProposalList();
+  4448→            renderProjectPnL();
+  4449→            renderFullInventory();
+  4450→            renderProcurement();
+  4451→            renderAfterSales();
+  4452→            renderCatalog('catalogGrid', 'catalogSearch', 'catalogFilters', false);
+  4453→            renderCatalog('catalogFullGrid', 'catalogFullSearch', 'catalogFullFilters', true);
+  4454→            renderActivityLog();
+  4455→            renderFinance();
+  4456→            renderTeam();
+  4457→            updateCurrencyUI();
+  4458→            updateClock();
+  4459→            updateOnlineUsers();
+  4460→            updateWidgets();
+  4461→            setupFinanceForms();
+  4462→            setupTeamForm();
+  4463→
+  4464→            setInterval(updateClock, 30000);
+  4465→            setInterval(updateOnlineUsers, 45000);
+  4466→            setInterval(() => { document.getElementById('lastSync').innerText = 'just now'; }, 60000);
+  4467→            setInterval(() => {
+  4468→                // Auto-advance recurring expenses
+  4469→                const today = new Date();
+  4470→                recurringExpenses.forEach(r => {
+  4471→                    const next = new Date(r.nextDate);
+  4472→                    if (next <= today) {
+  4473→                        // Create an expense from recurring
+  4474→                        expenses.push({
+  4475→                            id: 'e' + generateId(),
+  4476→                            title: r.title + ' (recurring)',
+  4477→                            amount: r.amount,
+  4478→                            category: 'Recurring',
+  4479→                            date: getTimestamp().slice(0, 10),
+  4480→                            status: 'Pending',
+  4481→                            approval: 'Pending',
+  4482→                            createdBy: 'System (Auto)'
+  4483→                        });
+  4484→                        // Advance next date
+  4485→                        if (r.frequency === 'Monthly') next.setMonth(next.getMonth() + 1);
+  4486→                        else if (r.frequency === 'Quarterly') next.setMonth(next.getMonth() + 3);
+  4487→                        else if (r.frequency === 'Yearly') next.setFullYear(next.getFullYear() + 1);
+  4488→                        r.nextDate = next.toISOString().slice(0, 10);
+  4489→                        renderFinance();
+  4490→                        addActivity('Auto-created recurring expense', `${r.title} · ${formatPrice(r.amount)}`,
+  4491→                        '🔄');
+  4492→                    }
+  4493→                });
+  4494→            }, 60000);
+  4495→
+  4496→            if (activityLog.length === 0) {
+  4497→                addActivity('System started', 'Vision & Cost v4.0 Enterprise loaded', '🚀');
+  4498→            }
+  4499→
+
+[showing lines 4000-4499 of 4510; use offset=4500 with limit to continue reading]

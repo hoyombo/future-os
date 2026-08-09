@@ -1,0 +1,502 @@
+  2500→            spent: 55000000,
+  2501→            status: 'active',
+  2502→            phase: 'Final Installation',
+  2503→            startDate: '2026-03-01',
+  2504→            endDate: '2026-09-30',
+  2505→            location: 'Bamako, Mali',
+  2506→            items: ['p2', 'p6', 'p7', 'p8', 'p10']
+  2507→        }, {
+  2508→            id: 'pr4',
+  2509→            name: 'UN Office Bamako',
+  2510→            client: 'UN',
+  2511→            budget: 28000000,
+  2512→            spent: 27000000,
+  2513→            status: 'completed',
+  2514→            phase: 'Completed',
+  2515→            startDate: '2025-11-01',
+  2516→            endDate: '2026-04-30',
+  2517→            location: 'Bamako, Mali',
+  2518→            items: ['p1', 'p4', 'p8', 'p9']
+  2519→        }, {
+  2520→            id: 'pr5',
+  2521→            name: 'Mali Digital Hub',
+  2522→            client: 'Ministère',
+  2523→            budget: 22000000,
+  2524→            spent: 8200000,
+  2525→            status: 'active',
+  2526→            phase: 'Design',
+  2527→            startDate: '2026-08-01',
+  2528→            endDate: '2026-12-20',
+  2529→            location: 'Bamako, Mali',
+  2530→            items: ['p2', 'p3', 'p8', 'p10']
+  2531→        }];
+  2532→
+  2533→        const LOGISTICS_EVENTS = [
+  2534→            { title: 'Shipped · Milan (Frezza)', desc: 'Container #FR-8821 · 42 units', eta: '✅ Arrived', dot: 'green',
+  2535→                timestamp: '2026-08-07' },
+  2536→            { title: 'In-Transit · Dakar Port', desc: 'Steelcase container · Customs clearance', eta: '2 days',
+  2537→                dot: 'gold', timestamp: '2026-08-06' },
+  2538→            { title: 'Overland · Kayes → Bamako', desc: 'Truck #ML-204 · 60% of route', eta: '3 days', dot: '',
+  2539→                timestamp: '2026-08-05' },
+  2540→            { title: 'Final Delivery · BCG Site', desc: 'Installation crew on standby', eta: '5 days', dot: '',
+  2541→                timestamp: '2026-08-04' },
+  2542→            { title: 'Customs Clearance · Dakar', desc: 'Container #FR-8823 · Frezza desks', eta: '⚠️ 4 days',
+  2543→                dot: 'red', timestamp: '2026-08-03' }
+  2544→        ];
+  2545→
+  2546→        const AFTERSALES_TICKETS = [
+  2547→            { id: 'T-102', title: '🪑 Hydraulic adjustment', desc: 'Steelcase Gesture · BCG Tower', status: 'In Progress',
+  2548→                statusClass: 'orange', priority: 'high', created: '2026-08-05' },
+  2549→            { id: 'T-103', title: '🔩 Panel replacement', desc: 'Dieffebi Wall · BNP', status: 'Pending Part',
+  2550→                statusClass: 'blue', priority: 'medium', created: '2026-08-03' },
+  2551→            { id: 'T-098', title: '💡 LED flickering', desc: 'Luxury LED · BCG Tower', status: 'Resolved',
+  2552→                statusClass: 'green', priority: 'low', created: '2026-07-28' },
+  2553→            { id: 'T-104', title: '🔧 Desk leveling', desc: 'Frezza F1 Desk · Radisson', status: 'New',
+  2554→                statusClass: 'purple', priority: 'medium', created: '2026-08-07' }
+  2555→        ];
+  2556→
+  2557→        const PURCHASE_ORDERS = [
+  2558→            { id: 'PO-8821', supplier: 'Steelcase · Milan → Dakar', status: 'In Transit', statusClass: 'orange',
+  2559→                amount: 14200000, date: '2026-07-25', eta: '2026-08-12' },
+  2560→            { id: 'PO-8823', supplier: 'Frezza · Italy → Dakar', status: 'Awaiting Shipment', statusClass: 'blue',
+  2561→                amount: 8700000, date: '2026-08-01', eta: '2026-08-18' },
+  2562→            { id: 'PO-8815', supplier: 'Dieffebi · France', status: 'Delivered', statusClass: 'green', amount: 5100000,
+  2563→                date: '2026-07-15', eta: '2026-07-28' },
+  2564→            { id: 'PO-8827', supplier: 'Mali Lumière · Local', status: 'Processing', statusClass: 'purple', amount: 2200000,
+  2565→                date: '2026-08-06', eta: '2026-08-20' }
+  2566→        ];
+  2567→
+  2568→        // ─── FINANCE DATA ───
+  2569→        let expenses = [
+  2570→            { id: 'e1', title: 'Office Rent · June', amount: 2800000, category: 'Rent', date: '2026-06-01',
+  2571→                status: 'Paid', approval: 'Approved', createdBy: 'Mamadou D.' },
+  2572→            { id: 'e2', title: 'Staff Salaries · July', amount: 4500000, category: 'Salaries', date: '2026-07-31',
+  2573→                status: 'Paid', approval: 'Approved', createdBy: 'Aïssata T.' },
+  2574→            { id: 'e3', title: 'Electricity & Water', amount: 620000, category: 'Utilities', date: '2026-07-15',
+  2575→                status: 'Paid', approval: 'Approved', createdBy: 'Mamadou D.' },
+  2576→            { id: 'e4', title: 'Marketing Campaign', amount: 850000, category: 'Marketing', date: '2026-07-20',
+  2577→                status: 'Pending', approval: 'Pending', createdBy: 'Souleymane K.' },
+  2578→            { id: 'e5', title: 'Transport · Dakar-Bamako', amount: 1200000, category: 'Transport', date: '2026-08-05',
+  2579→                status: 'Pending', approval: 'Pending', createdBy: 'Fatoumata C.' },
+  2580→            { id: 'e6', title: 'Office Supplies', amount: 240000, category: 'Supplies', date: '2026-08-02',
+  2581→                status: 'Paid', approval: 'Approved', createdBy: 'Mamadou D.' }
+  2582→        ];
+  2583→
+  2584→        let invoices = [
+  2585→            { id: 'inv-1', client: 'BCG', amount: 12500000, date: '2026-07-15', status: 'Pending', dueDate: '2026-08-15',
+  2586→                paidAmount: 0 },
+  2587→            { id: 'inv-2', client: 'BNP', amount: 8700000, date: '2026-07-20', status: 'Pending', dueDate: '2026-08-20',
+  2588→                paidAmount: 0 },
+  2589→            { id: 'inv-3', client: 'Radisson', amount: 4200000, date: '2026-06-30', status: 'Paid', dueDate: '2026-07-30',
+  2590→                paidAmount: 4200000 },
+  2591→            { id: 'inv-4', client: 'UN', amount: 5600000, date: '2026-07-05', status: 'Overdue', dueDate: '2026-08-05',
+  2592→                paidAmount: 0 }
+  2593→        ];
+  2594→
+  2595→        let bills = [
+  2596→            { id: 'bill-1', supplier: 'Steelcase', amount: 8200000, date: '2026-07-10', status: 'Pending',
+  2597→                dueDate: '2026-08-10' },
+  2598→            { id: 'bill-2', supplier: 'Frezza', amount: 4600000, date: '2026-07-25', status: 'Pending',
+  2599→                dueDate: '2026-08-25' },
+  2600→            { id: 'bill-3', supplier: 'Dieffebi', amount: 2100000, date: '2026-06-20', status: 'Paid',
+  2601→                dueDate: '2026-07-20' }
+  2602→        ];
+  2603→
+  2604→        let teamMembers = [
+  2605→            { id: 't1', name: 'Mamadou Diallo', role: 'CEO / Founder', status: 'Active' },
+  2606→            { id: 't2', name: 'Aïssata Traoré', role: 'Commercial Director', status: 'Active' },
+  2607→            { id: 't3', name: 'Souleymane Keïta', role: 'Supply Chain Manager', status: 'Active' },
+  2608→            { id: 't4', name: 'Fatoumata Coulibaly', role: 'Finance Controller', status: 'Active' },
+  2609→            { id: 't5', name: 'Ibrahim Sangaré', role: 'Senior Sales Consultant', status: 'On Leave' }
+  2610→        ];
+  2611→
+  2612→        // ─── RECURRING EXPENSES ───
+  2613→        let recurringExpenses = [
+  2614→            { id: 'r1', title: 'Office Rent', amount: 2800000, frequency: 'Monthly', nextDate: '2026-09-01' },
+  2615→            { id: 'r2', title: 'Software Subscriptions', amount: 450000, frequency: 'Monthly', nextDate: '2026-09-15' },
+  2616→            { id: 'r3', title: 'Insurance Premium', amount: 1200000, frequency: 'Yearly', nextDate: '2027-01-01' }
+  2617→        ];
+  2618→
+  2619→        // ─── BUDGET VS ACTUAL ───
+  2620→        let budgetData = {
+  2621→            'Salaries': { budget: 5000000, actual: 4500000 },
+  2622→            'Rent': { budget: 3000000, actual: 2800000 },
+  2623→            'Utilities': { budget: 700000, actual: 620000 },
+  2624→            'Marketing': { budget: 1000000, actual: 850000 },
+  2625→            'Transport': { budget: 800000, actual: 1200000 },
+  2626→            'Supplies': { budget: 300000, actual: 240000 },
+  2627→            'Operations': { budget: 1500000, actual: 800000 }
+  2628→        };
+  2629→
+  2630→        // ─── AUDIT TRAIL ───
+  2631→        let auditTrail = [];
+  2632→
+  2633→        // ──────────────────────────────────────────────────────────────
+  2634→        //  STATE
+  2635→        // ──────────────────────────────────────────────────────────────
+  2636→
+  2637→        let proposals = [];
+  2638→        let currentProposal = null;
+  2639→        let editingProposalId = null;
+  2640→        let currentProject = 'bcg';
+  2641→        let currentCurrency = 'XOF';
+  2642→        let currentView = 'dashboard';
+  2643→        let activityLog = [];
+  2644→        let isDarkMode = false;
+  2645→
+  2646→        const currencySymbols = { XOF: 'CFA', EUR: '€', USD: '$' };
+  2647→        const exchangeRates = { XOF: 1, EUR: 0.0015, USD: 0.0016 };
+  2648→        const VAT_RATE = 0.18;
+  2649→
+  2650→        // ──────────────────────────────────────────────────────────────
+  2651→        //  HELPERS
+  2652→        // ──────────────────────────────────────────────────────────────
+  2653→
+  2654→        function formatPrice(amount) {
+  2655→            const symbol = currencySymbols[currentCurrency];
+  2656→            const rate = exchangeRates[currentCurrency];
+  2657→            const converted = amount * rate;
+  2658→            if (currentCurrency === 'XOF') {
+  2659→                if (converted >= 1000000) return `${symbol} ${(converted / 1000000).toFixed(1)}M`;
+  2660→                if (converted >= 1000) return `${symbol} ${(converted / 1000).toFixed(1)}k`;
+  2661→                return `${symbol} ${Math.round(converted)}`;
+  2662→            }
+  2663→            if (converted >= 1000) return `${symbol} ${(converted / 1000).toFixed(1)}k`;
+  2664→            return `${symbol} ${converted.toFixed(2)}`;
+  2665→        }
+  2666→
+  2667→        function formatPriceFull(amount) {
+  2668→            const symbol = currencySymbols[currentCurrency];
+  2669→            const rate = exchangeRates[currentCurrency];
+  2670→            const converted = amount * rate;
+  2671→            if (currentCurrency === 'XOF') {
+  2672→                return `${symbol} ${Math.round(converted).toLocaleString()}`;
+  2673→            }
+  2674→            return `${symbol} ${converted.toFixed(2)}`;
+  2675→        }
+  2676→
+  2677→        function getProduct(id) { return PRODUCTS.find(p => p.id === id); }
+  2678→
+  2679→        function getProjectByKey(key) {
+  2680→            if (key === 'bcg') return PROJECTS_DATA.find(p => p.name.includes('BCG'));
+  2681→            if (key === 'bnp') return PROJECTS_DATA.find(p => p.name.includes('Banque'));
+  2682→            return null;
+  2683→        }
+  2684→
+  2685→        function getProjectInventory(projectKey) {
+  2686→            const project = PROJECTS_DATA.find(p => {
+  2687→                const key = p.name.toLowerCase().replace(/\s/g, '');
+  2688→                return key.includes(projectKey) || projectKey.includes(key);
+  2689→            });
+  2690→            if (!project) return [];
+  2691→            return project.items.map(id => {
+  2692→                const prod = getProduct(id);
+  2693→                if (!prod) return null;
+  2694→                const stockPct = prod.inStock / prod.stock;
+  2695→                let status = 'OK',
+  2696→                    statusClass = 'green';
+  2697→                if (stockPct < 0.3) { status = 'Critical';
+  2698→                    statusClass = 'red'; } else if (stockPct < 0.6) { status = 'Low';
+  2699→                    statusClass = 'orange'; }
+  2700→                return { ...prod, qty: `${prod.inStock}/${prod.stock}`, status, statusClass };
+  2701→            }).filter(Boolean);
+  2702→        }
+  2703→
+  2704→        function getStatusCounts() {
+  2705→            const critical = [];
+  2706→            const low = [];
+  2707→            PRODUCTS.forEach(p => {
+  2708→                const pct = p.inStock / p.stock;
+  2709→                if (pct < 0.3) critical.push(p.name);
+  2710→                else if (pct < 0.6) low.push(p.name);
+  2711→            });
+  2712→            return { critical, low, total: critical.length + low.length };
+  2713→        }
+  2714→
+  2715→        function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  2716→
+  2717→        function getTimestamp() { return new Date().toISOString(); }
+  2718→
+  2719→        function formatDate(d) {
+  2720→            if (!d) return 'N/A';
+  2721→            const dt = new Date(d);
+  2722→            return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  2723→        }
+  2724→
+  2725→        function timeAgo(date) {
+  2726→            const diff = Date.now() - new Date(date).getTime();
+  2727→            const mins = Math.floor(diff / 60000);
+  2728→            if (mins < 1) return 'Just now';
+  2729→            if (mins < 60) return `${mins}m ago`;
+  2730→            const hrs = Math.floor(mins / 60);
+  2731→            if (hrs < 24) return `${hrs}h ago`;
+  2732→            return `${Math.floor(hrs / 24)}d ago`;
+  2733→        }
+  2734→
+  2735→        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  2736→
+  2737→        function navigateTo(view) {
+  2738→            const navItem = document.querySelector(`.nav-item[data-view="${view}"]`);
+  2739→            if (navItem) navItem.click();
+  2740→        }
+  2741→
+  2742→        // ──────────────────────────────────────────────────────────────
+  2743→        //  TOAST SYSTEM
+  2744→        // ──────────────────────────────────────────────────────────────
+  2745→
+  2746→        function showToast(message, type = 'info', icon = '📢') {
+  2747→            const container = document.getElementById('toastContainer');
+  2748→            const toast = document.createElement('div');
+  2749→            toast.className = `toast ${type}`;
+  2750→            toast.innerHTML = `
+  2751→                    <span class="toast-icon">${icon}</span>
+  2752→                    <span class="toast-msg">${message}</span>
+  2753→                    <button class="toast-close">✕</button>
+  2754→                `;
+  2755→            toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+  2756→            container.appendChild(toast);
+  2757→            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 5000);
+  2758→        }
+  2759→
+  2760→        // ──────────────────────────────────────────────────────────────
+  2761→        //  ACTIVITY LOG
+  2762→        // ──────────────────────────────────────────────────────────────
+  2763→
+  2764→        function addActivity(action, details, icon = '📌') {
+  2765→            activityLog.unshift({ id: generateId(), action, details, icon, timestamp: getTimestamp() });
+  2766→            if (activityLog.length > 50) activityLog.pop();
+  2767→            renderActivityLog();
+  2768→            try { localStorage.setItem('future_os_activity', JSON.stringify(activityLog)); } catch (e) {}
+  2769→            // Add to audit trail
+  2770→            auditTrail.push({
+  2771→                id: generateId(),
+  2772→                action,
+  2773→                details,
+  2774→                user: 'Mamadou D.',
+  2775→                timestamp: getTimestamp()
+  2776→            });
+  2777→            try { localStorage.setItem('future_os_audit', JSON.stringify(auditTrail)); } catch (e) {}
+  2778→        }
+  2779→
+  2780→        function renderActivityLog() {
+  2781→            const container = document.getElementById('activityLog');
+  2782→            if (!container) return;
+  2783→            if (activityLog.length === 0) {
+  2784→                container.innerHTML =
+  2785→                    `<div class="empty-state" style="padding:20px;"><p style="font-size:13px;">No recent activity</p></div>`;
+  2786→                return;
+  2787→            }
+  2788→            container.innerHTML = activityLog.slice(0, 15).map(a => `
+  2789→                    <div class="activity-item">
+  2790→                        <span class="act-icon">${a.icon}</span>
+  2791→                        <span class="act-time">${timeAgo(a.timestamp)}</span>
+  2792→                        <span class="act-text"><strong>${a.action}</strong> ${a.details}</span>
+  2793→                    </div>
+  2794→                `).join('');
+  2795→        }
+  2796→
+  2797→        // ──────────────────────────────────────────────────────────────
+  2798→        //  RENDER: INVENTORY
+  2799→        // ──────────────────────────────────────────────────────────────
+  2800→
+  2801→        function renderInventory() {
+  2802→            const data = getProjectInventory(currentProject);
+  2803→            const tbody = document.getElementById('inventoryBody');
+  2804→            if (!tbody) return;
+  2805→            if (data.length === 0) {
+  2806→                tbody.innerHTML =
+  2807→                    `<tr><td colspan="4" style="text-align:center;color:#999;padding:24px;">No inventory data for this project</td></tr>`;
+  2808→                return;
+  2809→            }
+  2810→            tbody.innerHTML = data.map(item => `
+  2811→                    <tr onclick="openModal('${item.name}', '${item.supplier}', '${item.qty}', ${item.cost}, '${item.status}', '${item.description || ''}', '${item.origin || ''}')">
+  2812→                        <td><strong>${item.emoji || '📦'} ${item.name}</strong></td>
+  2813→                        <td>${item.supplier}</td>
+  2814→                        <td>${item.qty}</td>
+  2815→                        <td><span class="status ${item.statusClass}">${item.status}</span></td>
+  2816→                    </tr>
+  2817→                `).join('');
+  2818→            document.getElementById('tableProjectName').innerText = currentProject.toUpperCase();
+  2819→
+  2820→            const total = data.reduce((sum, i) => sum + i.cost * (parseInt(i.qty.split('/')[0]) || 0), 0);
+  2821→            document.getElementById('totalValue').innerText = formatPrice(total);
+  2822→            document.getElementById('totalValueSub').innerText = `${data.length} items in project`;
+  2823→
+  2824→            const counts = getStatusCounts();
+  2825→            document.getElementById('alertBadge').innerText = counts.total;
+  2826→            document.getElementById('alertSub').innerText = counts.total > 0 ?
+  2827→                `${counts.critical.length} critical, ${counts.low.length} low` :
+  2828→                'All clear';
+  2829→            document.getElementById('notifCount').innerText = counts.total;
+  2830→            const dot = document.getElementById('notifDot');
+  2831→            if (counts.total > 0) { dot.style.display = 'flex';
+  2832→                dot.innerText = counts.total; } else { dot.style.display = 'none'; }
+  2833→            document.getElementById('inventoryBadge').innerText = data.length;
+  2834→            updateChart(data);
+  2835→            updateWidgets();
+  2836→        }
+  2837→
+  2838→        function renderFullInventory() {
+  2839→            const tbody = document.getElementById('fullInventoryBody');
+  2840→            if (!tbody) return;
+  2841→            const allItems = [];
+  2842→            PROJECTS_DATA.forEach(proj => {
+  2843→                const key = proj.name.toLowerCase().replace(/\s/g, '');
+  2844→                const data = getProjectInventory(key);
+  2845→                data.forEach(item => { allItems.push({ ...item, project: proj.name }); });
+  2846→            });
+  2847→            if (allItems.length === 0) {
+  2848→                tbody.innerHTML =
+  2849→                    `<tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No inventory items found</td></tr>`;
+  2850→                return;
+  2851→            }
+  2852→            tbody.innerHTML = allItems.map(item => `
+  2853→                    <tr>
+  2854→                        <td><strong>${item.emoji || '📦'} ${item.name}</strong></td>
+  2855→                        <td>${item.supplier}</td>
+  2856→                        <td>${item.project}</td>
+  2857→                        <td>${item.qty}</td>
+  2858→                        <td>${formatPrice(item.cost)}</td>
+  2859→                        <td><span class="status ${item.statusClass}">${item.status}</span></td>
+  2860→                    </tr>
+  2861→                `).join('');
+  2862→        }
+  2863→
+  2864→        // ──────────────────────────────────────────────────────────────
+  2865→        //  RENDER: CHART
+  2866→        // ──────────────────────────────────────────────────────────────
+  2867→
+  2868→        function updateChart(data) {
+  2869→            const container = document.getElementById('chartContainer');
+  2870→            if (!container) return;
+  2871→            const bars = container.querySelectorAll('.chart-bar');
+  2872→            const project = getProjectByKey(currentProject);
+  2873→            document.getElementById('chartProjectName').innerText = project ? project.name : 'BCG Tower';
+  2874→            const categories = ['Steelcase', 'Frezza', 'Dieffebi', 'Lighting', 'Logistics'];
+  2875→            const values = categories.map(cat => {
+  2876→                const items = data.filter(i => i.name.includes(cat) || i.supplier.includes(cat));
+  2877→                return items.reduce((sum, i) => sum + (i.cost * (parseInt(i.qty.split('/')[0]) || 0)), 0);
+  2878→            });
+  2879→            const maxVal = Math.max(...values, 1);
+  2880→            bars.forEach((bar, idx) => {
+  2881→                const fill = bar.querySelector('.fill');
+  2882→                const val = values[idx] || 0;
+  2883→                const pct = (val / maxVal) * 100;
+  2884→                fill.style.height = Math.max(pct, 5) + '%';
+  2885→                const label = bar.querySelector('.label');
+  2886→                if (label) label.textContent = categories[idx] || 'Other';
+  2887→            });
+  2888→        }
+  2889→
+  2890→        // ──────────────────────────────────────────────────────────────
+  2891→        //  RENDER: LOGISTICS
+  2892→        // ──────────────────────────────────────────────────────────────
+  2893→
+  2894→        function renderLogistics() {
+  2895→            const container = document.getElementById('logisticsList');
+  2896→            if (!container) return;
+  2897→            const events = LOGISTICS_EVENTS.slice(0, 5);
+  2898→            container.innerHTML = events.map(item => `
+  2899→                    <div class="log-item" onclick="showToast('📦 ${item.title}: ${item.desc}', 'info', '🚛')">
+  2900→                        <div class="dot ${item.dot}"></div>
+  2901→                        <div class="content"><div class="title">${item.title}</div><div class="desc">${item.desc} · ${timeAgo(item.timestamp)}</div></div>
+  2902→                        <div class="eta">${item.eta}</div>
+  2903→                    </div>
+  2904→                `).join('');
+  2905→        }
+  2906→
+  2907→        // ──────────────────────────────────────────────────────────────
+  2908→        //  RENDER: PROPOSALS
+  2909→        // ──────────────────────────────────────────────────────────────
+  2910→
+  2911→        function renderProposalList() {
+  2912→            const container = document.getElementById('proposalList');
+  2913→            if (!container) return;
+  2914→            if (proposals.length === 0) {
+  2915→                container.innerHTML = `
+  2916→                        <div class="empty-state">
+  2917→                            <div class="empty-icon">📄</div>
+  2918→                            <h4>No proposals yet</h4>
+  2919→                            <p>Click <strong>+ New Proposal</strong> to create your first visual proposal.</p>
+  2920→                        </div>
+  2921→                    `;
+  2922→                document.getElementById('proposalBadge').innerText = '0';
+  2923→                document.getElementById('dashProposalCount').innerText = '0';
+  2924→                document.getElementById('dashProposalSub').innerText = 'No proposals';
+  2925→                return;
+  2926→            }
+  2927→            const statusMap = { draft: '🟡 Draft', sent: '🔵 Sent', approved: '🟢 Approved', rejected: '🔴 Rejected' };
+  2928→            container.innerHTML = proposals.map((p) => {
+  2929→                const total = p.items.reduce((sum, i) => {
+  2930→                    const prod = getProduct(i.productId);
+  2931→                    return sum + (prod ? prod.price * i.qty : 0);
+  2932→                }, 0);
+  2933→                const markup = total * 0.3;
+  2934→                const grand = total + markup;
+  2935→                return `
+  2936→                        <div class="proposal-list-item" onclick="openProposalDetail('${p.id}')">
+  2937→                            <div class="pl-left">
+  2938→                                <div class="pl-title">${p.client} · ${p.project}</div>
+  2939→                                <div class="pl-meta">${formatDate(p.date)} · ${p.items.length} items · ${p.id}</div>
+  2940→                            </div>
+  2941→                            <div class="pl-right">
+  2942→                                <div class="pl-amount">${formatPrice(grand)}</div>
+  2943→                                <div class="pl-status">${statusMap[p.status] || '🟡 Draft'}</div>
+  2944→                            </div>
+  2945→                        </div>
+  2946→                    `;
+  2947→            }).join('');
+  2948→            document.getElementById('proposalBadge').innerText = proposals.length;
+  2949→            document.getElementById('dashProposalCount').innerText = proposals.length;
+  2950→            document.getElementById('dashProposalSub').innerText = proposals.length > 0 ?
+  2951→                `${proposals.filter(p => p.status === 'draft').length} drafts ready` :
+  2952→                'No proposals';
+  2953→        }
+  2954→
+  2955→        function openProposalDetail(id) {
+  2956→            const p = proposals.find(pr => pr.id === id);
+  2957→            if (!p) return;
+  2958→            const total = p.items.reduce((sum, i) => {
+  2959→                const prod = getProduct(i.productId);
+  2960→                return sum + (prod ? prod.price * i.qty : 0);
+  2961→            }, 0);
+  2962→            const markup = total * 0.3;
+  2963→            const grand = total + markup;
+  2964→            const statusMap = { draft: '🟡 Draft', sent: '🔵 Sent', approved: '🟢 Approved', rejected: '🔴 Rejected' };
+  2965→            document.getElementById('modalTitle').innerText = `📄 ${p.client} · ${p.project}`;
+  2966→            document.getElementById('modalBody').innerHTML = `
+  2967→                    <div class="detail-row"><span>Client</span><strong>${p.client}</strong></div>
+  2968→                    <div class="detail-row"><span>Project</span><strong>${p.project}</strong></div>
+  2969→                    <div class="detail-row"><span>Date</span><strong>${formatDate(p.date)}</strong></div>
+  2970→                    <div class="detail-row"><span>Status</span><strong>${statusMap[p.status] || 'Draft'}</strong></div>
+  2971→                    <div class="detail-row"><span>Created</span><strong>${timeAgo(p.createdAt)}</strong></div>
+  2972→                    ${p.sentAt ? `<div class="detail-row"><span>Sent</span><strong>${timeAgo(p.sentAt)}</strong></div>` : ''}
+  2973→                    <div style="margin:12px 0; border-top:1px solid #eee; padding-top:12px;">
+  2974→                        <strong>Items (${p.items.length})</strong>
+  2975→                        ${p.items.map(it => {
+  2976→                            const prod = getProduct(it.productId);
+  2977→                            return prod ? `<div style="display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid #f6f6f6;">
+  2978→                                <span>${prod.emoji} ${prod.name} ×${it.qty}</span>
+  2979→                                <span>${formatPrice(prod.price * it.qty)}</span>
+  2980→                            </div>` : '';
+  2981→                        }).join('')}
+  2982→                    </div>
+  2983→                    <div class="detail-row"><span>Subtotal</span><strong>${formatPrice(total)}</strong></div>
+  2984→                    <div class="detail-row"><span>Markup (30%)</span><strong>${formatPrice(markup)}</strong></div>
+  2985→                    <div class="detail-row" style="font-weight:700; font-size:18px;"><span>Grand Total</span><strong>${formatPrice(grand)}</strong></div>
+  2986→                    <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+  2987→                        ${p.status === 'draft' ? `
+  2988→                            <button onclick="sendProposal('${p.id}')" style="background:#0b0b0b; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">📧 Send to Client</button>
+  2989→                        ` : `
+  2990→                            <button onclick="showToast('Proposal already sent to ${p.client}', 'info', '📧')" style="background:#666; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">Already Sent</button>
+  2991→                        `}
+  2992→                        <button onclick="printProposalDetail('${p.id}')" style="background:#1e7a1e; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">📄 PDF</button>
+  2993→                        <button onclick="deleteProposal('${p.id}')" style="background:#d32f2f; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">🗑️ Delete</button>
+  2994→                        <button onclick="document.getElementById('detailModal').classList.remove('open')" style="background:transparent; border:1px solid #ddd; padding:10px 20px; border-radius:40px; cursor:pointer;">Close</button>
+  2995→                    </div>
+  2996→                `;
+  2997→            document.getElementById('detailModal').classList.add('open');
+  2998→        }
+  2999→
+
+[showing lines 2500-2999 of 4510; use offset=3000 with limit to continue reading]

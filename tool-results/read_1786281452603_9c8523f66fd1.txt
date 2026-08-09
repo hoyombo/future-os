@@ -1,0 +1,502 @@
+  3000→        async function sendProposal(id) {
+  3001→            const p = proposals.find(pr => pr.id === id);
+  3002→            if (p) { p.status = 'sent';
+  3003→                p.sentAt = getTimestamp(); }
+  3004→            try { localStorage.setItem('future_os_proposals', JSON.stringify(proposals)); } catch (e) {}
+  3005→            showToast(`✅ Proposal sent to client!`, 'success', '📧');
+  3006→            renderProposalList();
+  3007→            addActivity('Sent proposal', `ID: ${id}`, '📧');
+  3008→            document.getElementById('detailModal').classList.remove('open');
+  3009→        }
+  3010→
+  3011→        async function deleteProposal(id) {
+  3012→            if (!confirm('Delete this proposal?')) return;
+  3013→            proposals = proposals.filter(p => p.id !== id);
+  3014→            try { localStorage.setItem('future_os_proposals', JSON.stringify(proposals)); } catch (e) {}
+  3015→            showToast('🗑️ Proposal deleted', 'warning', '🗑️');
+  3016→            renderProposalList();
+  3017→            document.getElementById('detailModal').classList.remove('open');
+  3018→            addActivity('Deleted proposal', `ID: ${id}`, '🗑️');
+  3019→        }
+  3020→
+  3021→        function printProposalDetail(id) {
+  3022→            const p = proposals.find(pr => pr.id === id);
+  3023→            if (!p) return;
+  3024→            let subtotal = 0;
+  3025→            let itemsHtml = p.items.map(item => {
+  3026→                const prod = getProduct(item.productId);
+  3027→                if (!prod) return '';
+  3028→                const lineTotal = prod.price * item.qty;
+  3029→                subtotal += lineTotal;
+  3030→                return `
+  3031→                        <tr>
+  3032→                            <td style="padding:8px 4px; border-bottom:1px solid #eee;">${prod.emoji} ${prod.name}</td>
+  3033→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${prod.supplier}</td>
+  3034→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${item.qty}</td>
+  3035→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(prod.price)}</td>
+  3036→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(lineTotal)}</td>
+  3037→                        </tr>
+  3038→                    `;
+  3039→            }).join('');
+  3040→            const markup = subtotal * 0.3;
+  3041→            const grand = subtotal + markup;
+  3042→            const symbol = currencySymbols[currentCurrency];
+  3043→            const printWin = window.open('', '_blank', 'width=900,height=700');
+  3044→            printWin.document.write(`
+  3045→                    <html><head><title>Proposal · ${p.client}</title>
+  3046→                    <style>
+  3047→                        body { font-family: 'Inter', sans-serif; padding:40px; color:#121212; }
+  3048→                        .header { border-bottom: 3px solid #c8a45c; padding-bottom:16px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; }
+  3049→                        .header h1 { font-size:28px; font-weight:700; }
+  3050→                        .header h1 span { color:#c8a45c; }
+  3051→                        .header .meta { font-size:14px; color:#666; }
+  3052→                        table { width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; }
+  3053→                        th { text-align:left; padding:10px 4px; border-bottom:2px solid #ddd; font-weight:600; }
+  3054→                        td { padding:8px 4px; border-bottom:1px solid #f0f0f0; }
+  3055→                        .totals { margin-top:20px; text-align:right; }
+  3056→                        .totals .row { display:flex; justify-content:flex-end; gap:40px; padding:4px 0; }
+  3057→                        .totals .row.grand { font-size:22px; font-weight:700; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px; }
+  3058→                        .footer { margin-top:40px; border-top:1px solid #eee; padding-top:20px; font-size:12px; color:#999; display:flex; justify-content:space-between; }
+  3059→                        .badge { background:#c8a45c; color:#000; padding:2px 16px; border-radius:30px; font-weight:600; font-size:12px; display:inline-block; }
+  3060→                    </style>
+  3061→                    </head><body>
+  3062→                    <div class="header">
+  3063→                        <div><h1>future<span>.</span> concept</h1><div style="font-size:13px; color:#666;">Bamako · Mali</div></div>
+  3064→                        <div class="meta">
+  3065→                            <div><strong>${p.client}</strong></div>
+  3066→                            <div>${p.project}</div>
+  3067→                            <div>${formatDate(p.date)}</div>
+  3068→                        </div>
+  3069→                    </div>
+  3070→                    <h2 style="margin:0 0 4px 0;">Commercial Proposal</h2>
+  3071→                    <div style="margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap;">
+  3072→                        <span class="badge">${p.status.toUpperCase()}</span>
+  3073→                        <span style="font-size:13px; color:#666;">Prepared for ${p.client}</span>
+  3074→                    </div>
+  3075→                    <table>
+  3076→                        <thead><tr><th>Item</th><th>Supplier</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+  3077→                        <tbody>${itemsHtml || '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">No items</td></tr>'}</tbody>
+  3078→                    </table>
+  3079→                    <div class="totals">
+  3080→                        <div class="row"><span>Subtotal</span><span>${formatPriceFull(subtotal)}</span></div>
+  3081→                        <div class="row"><span>Markup (30%)</span><span>${formatPriceFull(markup)}</span></div>
+  3082→                        <div class="row grand"><span>Grand Total</span><span>${formatPriceFull(grand)}</span></div>
+  3083→                    </div>
+  3084→                    <div class="footer">
+  3085→                        <div>Generated by Future OS · Vision & Cost</div>
+  3086→                        <div>${new Date().toLocaleDateString()}</div>
+  3087→                    </div>
+  3088→                    <div style="margin-top:16px; font-size:11px; color:#aaa; text-align:center; border-top:1px solid #f0f0f0; padding-top:12px;">
+  3089→                        This is a commercial proposal. All prices are in ${symbol}. Terms & conditions apply.
+  3090→                    </div>
+  3091→                    <script>
+  3092→                        setTimeout(() => { window.print(); }, 500);
+  3093→                    <\/script>
+  3094→                    </body></html>
+  3095→                `);
+  3096→            printWin.document.close();
+  3097→        }
+  3098→
+  3099→        // ──────────────────────────────────────────────────────────────
+  3100→        //  RENDER: CATALOG
+  3101→        // ──────────────────────────────────────────────────────────────
+  3102→
+  3103→        function renderCatalog(gridId, searchId, filterContainerId, isFull = false) {
+  3104→            const grid = document.getElementById(gridId);
+  3105→            if (!grid) return;
+  3106→            const search = document.getElementById(searchId);
+  3107→            const query = search ? search.value.toLowerCase() : '';
+  3108→            const activeFilter = document.querySelector(`#${filterContainerId} .active`);
+  3109→            const category = activeFilter ? activeFilter.dataset.cat : 'all';
+  3110→
+  3111→            let filtered = PRODUCTS;
+  3112→            if (category !== 'all') {
+  3113→                filtered = filtered.filter(p => p.category === category);
+  3114→            }
+  3115→            if (query) {
+  3116→                filtered = filtered.filter(p =>
+  3117→                    p.name.toLowerCase().includes(query) ||
+  3118→                    p.supplier.toLowerCase().includes(query) ||
+  3119→                    p.category.includes(query) ||
+  3120→                    p.origin.toLowerCase().includes(query)
+  3121→                );
+  3122→            }
+  3123→
+  3124→            if (filtered.length === 0) {
+  3125→                grid.innerHTML =
+  3126→                    `<div style="grid-column:1/-1; text-align:center; padding:40px 0; color:#999;"><div style="font-size:32px;">🔍</div><p>No products found</p></div>`;
+  3127→                return;
+  3128→            }
+  3129→
+  3130→            grid.innerHTML = filtered.map(p => {
+  3131→                const stockClass = p.inStock <= 3 ? 'critical' : p.inStock <= 8 ? 'low' : '';
+  3132→                return `
+  3133→                        <div class="product-card" draggable="true" data-id="${p.id}" data-emoji="${p.emoji}" data-name="${p.name}" data-price="${p.price}">
+  3134→                            <div class="stock-badge ${stockClass}">${p.inStock}/${p.stock}</div>
+  3135→                            <div class="img-placeholder">${p.emoji}</div>
+  3136→                            <div class="p-name">${p.name}</div>
+  3137→                            <div class="p-supplier">${p.supplier}</div>
+  3138→                            <div class="p-price">${formatPrice(p.price)}</div>
+  3139→                            ${isFull ? `<div style="font-size:10px; color:#999; margin-top:2px;">${p.origin} · ${p.leadTime}d lead</div>` : ''}
+  3140→                            <button class="add-btn" data-id="${p.id}">+ Add</button>
+  3141→                        </div>
+  3142→                    `;
+  3143→            }).join('');
+  3144→
+  3145→            grid.querySelectorAll('.add-btn').forEach(btn => {
+  3146→                btn.addEventListener('click', function(e) {
+  3147→                    e.stopPropagation();
+  3148→                    const id = this.dataset.id;
+  3149→                    if (document.getElementById('proposalBuilderContainer').style.display === 'block') {
+  3150→                        addToProposal(id);
+  3151→                    } else {
+  3152→                        showToast('Open a proposal first (click + New Proposal)', 'warning', '⚠️');
+  3153→                    }
+  3154→                });
+  3155→            });
+  3156→
+  3157→            grid.querySelectorAll('.product-card[draggable="true"]').forEach(el => {
+  3158→                el.addEventListener('dragstart', function(e) {
+  3159→                    e.dataTransfer.setData('text/plain', this.dataset.id);
+  3160→                    this.style.opacity = '0.5';
+  3161→                });
+  3162→                el.addEventListener('dragend', function(e) { this.style.opacity = '1'; });
+  3163→            });
+  3164→        }
+  3165→
+  3166→        // ──────────────────────────────────────────────────────────────
+  3167→        //  RENDER: PROJECT P&L
+  3168→        // ──────────────────────────────────────────────────────────────
+  3169→
+  3170→        function renderProjectPnL() {
+  3171→            const container = document.getElementById('projectPnLContainer');
+  3172→            if (!container) return;
+  3173→            const projects = PROJECTS_DATA;
+  3174→            container.innerHTML = projects.map(p => {
+  3175→                const used = p.spent / p.budget;
+  3176→                const remaining = p.budget - p.spent;
+  3177→                const barClass = used > 0.9 ? 'danger' : used > 0.7 ? 'warning' : '';
+  3178→                const isComplete = p.status === 'completed';
+  3179→                return `
+  3180→                        <div class="pnl-card" onclick="openProjectDetail('${p.id}')">
+  3181→                            <div class="pnl-name">${p.name}</div>
+  3182→                            <div class="pnl-budget">${p.client} · ${p.phase}</div>
+  3183→                            <div class="pnl-bar"><div class="pnl-fill ${barClass}" style="width:${Math.min(used * 100, 100)}%;"></div></div>
+  3184→                            <div class="pnl-row"><span class="pnl-label">Budget</span><span class="pnl-value">${formatPrice(p.budget)}</span></div>
+  3185→                            <div class="pnl-row"><span class="pnl-label">Spent</span><span class="pnl-value">${formatPrice(p.spent)}</span></div>
+  3186→                            <div class="pnl-row"><span class="pnl-label">Remaining</span><span class="pnl-value ${remaining > 0 ? 'positive' : 'negative'}">${formatPrice(remaining)}</span></div>
+  3187→                            <div class="pnl-row" style="margin-top:6px; font-size:11px; color:#999; border-top:1px solid #f0f0f0; padding-top:6px;">
+  3188→                                <span>${isComplete ? '✅ Completed' : '🔄 ' + p.phase}</span>
+  3189→                                <span>${p.location}</span>
+  3190→                            </div>
+  3191→                        </div>
+  3192→                    `;
+  3193→            }).join('');
+  3194→            document.getElementById('activeProjectsCount').innerText = projects.filter(p => p.status === 'active').length;
+  3195→            document.getElementById('activeProjectsSub').innerText =
+  3196→                `${projects.filter(p => p.phase.includes('Installation')).length} in installation`;
+  3197→            document.getElementById('totalProducts').innerText = PRODUCTS.length;
+  3198→        }
+  3199→
+  3200→        function openProjectDetail(id) {
+  3201→            const p = PROJECTS_DATA.find(pr => pr.id === id);
+  3202→            if (!p) return;
+  3203→            const used = p.spent / p.budget;
+  3204→            const remaining = p.budget - p.spent;
+  3205→            document.getElementById('modalTitle').innerText = `◰ ${p.name}`;
+  3206→            document.getElementById('modalBody').innerHTML = `
+  3207→                    <div class="detail-row"><span>Client</span><strong>${p.client}</strong></div>
+  3208→                    <div class="detail-row"><span>Phase</span><strong>${p.phase}</strong></div>
+  3209→                    <div class="detail-row"><span>Location</span><strong>${p.location}</strong></div>
+  3210→                    <div class="detail-row"><span>Start Date</span><strong>${formatDate(p.startDate)}</strong></div>
+  3211→                    <div class="detail-row"><span>End Date</span><strong>${formatDate(p.endDate)}</strong></div>
+  3212→                    <div class="detail-row"><span>Budget</span><strong>${formatPrice(p.budget)}</strong></div>
+  3213→                    <div class="detail-row"><span>Spent</span><strong>${formatPrice(p.spent)}</strong></div>
+  3214→                    <div class="detail-row"><span>Remaining</span><strong style="color:${remaining > 0 ? '#1e7a1e' : '#d32f2f'}">${formatPrice(remaining)}</strong></div>
+  3215→                    <div class="detail-row"><span>Progress</span><strong>${Math.round(used * 100)}%</strong></div>
+  3216→                    <div style="margin-top:16px; padding:12px; background:#f8f8f8; border-radius:12px; font-size:13px;">
+  3217→                        <strong>🛠️ ${p.items.length} product types</strong>
+  3218→                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+  3219→                            ${p.items.map(id => {
+  3220→                                const prod = getProduct(id);
+  3221→                                return prod ? `<span style="background:#fff; padding:4px 12px; border-radius:20px; border:1px solid #eee; font-size:11px;">${prod.emoji} ${prod.name}</span>` : '';
+  3222→                            }).join('')}
+  3223→                        </div>
+  3224→                    </div>
+  3225→                    <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+  3226→                        <button onclick="showToast('📊 Generating project report for ${p.name}...', 'info', '📊')" style="background:#0b0b0b; color:#fff; border:none; padding:10px 20px; border-radius:40px; font-weight:600; cursor:pointer; flex:1;">📊 Full Report</button>
+  3227→                        <button onclick="document.getElementById('detailModal').classList.remove('open')" style="background:transparent; border:1px solid #ddd; padding:10px 20px; border-radius:40px; cursor:pointer;">Close</button>
+  3228→                    </div>
+  3229→                `;
+  3230→            document.getElementById('detailModal').classList.add('open');
+  3231→        }
+  3232→
+  3233→        // ──────────────────────────────────────────────────────────────
+  3234→        //  RENDER: PROCUREMENT
+  3235→        // ──────────────────────────────────────────────────────────────
+  3236→
+  3237→        function renderProcurement() {
+  3238→            const container = document.getElementById('procurementContainer');
+  3239→            if (!container) return;
+  3240→            document.getElementById('procurementBadge').innerText = PURCHASE_ORDERS.filter(o => o.status !== 'Delivered')
+  3241→                .length;
+  3242→            container.innerHTML = PURCHASE_ORDERS.map(o => `
+  3243→                    <div class="expense-item" onclick="showToast('🚢 ${o.id}: ${o.supplier} · ETA ${o.eta}', 'info', '📦')">
+  3244→                        <div class="ei-left">
+  3245→                            <div class="ei-title">${o.id}</div>
+  3246→                            <div class="ei-meta">${o.supplier} · Ordered ${formatDate(o.date)}</div>
+  3247→                        </div>
+  3248→                        <div class="ei-right">
+  3249→                            <div class="ei-amount">${formatPrice(o.amount)}</div>
+  3250→                            <div class="ei-status"><span class="status ${o.statusClass}">${o.status}</span> · ETA ${o.eta}</div>
+  3251→                        </div>
+  3252→                    </div>
+  3253→                `).join('');
+  3254→        }
+  3255→
+  3256→        // ──────────────────────────────────────────────────────────────
+  3257→        //  RENDER: AFTER-SALES
+  3258→        // ──────────────────────────────────────────────────────────────
+  3259→
+  3260→        function renderAfterSales() {
+  3261→            const container = document.getElementById('aftersalesContainer');
+  3262→            if (!container) return;
+  3263→            document.getElementById('aftersalesBadge').innerText = AFTERSALES_TICKETS.filter(t => t.status !== 'Resolved')
+  3264→                .length;
+  3265→            container.innerHTML = AFTERSALES_TICKETS.map(t => `
+  3266→                    <div class="after-sales-ticket" onclick="showToast('🛠️ ${t.title}: ${t.desc} · Priority: ${t.priority}', 'info', '🔧')">
+  3267→                        <div>
+  3268→                            <strong>${t.title}</strong>
+  3269→                            <br><span style="font-size:12px;color:#777;">${t.desc}</span>
+  3270→                            <br><span style="font-size:10px;color:#999;">${t.id} · Created ${formatDate(t.created)}</span>
+  3271→                        </div>
+  3272→                        <div style="text-align:right;">
+  3273→                            <span class="status ${t.statusClass}">${t.status}</span>
+  3274→                            <div style="font-size:10px;color:#999;margin-top:4px;">${t.priority}</div>
+  3275→                        </div>
+  3276→                    </div>
+  3277→                `).join('');
+  3278→            updateWidgets();
+  3279→        }
+  3280→
+  3281→        // ──────────────────────────────────────────────────────────────
+  3282→        //  PROPOSAL BUILDER
+  3283→        // ──────────────────────────────────────────────────────────────
+  3284→
+  3285→        function addToProposal(productId) {
+  3286→            if (!currentProposal) {
+  3287→                currentProposal = {
+  3288→                    id: 'prop_' + generateId(),
+  3289→                    client: document.getElementById('proposalClient').value || 'New Client',
+  3290→                    project: document.getElementById('proposalProject').value || 'New Project',
+  3291→                    date: document.getElementById('proposalDate').value || getTimestamp().slice(0, 10),
+  3292→                    items: [],
+  3293→                    status: 'draft',
+  3294→                    createdAt: getTimestamp()
+  3295→                };
+  3296→            }
+  3297→            const existing = currentProposal.items.find(i => i.productId === productId);
+  3298→            if (existing) { existing.qty += 1; } else { currentProposal.items.push({ productId, qty: 1 }); }
+  3299→            renderProposalCanvas();
+  3300→            document.getElementById('proposalBuilderContainer').style.display = 'block';
+  3301→            document.getElementById('builderTitle').innerText = editingProposalId ? '✏️ Edit Proposal' : '✏️ New Proposal';
+  3302→            showToast(`✅ Added ${getProduct(productId)?.name || 'item'} to proposal`, 'success', '➕');
+  3303→            addActivity('Added item to proposal', `${getProduct(productId)?.name || 'Item'}`, '➕');
+  3304→        }
+  3305→
+  3306→        function removeFromProposal(productId) {
+  3307→            if (!currentProposal) return;
+  3308→            currentProposal.items = currentProposal.items.filter(i => i.productId !== productId);
+  3309→            renderProposalCanvas();
+  3310→        }
+  3311→
+  3312→        function updateProposalQty(productId, delta) {
+  3313→            if (!currentProposal) return;
+  3314→            const item = currentProposal.items.find(i => i.productId === productId);
+  3315→            if (!item) return;
+  3316→            item.qty = Math.max(1, item.qty + delta);
+  3317→            renderProposalCanvas();
+  3318→        }
+  3319→
+  3320→        function renderProposalCanvas() {
+  3321→            const container = document.getElementById('canvasItems');
+  3322→            if (!container) return;
+  3323→            if (!currentProposal || currentProposal.items.length === 0) {
+  3324→                container.innerHTML = `
+  3325→                        <div class="empty-state">
+  3326→                            <div class="empty-icon">🛒</div>
+  3327→                            <h4>Your proposal is empty</h4>
+  3328→                            <p>Browse the catalog and click <strong>+ Add</strong> to build your proposal.</p>
+  3329→                        </div>
+  3330→                    `;
+  3331→                document.getElementById('canvasSubtotal').innerText = formatPrice(0);
+  3332→                document.getElementById('canvasMarkup').innerText = formatPrice(0);
+  3333→                document.getElementById('canvasGrandTotal').innerText = formatPrice(0);
+  3334→                return;
+  3335→            }
+  3336→
+  3337→            let subtotal = 0;
+  3338→            container.innerHTML = currentProposal.items.map(item => {
+  3339→                const prod = getProduct(item.productId);
+  3340→                if (!prod) return '';
+  3341→                const lineTotal = prod.price * item.qty;
+  3342→                subtotal += lineTotal;
+  3343→                return `
+  3344→                        <div class="canvas-item">
+  3345→                            <div class="ci-thumb">${prod.emoji}</div>
+  3346→                            <div class="ci-info">
+  3347→                                <div class="ci-name">${prod.name}</div>
+  3348→                                <div class="ci-supplier">${prod.supplier} · ${formatPrice(prod.price)}/u</div>
+  3349→                            </div>
+  3350→                            <div class="ci-qty">
+  3351→                                <button onclick="updateProposalQty('${prod.id}', -1)">−</button>
+  3352→                                <span>${item.qty}</span>
+  3353→                                <button onclick="updateProposalQty('${prod.id}', 1)">+</button>
+  3354→                            </div>
+  3355→                            <div class="ci-price">${formatPrice(lineTotal)}</div>
+  3356→                            <button class="ci-remove" onclick="removeFromProposal('${prod.id}')">✕</button>
+  3357→                        </div>
+  3358→                    `;
+  3359→            }).join('');
+  3360→
+  3361→            const markup = subtotal * 0.3;
+  3362→            const grand = subtotal + markup;
+  3363→            document.getElementById('canvasSubtotal').innerText = formatPrice(subtotal);
+  3364→            document.getElementById('canvasMarkup').innerText = formatPrice(markup);
+  3365→            document.getElementById('canvasGrandTotal').innerText = formatPrice(grand);
+  3366→        }
+  3367→
+  3368→        async function saveCurrentProposal() {
+  3369→            if (!currentProposal || currentProposal.items.length === 0) {
+  3370→                showToast('Please add at least one item to the proposal.', 'warning', '⚠️');
+  3371→                return;
+  3372→            }
+  3373→            currentProposal.client = document.getElementById('proposalClient').value || 'New Client';
+  3374→            currentProposal.project = document.getElementById('proposalProject').value || 'New Project';
+  3375→            currentProposal.date = document.getElementById('proposalDate').value || getTimestamp().slice(0, 10);
+  3376→            currentProposal.status = 'draft';
+  3377→            if (!currentProposal.createdAt) currentProposal.createdAt = getTimestamp();
+  3378→
+  3379→            const idx = proposals.findIndex(p => p.id === currentProposal.id);
+  3380→            if (idx !== -1) { proposals[idx] = { ...currentProposal }; } else { proposals.push({ ...currentProposal }); }
+  3381→            try { localStorage.setItem('future_os_proposals', JSON.stringify(proposals)); } catch (e) {}
+  3382→            showToast(`✅ Proposal saved for ${currentProposal.client}`, 'success', '💾');
+  3383→            addActivity('Saved proposal', `${currentProposal.client} · ${currentProposal.project}`, '💾');
+  3384→            renderProposalList();
+  3385→            closeProposalBuilder();
+  3386→        }
+  3387→
+  3388→        function closeProposalBuilder() {
+  3389→            document.getElementById('proposalBuilderContainer').style.display = 'none';
+  3390→            currentProposal = null;
+  3391→            editingProposalId = null;
+  3392→            renderProposalList();
+  3393→        }
+  3394→
+  3395→        function clearProposalBuilder() {
+  3396→            if (currentProposal && currentProposal.items.length > 0) {
+  3397→                if (!confirm('Clear all items from this proposal?')) return;
+  3398→            }
+  3399→            currentProposal = null;
+  3400→            editingProposalId = null;
+  3401→            renderProposalCanvas();
+  3402→            document.getElementById('proposalClient').value = '';
+  3403→            document.getElementById('proposalProject').value = '';
+  3404→            document.getElementById('proposalDate').value = getTimestamp().slice(0, 10);
+  3405→            showToast('Proposal cleared', 'warning', '🧹');
+  3406→        }
+  3407→
+  3408→        function printProposal() {
+  3409→            if (!currentProposal || currentProposal.items.length === 0) {
+  3410→                showToast('Please add items to your proposal first.', 'warning', '⚠️');
+  3411→                return;
+  3412→            }
+  3413→            currentProposal.client = document.getElementById('proposalClient').value || 'New Client';
+  3414→            currentProposal.project = document.getElementById('proposalProject').value || 'New Project';
+  3415→            currentProposal.date = document.getElementById('proposalDate').value || getTimestamp().slice(0, 10);
+  3416→
+  3417→            let subtotal = 0;
+  3418→            let itemsHtml = currentProposal.items.map(item => {
+  3419→                const prod = getProduct(item.productId);
+  3420→                if (!prod) return '';
+  3421→                const lineTotal = prod.price * item.qty;
+  3422→                subtotal += lineTotal;
+  3423→                return `
+  3424→                        <tr>
+  3425→                            <td style="padding:8px 4px; border-bottom:1px solid #eee;">${prod.emoji} ${prod.name}</td>
+  3426→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${prod.supplier}</td>
+  3427→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:center;">${item.qty}</td>
+  3428→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(prod.price)}</td>
+  3429→                            <td style="padding:8px 4px; border-bottom:1px solid #eee; text-align:right;">${formatPriceFull(lineTotal)}</td>
+  3430→                        </tr>
+  3431→                    `;
+  3432→            }).join('');
+  3433→
+  3434→            const markup = subtotal * 0.3;
+  3435→            const grand = subtotal + markup;
+  3436→            const symbol = currencySymbols[currentCurrency];
+  3437→
+  3438→            const printWin = window.open('', '_blank', 'width=900,height=700');
+  3439→            printWin.document.write(`
+  3440→                    <html><head><title>Proposal · ${currentProposal.client}</title>
+  3441→                    <style>
+  3442→                        body { font-family: 'Inter', sans-serif; padding:40px; color:#121212; }
+  3443→                        .header { border-bottom: 3px solid #c8a45c; padding-bottom:16px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; }
+  3444→                        .header h1 { font-size:28px; font-weight:700; }
+  3445→                        .header h1 span { color:#c8a45c; }
+  3446→                        .header .meta { font-size:14px; color:#666; }
+  3447→                        table { width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; }
+  3448→                        th { text-align:left; padding:10px 4px; border-bottom:2px solid #ddd; font-weight:600; }
+  3449→                        td { padding:8px 4px; border-bottom:1px solid #f0f0f0; }
+  3450→                        .totals { margin-top:20px; text-align:right; }
+  3451→                        .totals .row { display:flex; justify-content:flex-end; gap:40px; padding:4px 0; }
+  3452→                        .totals .row.grand { font-size:22px; font-weight:700; border-top:2px solid #c8a45c; padding-top:12px; margin-top:8px; }
+  3453→                        .footer { margin-top:40px; border-top:1px solid #eee; padding-top:20px; font-size:12px; color:#999; display:flex; justify-content:space-between; }
+  3454→                        .badge { background:#c8a45c; color:#000; padding:2px 16px; border-radius:30px; font-weight:600; font-size:12px; display:inline-block; }
+  3455→                    </style>
+  3456→                    </head><body>
+  3457→                    <div class="header">
+  3458→                        <div><h1>future<span>.</span> concept</h1><div style="font-size:13px; color:#666;">Bamako · Mali</div></div>
+  3459→                        <div class="meta">
+  3460→                            <div><strong>${currentProposal.client}</strong></div>
+  3461→                            <div>${currentProposal.project}</div>
+  3462→                            <div>${formatDate(currentProposal.date)}</div>
+  3463→                        </div>
+  3464→                    </div>
+  3465→                    <h2 style="margin:0 0 4px 0;">Commercial Proposal</h2>
+  3466→                    <div style="margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap;">
+  3467→                        <span class="badge">DRAFT</span>
+  3468→                        <span style="font-size:13px; color:#666;">Prepared for ${currentProposal.client}</span>
+  3469→                    </div>
+  3470→                    <table>
+  3471→                        <thead><tr><th>Item</th><th>Supplier</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+  3472→                        <tbody>${itemsHtml}</tbody>
+  3473→                    </table>
+  3474→                    <div class="totals">
+  3475→                        <div class="row"><span>Subtotal</span><span>${formatPriceFull(subtotal)}</span></div>
+  3476→                        <div class="row"><span>Markup (30%)</span><span>${formatPriceFull(markup)}</span></div>
+  3477→                        <div class="row grand"><span>Grand Total</span><span>${formatPriceFull(grand)}</span></div>
+  3478→                    </div>
+  3479→                    <div class="footer">
+  3480→                        <div>Generated by Future OS · Vision & Cost</div>
+  3481→                        <div>${new Date().toLocaleDateString()}</div>
+  3482→                    </div>
+  3483→                    <div style="margin-top:16px; font-size:11px; color:#aaa; text-align:center; border-top:1px solid #f0f0f0; padding-top:12px;">
+  3484→                        This is a commercial proposal. All prices are in ${symbol}. Terms & conditions apply.
+  3485→                    </div>
+  3486→                    <script>
+  3487→                        setTimeout(() => { window.print(); }, 500);
+  3488→                    <\/script>
+  3489→                    </body></html>
+  3490→                `);
+  3491→            printWin.document.close();
+  3492→        }
+  3493→
+  3494→        // ──────────────────────────────────────────────────────────────
+  3495→        //  RENDER: FINANCE
+  3496→        // ──────────────────────────────────────────────────────────────
+  3497→
+  3498→        function renderFinance() {
+  3499→            renderExpenses();
+
+[showing lines 3000-3499 of 4510; use offset=3500 with limit to continue reading]
