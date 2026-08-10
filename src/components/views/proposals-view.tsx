@@ -198,22 +198,20 @@ export function ProposalsView() {
             {propProducts.map((prod, idx) => (
               <div
                 key={prod.id}
-                className={`border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 ${idx % 2 === 0 ? '' : ''}`}
+                className={`print-break-inside-avoid border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 ${idx % 2 === 0 ? '' : ''}`}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                  {/* Photo */}
-                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+                  {/* Photo — use plain <img> for print compatibility */}
+                  <div className="print-break-inside-avoid">
                     {prod.imageUrl ? (
-                      <Image
+                      <img
                         src={prod.imageUrl}
                         alt={prod.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        priority={idx === 0}
+                        className="w-full aspect-[4/3] object-cover rounded-xl"
+                        loading="lazy"
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-full text-6xl">{prod.emoji}</div>
+                      <div className="flex items-center justify-center h-full aspect-[4/3] bg-muted rounded-xl text-6xl">{prod.emoji}</div>
                     )}
                   </div>
 
@@ -273,7 +271,7 @@ export function ProposalsView() {
           </div>
 
           {/* Summary / Footer */}
-          <div className="rounded-b-2xl border border-t border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8">
+          <div className="rounded-b-2xl border border-t border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8 print-break-inside-avoid">
             <div className="max-w-xs ml-auto space-y-3">
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Subtotal ({prop.items.length} items)</span>
