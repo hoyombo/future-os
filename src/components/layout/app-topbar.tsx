@@ -30,7 +30,7 @@ export function AppTopbar() {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card/80 backdrop-blur-sm px-4 md:px-6 py-3">
+    <header className="os-topbar sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card/80 backdrop-blur-sm px-4 md:px-6 py-3">
       <div>
         <h1 className="text-lg md:text-xl font-bold text-foreground">
           {greeting}, <span className="text-gold">Moussa</span>

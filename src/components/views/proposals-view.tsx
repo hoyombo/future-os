@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef } from 'react';
 import {
   Plus, Search, Trash2, Send, Save, X, Minus, ChevronDown,
+  Eye, Printer,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
@@ -24,10 +25,10 @@ export function ProposalsView() {
   const setProposals = useAppStore((s) => s.setProposals);
   const addToast = useAppStore((s) => s.addToast);
   const addActivity = useAppStore((s) => s.addActivity);
-  const openModal = useAppStore((s) => s.openModal);
   const currency = useAppStore((s) => s.currency);
 
   const [showBuilder, setShowBuilder] = useState(false);
+  const [previewProposal, setPreviewProposal] = useState<Proposal | null>(null);
   const [client, setClient] = useState('');
   const [project, setProject] = useState('');
   const [canvasItems, setCanvasItems] = useState<ProposalItem[]>([]);
@@ -120,6 +121,197 @@ export function ProposalsView() {
     addToast('info', '🗑️', 'Proposal deleted');
   }
 
+  function handlePrint() {
+    window.print();
+  }
+
+  // ── Catalog-Style Preview (full-page) ────────────────────────
+  if (previewProposal) {
+    const prop = previewProposal;
+    const sm = PROPOSAL_STATUS_MAP[prop.status] || PROPOSAL_STATUS_MAP.draft;
+    const propProducts = prop.items
+      .map((item) => {
+        const prod = products.find((p) => p.id === item.productId);
+        return prod ? { ...prod, qty: item.qty } : null;
+      })
+      .filter(Boolean) as (typeof products[number] & { qty: number })[];
+
+    return (
+      <div className="animate-fade-up print:p-0">
+        {/* Toolbar (hidden on print) */}
+        <div className="flex items-center justify-between mb-6 print:hidden">
+          <button
+            onClick={() => setPreviewProposal(null)}
+            className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+          >
+            ← Back to Proposals
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors"
+          >
+            <Printer className="h-4 w-4" /> Print / PDF
+          </button>
+        </div>
+
+        {/* Catalog Document */}
+        <div className="max-w-4xl mx-auto">
+          {/* Cover Header */}
+          <div className="rounded-t-2xl border border-b-0 border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8">
+            <div className="flex items-start justify-between mb-8">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">Proposal</p>
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+                  {prop.project}
+                </h1>
+              </div>
+              <StatusBadge status={sm.status} label={sm.label} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm border-t border-border pt-6">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Prepared for</p>
+                <p className="font-semibold text-foreground">{prop.client}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Date</p>
+                <p className="font-semibold text-foreground">{formatDate(prop.date)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Reference</p>
+                <p className="font-semibold text-foreground">{prop.id.slice(-6).toUpperCase()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Intro */}
+          <div className="border-x border-border bg-card px-8 md:px-12 py-6 print:border-x-0 print:border print:px-8">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Thank you for your trust in <span className="text-foreground font-semibold">Future OS</span>.
+              Below you will find a curated selection of premium furnishings tailored to your project.
+              Each piece has been chosen to meet the highest standards of quality, comfort, and design.
+            </p>
+          </div>
+
+          {/* Product Pages */}
+          <div className="border-x border-border print:border-x-0 print:border">
+            {propProducts.map((prod, idx) => (
+              <div
+                key={prod.id}
+                className={`border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 ${idx % 2 === 0 ? '' : ''}`}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                  {/* Photo */}
+                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted">
+                    {prod.imageUrl ? (
+                      <Image
+                        src={prod.imageUrl}
+                        alt={prod.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority={idx === 0}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-6xl">{prod.emoji}</div>
+                    )}
+                  </div>
+
+                  {/* Details */}
+                  <div className="flex flex-col justify-center">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold mb-2">
+                      {prod.category} · {prod.supplier}
+                    </p>
+                    <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-3">
+                      {prod.name}
+                    </h2>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                      {prod.description}
+                    </p>
+
+                    {/* Specs grid */}
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 mb-5">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Origin</p>
+                        <p className="text-sm font-medium text-foreground">{prod.origin}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lead Time</p>
+                        <p className="text-sm font-medium text-foreground">{prod.leadTime} days</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Specifications</p>
+                        <p className="text-sm font-medium text-foreground">{prod.specs}</p>
+                      </div>
+                    </div>
+
+                    {/* Quantity + Price */}
+                    <div className="rounded-lg bg-muted/50 border border-border p-4">
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                            Unit Price
+                          </p>
+                          <p className="text-sm font-mono text-foreground">{formatPrice(prod.price, currency)}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Qty</p>
+                          <p className="text-2xl font-bold text-foreground">{prod.qty}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Line Total</p>
+                          <p className="text-lg font-bold font-mono text-gold">
+                            {formatPrice(prod.price * prod.qty, currency)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Summary / Footer */}
+          <div className="rounded-b-2xl border border-t border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8">
+            <div className="max-w-xs ml-auto space-y-3">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Subtotal ({prop.items.length} items)</span>
+                <span className="font-mono">{formatPrice(prop.subtotal, currency)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Professional fee (15%)</span>
+                <span className="font-mono">{formatPrice(prop.markup, currency)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold text-foreground pt-3 border-t border-border">
+                <span>Total</span>
+                <span className="font-mono text-gold">{formatPrice(prop.total, currency)}</span>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-border">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                This proposal is valid for 30 days from the date above. Prices include delivery to site
+                in Bamako, Mali. Installation services are available upon request. We look forward to
+                bringing your vision to life.
+              </p>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gold flex items-center justify-center text-os-dark font-bold text-xs">
+                  FO
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Future OS</p>
+                  <p className="text-[10px] text-muted-foreground">Bamako, Mali · visionandcost@futureos.ml</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Builder Mode ─────────────────────────────────────────────
   if (showBuilder) {
     return (
       <div className="animate-fade-up space-y-4">
@@ -145,7 +337,7 @@ export function ProposalsView() {
                   className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap">
                 {CATEGORIES.map((cat) => (
                   <button
                     key={cat}
@@ -157,7 +349,7 @@ export function ProposalsView() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-96 overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[500px] overflow-y-auto pr-1">
               {filteredCatalog.map((p) => (
                 <div key={p.id} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
                   {p.imageUrl ? (
@@ -215,7 +407,7 @@ export function ProposalsView() {
 
             <div className="border-t border-border pt-3">
               <p className="text-xs font-medium text-muted-foreground mb-2">Items ({canvasItems.length})</p>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                 {canvasItems.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-4">Click + to add products</p>
                 )}
@@ -264,7 +456,7 @@ export function ProposalsView() {
               </div>
             </div>
 
-            <div className="os-canvas-actions flex gap-2 pt-2">
+            <div className="flex gap-2 pt-2">
               <button onClick={() => saveProposal('draft')} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors">
                 <Save className="h-4 w-4" /> Save Draft
               </button>
@@ -278,6 +470,7 @@ export function ProposalsView() {
     );
   }
 
+  // ── Proposal List ────────────────────────────────────────────
   return (
     <div className="animate-fade-up space-y-4">
       <div className="flex items-center justify-between">
@@ -298,28 +491,78 @@ export function ProposalsView() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {proposals.map((p) => {
             const sm = PROPOSAL_STATUS_MAP[p.status] || PROPOSAL_STATUS_MAP.draft;
+            // Show first 3 product thumbnails
+            const cardProducts = p.items
+              .map((item) => products.find((pr) => pr.id === item.productId))
+              .filter(Boolean)
+              .slice(0, 3);
+            const remaining = p.items.length - cardProducts.length;
+
             return (
-              <div key={p.id} className="rounded-xl border border-border bg-card p-4 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="font-semibold text-foreground text-sm">{p.client}</p>
-                    <p className="text-xs text-muted-foreground">{p.project}</p>
+              <div key={p.id} className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-lg transition-all group">
+                {/* Thumbnail strip */}
+                <div className="flex h-24 bg-muted">
+                  {cardProducts.map((prod) =>
+                    prod?.imageUrl ? (
+                      <div key={prod.id} className="relative flex-1 first:rounded-tl-xl overflow-hidden">
+                        <Image
+                          src={prod.imageUrl}
+                          alt={prod.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="200px"
+                        />
+                      </div>
+                    ) : (
+                      <div key={prod!.id} className="flex-1 flex items-center justify-center text-2xl bg-muted">
+                        {prod!.emoji}
+                      </div>
+                    )
+                  )}
+                  {remaining > 0 && (
+                    <div className="flex items-center justify-center flex-1 bg-muted text-xs font-medium text-muted-foreground">
+                      +{remaining} more
+                    </div>
+                  )}
+                  {cardProducts.length === 0 && (
+                    <div className="flex-1 flex items-center justify-center text-muted-foreground text-xs">
+                      No items
+                    </div>
+                  )}
+                </div>
+
+                {/* Card body */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{p.client}</p>
+                      <p className="text-xs text-muted-foreground">{p.project}</p>
+                    </div>
+                    <StatusBadge status={sm.status} label={sm.label} />
                   </div>
-                  <StatusBadge status={sm.status} label={sm.label} />
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                  <span>{formatDate(p.date)}</span>
-                  <span>{p.items.length} items</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-gold font-mono">{formatPrice(p.total, currency)}</span>
-                  <button
-                    onClick={() => deleteProposal(p.id)}
-                    className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    aria-label="Delete proposal"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                    <span>{formatDate(p.date)}</span>
+                    <span>{p.items.length} items</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-gold font-mono">{formatPrice(p.total, currency)}</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setPreviewProposal(p)}
+                        className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        aria-label="Preview proposal"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteProposal(p.id)}
+                        className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        aria-label="Delete proposal"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             );
