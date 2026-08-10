@@ -1,0 +1,533 @@
+     1→'use client';
+     2→
+     3→import { useState, useMemo } from 'react';
+     4→import {
+     5→  Plus, Trash2, TrendingUp, TrendingDown, DollarSign,
+     6→  Receipt, FileText, ArrowUpRight, ArrowDownRight, Repeat, Calculator,
+     7→} from 'lucide-react';
+     8→import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
+     9→import { StatusBadge } from '@/components/shared/status-badge';
+    10→import type { Status, Expense, Invoice, Bill, RecurringExpense } from '@/lib/types';
+    11→
+    12→type FinanceTab = 'expenses' | 'invoices' | 'bills' | 'cashflow' | 'budget' | 'recurring' | 'tax';
+    13→
+    14→const TABS: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
+    15→  { id: 'expenses', label: 'Expenses', icon: <Receipt className="h-3.5 w-3.5" /> },
+    16→  { id: 'invoices', label: 'Invoices', icon: <FileText className="h-3.5 w-3.5" /> },
+    17→  { id: 'bills', label: 'Bills', icon: <DollarSign className="h-3.5 w-3.5" /> },
+    18→  { id: 'cashflow', label: 'Cash Flow', icon: <TrendingUp className="h-3.5 w-3.5" /> },
+    19→  { id: 'budget', label: 'Budget vs Actual', icon: <Calculator className="h-3.5 w-3.5" /> },
+    20→  { id: 'recurring', label: 'Recurring', icon: <Repeat className="h-3.5 w-3.5" /> },
+    21→  { id: 'tax', label: 'Tax', icon: <ArrowUpRight className="h-3.5 w-3.5" /> },
+    22→];
+    23→
+    24→const EXPENSE_STATUS_MAP: Record<string, { status: Status; label: string }> = {
+    25→  Approved: { status: 'green', label: 'Approved' },
+    26→  Pending: { status: 'gold', label: 'Pending' },
+    27→  Rejected: { status: 'red', label: 'Rejected' },
+    28→};
+    29→
+    30→const INVOICE_STATUS_MAP: Record<string, { status: Status; label: string }> = {
+    31→  Paid: { status: 'green', label: 'Paid' },
+    32→  Pending: { status: 'gold', label: 'Pending' },
+    33→  Overdue: { status: 'red', label: 'Overdue' },
+    34→  Draft: { status: 'blue', label: 'Draft' },
+    35→};
+    36→
+    37→const BILL_STATUS_MAP: Record<string, { status: Status; label: string }> = {
+    38→  Paid: { status: 'green', label: 'Paid' },
+    39→  Pending: { status: 'gold', label: 'Pending' },
+    40→  Overdue: { status: 'red', label: 'Overdue' },
+    41→};
+    42→
+    43→export function FinanceView() {
+    44→  const [activeTab, setActiveTab] = useState<FinanceTab>('expenses');
+    45→  const expenses = useAppStore((s) => s.expenses);
+    46→  const invoices = useAppStore((s) => s.invoices);
+    47→  const bills = useAppStore((s) => s.bills);
+    48→  const recurringExpenses = useAppStore((s) => s.recurringExpenses);
+    49→  const budgetData = useAppStore((s) => s.budgetData);
+    50→  const currency = useAppStore((s) => s.currency);
+    51→  const setExpenses = useAppStore((s) => s.setExpenses);
+    52→  const setInvoices = useAppStore((s) => s.setInvoices);
+    53→  const setBills = useAppStore((s) => s.setBills);
+    54→  const setRecurringExpenses = useAppStore((s) => s.setRecurringExpenses);
+    55→  const addToast = useAppStore((s) => s.addToast);
+    56→  const addActivity = useAppStore((s) => s.addActivity);
+    57→  const service = useAppStore((s) => s._service);
+    58→
+    59→  // Summary cards
+    60→  const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
+    61→  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+    62→  const netProfit = totalRevenue - totalExpenses;
+    63→  const arOutstanding = invoices.filter(i => i.status !== 'Paid').reduce((s, i) => s + (i.amount - i.paidAmount), 0);
+    64→
+    65→  return (
+    66→    <div className="animate-fade-up space-y-4">
+    67→      <h2 className="text-lg font-bold text-foreground">Finance</h2>
+    68→
+    69→      {/* Summary cards */}
+    70→      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    71→        <FinanceSummaryCard label="Revenue" value={totalRevenue} icon={<TrendingUp className="h-5 w-5 text-emerald-500" />} positive />
+    72→        <FinanceSummaryCard label="Expenses" value={totalExpenses} icon={<TrendingDown className="h-5 w-5 text-red-500" />} />
+    73→        <FinanceSummaryCard label="Net Profit" value={netProfit} icon={<DollarSign className="h-5 w-5 text-gold" />} positive={netProfit >= 0} highlight />
+    74→        <FinanceSummaryCard label="A/R Outstanding" value={arOutstanding} icon={<Receipt className="h-5 w-5 text-amber-500" />} />
+    75→      </div>
+    76→
+    77→      {/* Tab bar */}
+    78→      <div className="os-finance-tabs flex gap-1 overflow-x-auto pb-1">
+    79→        {TABS.map((tab) => (
+    80→          <button
+    81→            key={tab.id}
+    82→            onClick={() => setActiveTab(tab.id)}
+    83→            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium whitespace-nowrap transition-all ${
+    84→              activeTab === tab.id
+    85→                ? 'bg-gold text-os-dark'
+    86→                : 'bg-muted text-muted-foreground hover:text-foreground'
+    87→            }`}
+    88→          >
+    89→            {tab.icon} {tab.label}
+    90→          </button>
+    91→        ))}
+    92→      </div>
+    93→
+    94→      {/* Tab content */}
+    95→      <div className="rounded-xl border border-border bg-card p-4 md:p-5">
+    96→        {activeTab === 'expenses' && (
+    97→          <ExpensesTab expenses={expenses} currency={currency} onDelete={(id) => {
+    98→            service?.deleteExpense(id);
+    99→            setExpenses(expenses.filter(e => e.id !== id));
+   100→            addToast('info', '🗑️', 'Expense deleted');
+   101→          }} onAdd={(exp) => {
+   102→            service?.addExpense(exp);
+   103→            setExpenses([...expenses, exp]);
+   104→            addActivity({ id: generateId(), text: 'Expense added', detail: exp.title, icon: '💰', timestamp: getTimestamp() });
+   105→            addToast('success', '✅', 'Expense added');
+   106→          }} />
+   107→        )}
+   108→        {activeTab === 'invoices' && (
+   109→          <InvoicesTab invoices={invoices} currency={currency} onAdd={(inv) => {
+   110→            service?.addInvoice(inv);
+   111→            setInvoices([...invoices, inv]);
+   112→            addToast('success', '✅', 'Invoice added');
+   113→          }} />
+   114→        )}
+   115→        {activeTab === 'bills' && (
+   116→          <BillsTab bills={bills} currency={currency} onAdd={(bill) => {
+   117→            service?.addBill(bill);
+   118→            setBills([...bills, bill]);
+   119→            addToast('success', '✅', 'Bill added');
+   120→          }} />
+   121→        )}
+   122→        {activeTab === 'cashflow' && <CashFlowTab invoices={invoices} expenses={expenses} currency={currency} />}
+   123→        {activeTab === 'budget' && <BudgetTab budgetData={budgetData} currency={currency} />}
+   124→        {activeTab === 'recurring' && (
+   125→          <RecurringTab recurringExpenses={recurringExpenses} currency={currency} setRecurringExpenses={setRecurringExpenses} addToast={addToast} />
+   126→        )}
+   127→        {activeTab === 'tax' && <TaxTab invoices={invoices} expenses={expenses} currency={currency} />}
+   128→      </div>
+   129→    </div>
+   130→  );
+   131→}
+   132→
+   133→// ── Summary Card ──────────────────────────────────────────────────
+   134→function FinanceSummaryCard({ label, value, icon, positive = false, highlight = false }: {
+   135→  label: string; value: number; icon: React.ReactNode; positive?: boolean; highlight?: boolean;
+   136→}) {
+   137→  const currency = useAppStore((s) => s.currency);
+   138→  return (
+   139→    <div className={`rounded-xl border bg-card p-4 transition-all hover:shadow-md ${highlight ? 'border-gold' : 'border-border'}`}>
+   140→      <div className="flex items-center gap-2 mb-2">{icon}<span className="text-xs text-muted-foreground">{label}</span></div>
+   141→      <p className={`text-xl font-bold font-mono ${highlight ? 'text-gold' : positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>
+   142→        {formatPrice(value, currency)}
+   143→      </p>
+   144→    </div>
+   145→  );
+   146→}
+   147→
+   148→// ── Expenses Tab ──────────────────────────────────────────────────
+   149→function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
+   150→  expenses: Expense[]; currency: string; onDelete: (id: string) => void; onAdd: (e: Expense) => void;
+   151→}) {
+   152→  const [showForm, setShowForm] = useState(false);
+   153→  const [title, setTitle] = useState('');
+   154→  const [amount, setAmount] = useState('');
+   155→  const [category, setCategory] = useState('Operations');
+   156→
+   157→  function handleAdd() {
+   158→    if (!title.trim() || !amount) { return; }
+   159→    onAdd({
+   160→      id: generateId(), title: title.trim(),
+   161→      amount: parseInt(amount, 10) || 0, category,
+   162→      date: new Date().toISOString().slice(0, 10),
+   163→      status: 'Pending', approval: 'Pending', createdBy: 'Moussa',
+   164→    });
+   165→    setTitle(''); setAmount(''); setShowForm(false);
+   166→  }
+   167→
+   168→  return (
+   169→    <div className="space-y-3">
+   170→      <div className="flex items-center justify-between">
+   171→        <h3 className="text-sm font-semibold text-foreground">Expenses ({expenses.length})</h3>
+   172→        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+   173→          <Plus className="h-3.5 w-3.5" /> Add Expense
+   174→        </button>
+   175→      </div>
+   176→      {showForm && (
+   177→        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+   178→          <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   179→          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   180→          <select value={category} onChange={e => setCategory(e.target.value)} className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+   181→            <option>Operations</option><option>Logistics</option><option>Installation</option><option>Admin</option><option>Marketing</option>
+   182→          </select>
+   183→          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
+   184→        </div>
+   185→      )}
+   186→      <div className="max-h-80 overflow-y-auto">
+   187→        <table className="w-full text-sm">
+   188→          <thead>
+   189→            <tr className="border-b border-border text-xs text-muted-foreground">
+   190→              <th className="text-left pb-2 font-medium">Title</th>
+   191→              <th className="text-left pb-2 font-medium hidden sm:table-cell">Category</th>
+   192→              <th className="text-right pb-2 font-medium">Amount</th>
+   193→              <th className="text-center pb-2 font-medium">Status</th>
+   194→              <th className="text-right pb-2 font-medium hidden md:table-cell">Date</th>
+   195→              <th className="text-right pb-2 font-medium w-10"></th>
+   196→            </tr>
+   197→          </thead>
+   198→          <tbody className="divide-y divide-border">
+   199→            {expenses.map((e) => {
+   200→              const sm = EXPENSE_STATUS_MAP[e.status] || EXPENSE_STATUS_MAP['Pending'];
+   201→              return (
+   202→                <tr key={e.id} className="hover:bg-muted/50 transition-colors">
+   203→                  <td className="py-2.5 font-medium text-foreground text-xs">{e.title}</td>
+   204→                  <td className="py-2.5 text-muted-foreground text-xs hidden sm:table-cell">{e.category}</td>
+   205→                  <td className="py-2.5 text-right font-mono text-xs">{formatPrice(e.amount, currency as import('@/lib/types').Currency)}</td>
+   206→                  <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
+   207→                  <td className="py-2.5 text-right text-xs text-muted-foreground hidden md:table-cell">{formatDate(e.date)}</td>
+   208→                  <td className="py-2.5 text-right">
+   209→                    <button onClick={() => onDelete(e.id)} className="p-1 text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+   210→                  </td>
+   211→                </tr>
+   212→              );
+   213→            })}
+   214→            {expenses.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">No expenses recorded</td></tr>}
+   215→          </tbody>
+   216→        </table>
+   217→      </div>
+   218→    </div>
+   219→  );
+   220→}
+   221→
+   222→// ── Invoices Tab ──────────────────────────────────────────────────
+   223→function InvoicesTab({ invoices, currency, onAdd }: {
+   224→  invoices: Invoice[]; currency: string; onAdd: (i: Invoice) => void;
+   225→}) {
+   226→  const [showForm, setShowForm] = useState(false);
+   227→  const [client, setClient] = useState('');
+   228→  const [amount, setAmount] = useState('');
+   229→
+   230→  function handleAdd() {
+   231→    if (!client.trim() || !amount) return;
+   232→    onAdd({
+   233→      id: generateId(), client: client.trim(),
+   234→      amount: parseInt(amount, 10) || 0,
+   235→      date: new Date().toISOString().slice(0, 10),
+   236→      status: 'Pending', dueDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+   237→      paidAmount: 0,
+   238→    });
+   239→    setClient(''); setAmount(''); setShowForm(false);
+   240→  }
+   241→
+   242→  return (
+   243→    <div className="space-y-3">
+   244→      <div className="flex items-center justify-between">
+   245→        <h3 className="text-sm font-semibold text-foreground">Invoices ({invoices.length})</h3>
+   246→        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+   247→          <Plus className="h-3.5 w-3.5" /> Add Invoice
+   248→        </button>
+   249→      </div>
+   250→      {showForm && (
+   251→        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+   252→          <input type="text" placeholder="Client" value={client} onChange={e => setClient(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   253→          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   254→          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
+   255→        </div>
+   256→      )}
+   257→      <div className="max-h-80 overflow-y-auto">
+   258→        <table className="w-full text-sm">
+   259→          <thead>
+   260→            <tr className="border-b border-border text-xs text-muted-foreground">
+   261→              <th className="text-left pb-2 font-medium">Client</th>
+   262→              <th className="text-right pb-2 font-medium">Amount</th>
+   263→              <th className="text-center pb-2 font-medium">Status</th>
+   264→              <th className="text-right pb-2 font-medium hidden sm:table-cell">Due</th>
+   265→              <th className="text-right pb-2 font-medium hidden md:table-cell">Paid</th>
+   266→            </tr>
+   267→          </thead>
+   268→          <tbody className="divide-y divide-border">
+   269→            {invoices.map((inv) => {
+   270→              const sm = INVOICE_STATUS_MAP[inv.status] || INVOICE_STATUS_MAP['Draft'];
+   271→              return (
+   272→                <tr key={inv.id} className="hover:bg-muted/50 transition-colors">
+   273→                  <td className="py-2.5 font-medium text-foreground text-xs">{inv.client}</td>
+   274→                  <td className="py-2.5 text-right font-mono text-xs">{formatPrice(inv.amount, currency as import('@/lib/types').Currency)}</td>
+   275→                  <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
+   276→                  <td className="py-2.5 text-right text-xs text-muted-foreground hidden sm:table-cell">{formatDate(inv.dueDate)}</td>
+   277→                  <td className="py-2.5 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 hidden md:table-cell">{formatPrice(inv.paidAmount, currency as import('@/lib/types').Currency)}</td>
+   278→                </tr>
+   279→              );
+   280→            })}
+   281→            {invoices.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-muted-foreground text-xs">No invoices recorded</td></tr>}
+   282→          </tbody>
+   283→        </table>
+   284→      </div>
+   285→    </div>
+   286→  );
+   287→}
+   288→
+   289→// ── Bills Tab ─────────────────────────────────────────────────────
+   290→function BillsTab({ bills, currency, onAdd }: {
+   291→  bills: Bill[]; currency: string; onAdd: (b: Bill) => void;
+   292→}) {
+   293→  const [showForm, setShowForm] = useState(false);
+   294→  const [supplier, setSupplier] = useState('');
+   295→  const [amount, setAmount] = useState('');
+   296→
+   297→  function handleAdd() {
+   298→    if (!supplier.trim() || !amount) return;
+   299→    onAdd({
+   300→      id: generateId(), supplier: supplier.trim(),
+   301→      amount: parseInt(amount, 10) || 0,
+   302→      date: new Date().toISOString().slice(0, 10),
+   303→      status: 'Pending', dueDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+   304→    });
+   305→    setSupplier(''); setAmount(''); setShowForm(false);
+   306→  }
+   307→
+   308→  return (
+   309→    <div className="space-y-3">
+   310→      <div className="flex items-center justify-between">
+   311→        <h3 className="text-sm font-semibold text-foreground">Bills ({bills.length})</h3>
+   312→        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+   313→          <Plus className="h-3.5 w-3.5" /> Add Bill
+   314→        </button>
+   315→      </div>
+   316→      {showForm && (
+   317→        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+   318→          <input type="text" placeholder="Supplier" value={supplier} onChange={e => setSupplier(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   319→          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   320→          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
+   321→        </div>
+   322→      )}
+   323→      <div className="max-h-80 overflow-y-auto">
+   324→        <table className="w-full text-sm">
+   325→          <thead>
+   326→            <tr className="border-b border-border text-xs text-muted-foreground">
+   327→              <th className="text-left pb-2 font-medium">Supplier</th>
+   328→              <th className="text-right pb-2 font-medium">Amount</th>
+   329→              <th className="text-center pb-2 font-medium">Status</th>
+   330→              <th className="text-right pb-2 font-medium hidden sm:table-cell">Due</th>
+   331→            </tr>
+   332→          </thead>
+   333→          <tbody className="divide-y divide-border">
+   334→            {bills.map((b) => {
+   335→              const sm = BILL_STATUS_MAP[b.status] || BILL_STATUS_MAP['Pending'];
+   336→              return (
+   337→                <tr key={b.id} className="hover:bg-muted/50 transition-colors">
+   338→                  <td className="py-2.5 font-medium text-foreground text-xs">{b.supplier}</td>
+   339→                  <td className="py-2.5 text-right font-mono text-xs">{formatPrice(b.amount, currency as import('@/lib/types').Currency)}</td>
+   340→                  <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
+   341→                  <td className="py-2.5 text-right text-xs text-muted-foreground hidden sm:table-cell">{formatDate(b.dueDate)}</td>
+   342→                </tr>
+   343→              );
+   344→            })}
+   345→            {bills.length === 0 && <tr><td colSpan={4} className="py-8 text-center text-muted-foreground text-xs">No bills recorded</td></tr>}
+   346→          </tbody>
+   347→        </table>
+   348→      </div>
+   349→    </div>
+   350→  );
+   351→}
+   352→
+   353→// ── Cash Flow Tab ─────────────────────────────────────────────────
+   354→function CashFlowTab({ invoices, expenses, currency }: {
+   355→  invoices: Invoice[]; expenses: Expense[]; currency: string;
+   356→}) {
+   357→  const totalInflow = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
+   358→  const totalOutflow = expenses.reduce((s, e) => s + e.amount, 0);
+   359→  const maxVal = Math.max(totalInflow, totalOutflow, 1);
+   360→  const net = totalInflow - totalOutflow;
+   361→
+   362→  return (
+   363→    <div className="space-y-4">
+   364→      <h3 className="text-sm font-semibold text-foreground">Cash Flow Overview</h3>
+   365→      <div className="space-y-4">
+   366→        <div>
+   367→          <div className="flex items-center justify-between mb-1.5">
+   368→            <span className="text-xs font-medium text-foreground flex items-center gap-1.5"><ArrowDownRight className="h-3.5 w-3.5 text-emerald-500" /> Inflow (Paid Invoices)</span>
+   369→            <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400">{formatPrice(totalInflow, currency as import('@/lib/types').Currency)}</span>
+   370→          </div>
+   371→          <div className="h-4 rounded-full bg-muted overflow-hidden">
+   372→            <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${(totalInflow / maxVal) * 100}%` }} />
+   373→          </div>
+   374→        </div>
+   375→        <div>
+   376→          <div className="flex items-center justify-between mb-1.5">
+   377→            <span className="text-xs font-medium text-foreground flex items-center gap-1.5"><ArrowUpRight className="h-3.5 w-3.5 text-red-500" /> Outflow (Expenses)</span>
+   378→            <span className="text-xs font-mono text-red-500">{formatPrice(totalOutflow, currency as import('@/lib/types').Currency)}</span>
+   379→          </div>
+   380→          <div className="h-4 rounded-full bg-muted overflow-hidden">
+   381→            <div className="h-full rounded-full bg-red-500 transition-all duration-700" style={{ width: `${(totalOutflow / maxVal) * 100}%` }} />
+   382→          </div>
+   383→        </div>
+   384→        <div className="pt-2 border-t border-border flex items-center justify-between">
+   385→          <span className="text-sm font-semibold text-foreground">Net Cash Flow</span>
+   386→          <span className={`text-lg font-bold font-mono ${net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>{formatPrice(net, currency as import('@/lib/types').Currency)}</span>
+   387→        </div>
+   388→      </div>
+   389→    </div>
+   390→  );
+   391→}
+   392→
+   393→// ── Budget vs Actual Tab ──────────────────────────────────────────
+   394→function BudgetTab({ budgetData, currency }: {
+   395→  budgetData: Record<string, import('@/lib/types').BudgetItem>; currency: string;
+   396→}) {
+   397→  const entries = Object.entries(budgetData);
+   398→  const totalBudget = entries.reduce((s, [, v]) => s + v.budget, 0);
+   399→  const totalActual = entries.reduce((s, [, v]) => s + v.actual, 0);
+   400→
+   401→  return (
+   402→    <div className="space-y-4">
+   403→      <div className="flex items-center justify-between">
+   404→        <h3 className="text-sm font-semibold text-foreground">Budget vs Actual</h3>
+   405→        <div className="text-xs text-muted-foreground">
+   406→          Total: {formatPrice(totalActual, currency as import('@/lib/types').Currency)} / {formatPrice(totalBudget, currency as import('@/lib/types').Currency)}
+   407→        </div>
+   408→      </div>
+   409→      <div className="space-y-4">
+   410→        {entries.map(([label, data]) => {
+   411→          const pct = data.budget > 0 ? Math.round((data.actual / data.budget) * 100) : 0;
+   412→          const over = pct > 100;
+   413→          return (
+   414→            <div key={label}>
+   415→              <div className="flex items-center justify-between mb-1">
+   416→                <span className="text-xs font-medium text-foreground">{label}</span>
+   417→                <span className={`text-[11px] font-mono ${over ? 'text-red-500 font-bold' : 'text-muted-foreground'}`}>{pct}%</span>
+   418→              </div>
+   419→              <div className="h-3 rounded-full bg-muted overflow-hidden relative">
+   420→                <div
+   421→                  className={`h-full rounded-full transition-all duration-700 ${over ? 'bg-red-500' : 'bg-gold'}`}
+   422→                  style={{ width: `${Math.min(pct, 100)}%` }}
+   423→                />
+   424→              </div>
+   425→              <div className="flex justify-between mt-0.5 text-[10px] text-muted-foreground">
+   426→                <span>Actual: {formatPrice(data.actual, currency as import('@/lib/types').Currency)}</span>
+   427→                <span>Budget: {formatPrice(data.budget, currency as import('@/lib/types').Currency)}</span>
+   428→              </div>
+   429→            </div>
+   430→          );
+   431→        })}
+   432→      </div>
+   433→    </div>
+   434→  );
+   435→}
+   436→
+   437→// ── Recurring Tab ─────────────────────────────────────────────────
+   438→function RecurringTab({ recurringExpenses, currency, setRecurringExpenses, addToast }: {
+   439→  recurringExpenses: RecurringExpense[]; currency: string;
+   440→  setRecurringExpenses: (r: RecurringExpense[]) => void;
+   441→  addToast: (t: import('@/lib/types').ToastType, i: string, m: string) => void;
+   442→}) {
+   443→  const [showForm, setShowForm] = useState(false);
+   444→  const [title, setTitle] = useState('');
+   445→  const [amount, setAmount] = useState('');
+   446→  const [frequency, setFrequency] = useState<'Monthly' | 'Quarterly' | 'Yearly'>('Monthly');
+   447→
+   448→  function handleAdd() {
+   449→    if (!title.trim() || !amount) return;
+   450→    const re: RecurringExpense = {
+   451→      id: generateId(), title: title.trim(),
+   452→      amount: parseInt(amount, 10) || 0, frequency,
+   453→      nextDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+   454→    };
+   455→    setRecurringExpenses([...recurringExpenses, re]);
+   456→    addToast('success', '✅', 'Recurring expense added');
+   457→    setTitle(''); setAmount(''); setShowForm(false);
+   458→  }
+   459→
+   460→  const totalMonthly = recurringExpenses.reduce((s, r) => {
+   461→    const mult = r.frequency === 'Monthly' ? 1 : r.frequency === 'Quarterly' ? 1 / 3 : 1 / 12;
+   462→    return s + r.amount * mult;
+   463→  }, 0);
+   464→
+   465→  return (
+   466→    <div className="space-y-3">
+   467→      <div className="flex items-center justify-between">
+   468→        <div>
+   469→          <h3 className="text-sm font-semibold text-foreground">Recurring Expenses ({recurringExpenses.length})</h3>
+   470→          <p className="text-[11px] text-muted-foreground">Est. monthly: {formatPrice(Math.round(totalMonthly), currency as import('@/lib/types').Currency)}</p>
+   471→        </div>
+   472→        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+   473→          <Plus className="h-3.5 w-3.5" /> Add
+   474→        </button>
+   475→      </div>
+   476→      {showForm && (
+   477→        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+   478→          <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   479→          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+   480→          <select value={frequency} onChange={e => setFrequency(e.target.value as 'Monthly' | 'Quarterly' | 'Yearly')} className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+   481→            <option>Monthly</option><option>Quarterly</option><option>Yearly</option>
+   482→          </select>
+   483→          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
+   484→        </div>
+   485→      )}
+   486→      <div className="max-h-80 overflow-y-auto space-y-2">
+   487→        {recurringExpenses.map((r) => (
+   488→          <div key={r.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
+   489→            <div>
+   490→              <p className="text-sm font-medium text-foreground">{r.title}</p>
+   491→              <p className="text-xs text-muted-foreground">{r.frequency} · Next: {formatDate(r.nextDate)}</p>
+   492→            </div>
+   493→            <span className="text-sm font-mono font-bold text-gold">{formatPrice(r.amount, currency as import('@/lib/types').Currency)}</span>
+   494→          </div>
+   495→        ))}
+   496→        {recurringExpenses.length === 0 && <p className="text-center text-muted-foreground text-xs py-8">No recurring expenses</p>}
+   497→      </div>
+   498→    </div>
+   499→  );
+   500→}
+   501→
+   502→// ── Tax Tab ───────────────────────────────────────────────────────
+   503→function TaxTab({ invoices, expenses, currency }: {
+   504→  invoices: Invoice[]; expenses: Expense[]; currency: string;
+   505→}) {
+   506→  const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
+   507→  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+   508→  const vatRate = 0.18;
+   509→  const estimatedVAT = Math.round(totalRevenue * vatRate);
+   510→  const corporateTax = Math.max(0, Math.round((totalRevenue - totalExpenses) * 0.15));
+   511→
+   512→  return (
+   513→    <div className="space-y-4">
+   514→      <h3 className="text-sm font-semibold text-foreground">Tax Estimates</h3>
+   515→      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   516→        <div className="rounded-lg border border-border p-4">
+   517→          <p className="text-xs text-muted-foreground mb-1">Revenue (Gross)</p>
+   518→          <p className="text-lg font-bold font-mono text-foreground">{formatPrice(totalRevenue, currency as import('@/lib/types').Currency)}</p>
+   519→        </div>
+   520→        <div className="rounded-lg border border-border p-4">
+   521→          <p className="text-xs text-muted-foreground mb-1">Est. VAT Collected (18%)</p>
+   522→          <p className="text-lg font-bold font-mono text-amber-600 dark:text-amber-400">{formatPrice(estimatedVAT, currency as import('@/lib/types').Currency)}</p>
+   523→        </div>
+   524→        <div className="rounded-lg border border-border p-4">
+   525→          <p className="text-xs text-muted-foreground mb-1">Est. Corporate Tax (15%)</p>
+   526→          <p className={`text-lg font-bold font-mono ${corporateTax > 0 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}`}>{formatPrice(corporateTax, currency as import('@/lib/types').Currency)}</p>
+   527→        </div>
+   528→      </div>
+   529→      <p className="text-xs text-muted-foreground">* Estimates based on current data. Consult a tax advisor for actual obligations.</p>
+   530→    </div>
+   531→  );
+   532→}
+   533→

@@ -145,9 +145,14 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+@keyframes slideRight {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
 
 .animate-fade-up { animation: fadeUp 0.25s ease; }
 .animate-slide-up { animation: slideUp 0.3s ease; }
+.animate-slide-right { animation: slideRight 0.2s ease-out; }
 .animate-pulse-red { animation: pulse-red 1.8s infinite; }
 
 /* Print */
@@ -157,6 +162,18 @@
   .os-inline-form, [data-slot="sidebar"], .os-topbar { display: none !important; }
 
   body { background: #fff !important; }
+
+  /* Force light-mode colors when printing (even if dark mode is on) */
+  :root {
+    --background: #f4f4f6 !important;
+    --foreground: #121212 !important;
+    --card: #ffffff !important;
+    --card-foreground: #121212 !important;
+    --muted: #f8f8f8 !important;
+    --muted-foreground: #999999 !important;
+    --border: #eeeeee !important;
+    --input: #dddddd !important;
+  }
 
   /* Force colors to print (browsers strip bg colors by default) */
   *, *::before, *::after {

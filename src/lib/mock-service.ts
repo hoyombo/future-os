@@ -13,6 +13,7 @@ import type {
 import {
   PRODUCTS, PROJECTS_DATA, LOGISTICS_EVENTS,
   PURCHASE_ORDERS, AFTER_SALES_TICKETS, BUDGET_DATA,
+  SEED_TEAM, SEED_EXPENSES, SEED_INVOICES, SEED_BILLS, SEED_RECURRING,
 } from './mock-data';
 
 // ── LocalStorage helpers ──────────────────────────────────────
@@ -55,11 +56,11 @@ function save<T>(key: string, data: T): boolean {
 export function mockService(): IAppService {
   // Mutable state (survives page reload via localStorage)
   let proposals: Proposal[] = load<Proposal[]>('proposals', []);
-  let expenses: Expense[] = load<Expense[]>('expenses', []);
-  let invoices: Invoice[] = load<Invoice[]>('invoices', []);
-  let bills: Bill[] = load<Bill[]>('bills', []);
-  let recurringExpenses: RecurringExpense[] = load<RecurringExpense[]>('recurring', []);
-  let teamMembers: TeamMember[] = load<TeamMember[]>('team', []);
+  let expenses: Expense[] = load<Expense[]>('expenses', SEED_EXPENSES);
+  let invoices: Invoice[] = load<Invoice[]>('invoices', SEED_INVOICES);
+  let bills: Bill[] = load<Bill[]>('bills', SEED_BILLS);
+  let recurringExpenses: RecurringExpense[] = load<RecurringExpense[]>('recurring', SEED_RECURRING);
+  let teamMembers: TeamMember[] = load<TeamMember[]>('team', SEED_TEAM);
   let activityLog: ActivityEntry[] = load<ActivityEntry[]>('activity', []);
 
   return {

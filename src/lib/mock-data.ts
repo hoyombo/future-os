@@ -8,6 +8,7 @@
 import type {
   Product, Project, LogisticsEvent,
   PurchaseOrder, AfterSalesTicket, BudgetItem,
+  TeamMember, Expense, Invoice, Bill, RecurringExpense,
 } from './types';
 
 // ── PRODUCTS ──────────────────────────────────────────────────
@@ -158,3 +159,42 @@ export const BUDGET_DATA: Record<string, BudgetItem> = {
   'Project Management':     { budget: 3000000,  actual: 2700000 },
   'Contingency':            { budget: 2000000,  actual: 500000 },
 };
+
+// ── SEED DATA (first-load defaults for empty localStorage) ──────
+export const SEED_TEAM: TeamMember[] = [
+  { id: 'tm1', name: 'Moussa Diallo', role: 'Managing Director', status: 'Active' },
+  { id: 'tm2', name: 'Aminata Traoré', role: 'Project Manager', status: 'Active' },
+  { id: 'tm3', name: 'Ibrahim Keita', role: 'Procurement Officer', status: 'Active' },
+  { id: 'tm4', name: 'Fatoumata Coulibaly', role: 'Accountant', status: 'Active' },
+  { id: 'tm5', name: 'Oumar Sidibé', role: 'Lead Installer', status: 'Active' },
+  { id: 'tm6', name: 'Kadiatou Bah', role: 'Designer', status: 'On Leave' },
+];
+
+export const SEED_EXPENSES: Expense[] = [
+  { id: 'ex1', title: 'BCG Tower · Installation labor', amount: 4800000, category: 'Installation', date: '2026-08-05', status: 'Approved', approval: 'Approved', createdBy: 'Moussa' },
+  { id: 'ex2', title: 'Radisson Blu · Freight Dakar-Bamako', amount: 2100000, category: 'Logistics', date: '2026-08-03', status: 'Approved', approval: 'Approved', createdBy: 'Ibrahim' },
+  { id: 'ex3', title: 'Office rent · August', amount: 850000, category: 'Admin', date: '2026-08-01', status: 'Approved', approval: 'Approved', createdBy: 'Fatoumata' },
+  { id: 'ex4', title: 'UN Office · Final inspection', amount: 350000, category: 'Operations', date: '2026-07-28', status: 'Pending', approval: 'Pending', createdBy: 'Aminata' },
+  { id: 'ex5', title: 'Marketing materials · Brochures', amount: 180000, category: 'Marketing', date: '2026-07-25', status: 'Approved', approval: 'Approved', createdBy: 'Moussa' },
+];
+
+export const SEED_INVOICES: Invoice[] = [
+  { id: 'inv1', client: 'BCG', amount: 15000000, date: '2026-07-15', status: 'Paid', dueDate: '2026-08-15', paidAmount: 15000000 },
+  { id: 'inv2', client: 'Radisson', amount: 22000000, date: '2026-07-01', status: 'Paid', dueDate: '2026-08-01', paidAmount: 22000000 },
+  { id: 'inv3', client: 'UN', amount: 28000000, date: '2026-06-15', status: 'Paid', dueDate: '2026-07-15', paidAmount: 28000000 },
+  { id: 'inv4', client: 'BNP', amount: 8500000, date: '2026-08-01', status: 'Pending', dueDate: '2026-09-01', paidAmount: 0 },
+  { id: 'inv5', client: 'Ministère', amount: 5200000, date: '2026-08-05', status: 'Pending', dueDate: '2026-09-05', paidAmount: 0 },
+];
+
+export const SEED_BILLS: Bill[] = [
+  { id: 'bl1', supplier: 'Steelcase EU', amount: 12500000, date: '2026-06-15', status: 'Paid', dueDate: '2026-07-15' },
+  { id: 'bl2', supplier: 'Frezza IT', amount: 18200000, date: '2026-07-01', status: 'Pending', dueDate: '2026-08-30' },
+  { id: 'bl3', supplier: 'Mali Lumière', amount: 4500000, date: '2026-07-10', status: 'Paid', dueDate: '2026-08-10' },
+];
+
+export const SEED_RECURRING: RecurringExpense[] = [
+  { id: 're1', title: 'Office rent · ACI 2000', amount: 850000, frequency: 'Monthly', nextDate: '2026-09-01' },
+  { id: 're2', title: 'Vehicle fleet maintenance', amount: 250000, frequency: 'Quarterly', nextDate: '2026-10-01' },
+  { id: 're3', title: 'Software licenses (Adobe, Office)', amount: 120000, frequency: 'Yearly', nextDate: '2027-01-15' },
+  { id: 're4', title: 'Insurance · Liability', amount: 380000, frequency: 'Yearly', nextDate: '2027-02-01' },
+];

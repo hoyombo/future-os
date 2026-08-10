@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Search, ChevronDown, User } from 'lucide-react';
+import { Bell, Search, ChevronDown, User, Menu } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import type { ViewName } from '@/lib/types';
 
@@ -31,11 +31,21 @@ export function AppTopbar() {
 
   return (
     <header className="os-topbar sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card/80 backdrop-blur-sm px-4 md:px-6 py-3">
-      <div>
-        <h1 className="text-lg md:text-xl font-bold text-foreground">
-          {greeting}, <span className="text-gold">Moussa</span>
-        </h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{VIEW_LABELS[currentView]}</p>
+      <div className="flex items-center gap-3">
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('future-os:open-sidebar'))}
+          className="lg:hidden rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <div>
+          <h1 className="text-lg md:text-xl font-bold text-foreground">
+            {greeting}, <span className="text-gold">Moussa</span>
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{VIEW_LABELS[currentView]}</p>
+        </div>
       </div>
       <div className="os-topbar-actions flex items-center gap-2 md:gap-3">
         <button
@@ -64,7 +74,7 @@ export function AppTopbar() {
                   <p className="text-sm text-muted-foreground">Managing Director</p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Future Concept · Bamako, Mali</p>
+              <p className="text-xs text-muted-foreground">future.OS · Bamako, Mali</p>
             </div>
           ))}
           className="flex items-center gap-2 rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"

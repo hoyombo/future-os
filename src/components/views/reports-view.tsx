@@ -106,10 +106,10 @@ export function ReportsView() {
             <h3 className="text-base font-bold text-foreground">Export Data</h3>
             <p className="text-sm text-muted-foreground">Click below to download all current data as CSV files.</p>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => downloadCSV('products', products.map(p => `"${p.name}","${p.supplier}","${p.category}",${p.cost},${p.price},${p.inStock},${p.stock}`))} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Products</button>
-              <button onClick={() => downloadCSV('projects', useAppStore.getState().projects.map(p => `"${p.name}","${p.client}",${p.budget},${p.spent},"${p.status}"`))} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Projects</button>
-              <button onClick={() => downloadCSV('expenses', expenses.map(e => `"${e.title}",${e.amount},"${e.category}","${e.status}","${e.date}"`))} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Expenses</button>
-              <button onClick={() => downloadCSV('invoices', invoices.map(i => `"${i.client}",${i.amount},"${i.status}","${i.dueDate}"`))} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Invoices</button>
+              <button onClick={() => downloadCSV('products', ['Name,Supplier,Category,Cost,Price,InStock,TotalStock', ...products.map(p => `"${p.name}","${p.supplier}","${p.category}",${p.cost},${p.price},${p.inStock},${p.stock}`)])} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Products</button>
+              <button onClick={() => downloadCSV('projects', ['Name,Client,Budget,Spent,Status', ...useAppStore.getState().projects.map(p => `"${p.name}","${p.client}",${p.budget},${p.spent},"${p.status}"`)])} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Projects</button>
+              <button onClick={() => downloadCSV('expenses', ['Title,Amount,Category,Status,Date', ...expenses.map(e => `"${e.title}",${e.amount},"${e.category}","${e.status}","${e.date}"`)])} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Expenses</button>
+              <button onClick={() => downloadCSV('invoices', ['Client,Amount,Status,DueDate', ...invoices.map(i => `"${i.client}",${i.amount},"${i.status}","${i.dueDate}"`)])} className="rounded-lg bg-muted px-3 py-2 text-xs font-medium hover:bg-secondary transition-colors">Invoices</button>
             </div>
           </div>
         );
