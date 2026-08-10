@@ -184,11 +184,14 @@
 
   /* Prevent content from being cut at page breaks */
   .relative { position: relative !important; overflow: visible !important; }
-  img { max-height: none !important; }
+  img { max-height: 40vh !important; max-width: 100% !important; object-fit: cover !important; }
   .aspect-\[4\/3\] { aspect-ratio: 4/3 !important; height: auto !important; }
 
-  /* Avoid breaking inside product blocks */
+  /* Avoid breaking inside small blocks like summary/footer */
   .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
 
-  @page { margin: 1cm; }
+  /* Allow product blocks to flow across pages naturally */
+  .print-break-before-auto { break-before: auto; break-inside: auto; page-break-before: auto; page-break-inside: auto; }
+
+  @page { margin: 1cm; size: A4; }
 }

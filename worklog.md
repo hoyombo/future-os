@@ -26,3 +26,22 @@ Stage Summary:
 - Responsive design with Tailwind CSS
 - CSS-only charts (no chart library dependencies)
 - Screenshots saved to /home/z/my-project/download/
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix proposal preview/print only showing first page
+
+Work Log:
+- Diagnosed: `break-inside: avoid` on large product blocks caused browser to hide content that didn't fit on current page
+- Removed `print-break-inside-avoid` from product blocks in proposals-view.tsx, replaced with `print:break-before-auto` (allows natural page flow)
+- Kept `print-break-inside-avoid` only on small summary/footer blocks
+- Updated print CSS: constrained image `max-height: 40vh` so product blocks fit within pages
+- Added `break-before: auto; break-inside: auto` CSS class for product blocks
+- Added `size: A4` to `@page` rule
+- Verified clean build (zero errors)
+
+Stage Summary:
+- Proposal preview now flows all products across multiple pages when printing/PDF
+- Images constrained to 40vh max in print to prevent overflow
+- Summary/footer still avoids breaking across pages

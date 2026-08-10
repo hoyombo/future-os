@@ -1,0 +1,573 @@
+     1→     1→'use client';
+     2→     2→
+     3→     3→import { useState, useMemo, useRef } from 'react';
+     4→     4→import {
+     5→     5→  Plus, Search, Trash2, Send, Save, X, Minus, ChevronDown,
+     6→     6→  Eye, Printer,
+     7→     7→} from 'lucide-react';
+     8→     8→import Image from 'next/image';
+     9→     9→import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
+    10→    10→import { StatusBadge } from '@/components/shared/status-badge';
+    11→    11→import type { Proposal, ProposalItem, ProductCategory, Status } from '@/lib/types';
+    12→    12→
+    13→    13→const PROPOSAL_STATUS_MAP: Record<string, { status: Status; label: string }> = {
+    14→    14→  draft: { status: 'gold', label: 'Draft' },
+    15→    15→  sent: { status: 'blue', label: 'Sent' },
+    16→    16→  approved: { status: 'green', label: 'Approved' },
+    17→    17→  rejected: { status: 'red', label: 'Rejected' },
+    18→    18→};
+    19→    19→
+    20→    20→const CATEGORIES: (ProductCategory | 'all')[] = ['all', 'seating', 'desks', 'walls', 'lighting', 'storage'];
+    21→    21→
+    22→    22→export function ProposalsView() {
+    23→    23→  const proposals = useAppStore((s) => s.proposals);
+    24→    24→  const products = useAppStore((s) => s.products);
+    25→    25→  const setProposals = useAppStore((s) => s.setProposals);
+    26→    26→  const addToast = useAppStore((s) => s.addToast);
+    27→    27→  const addActivity = useAppStore((s) => s.addActivity);
+    28→    28→  const currency = useAppStore((s) => s.currency);
+    29→    29→
+    30→    30→  const [showBuilder, setShowBuilder] = useState(false);
+    31→    31→  const [previewProposal, setPreviewProposal] = useState<Proposal | null>(null);
+    32→    32→  const [client, setClient] = useState('');
+    33→    33→  const [project, setProject] = useState('');
+    34→    34→  const [canvasItems, setCanvasItems] = useState<ProposalItem[]>([]);
+    35→    35→  const [catSearch, setCatSearch] = useState('');
+    36→    36→  const [catFilter, setCatFilter] = useState<ProductCategory | 'all'>('all');
+    37→    37→  const searchRef = useRef<HTMLInputElement>(null);
+    38→    38→
+    39→    39→  const filteredCatalog = useMemo(() => {
+    40→    40→    return products.filter((p) => {
+    41→    41→      const matchSearch = p.name.toLowerCase().includes(catSearch.toLowerCase()) ||
+    42→    42→        p.supplier.toLowerCase().includes(catSearch.toLowerCase());
+    43→    43→      const matchCat = catFilter === 'all' || p.category === catFilter;
+    44→    44→      return matchSearch && matchCat;
+    45→    45→    });
+    46→    46→  }, [products, catSearch, catFilter]);
+    47→    47→
+    48→    48→  const subtotal = canvasItems.reduce((sum, ci) => {
+    49→    49→    const prod = products.find((p) => p.id === ci.productId);
+    50→    50→    return sum + (prod ? prod.price * ci.qty : 0);
+    51→    51→  }, 0);
+    52→    52→
+    53→    53→  const markup = Math.round(subtotal * 0.15);
+    54→    54→  const total = subtotal + markup;
+    55→    55→
+    56→    56→  function addProductToCanvas(productId: string) {
+    57→    57→    const existing = canvasItems.find((ci) => ci.productId === productId);
+    58→    58→    if (existing) {
+    59→    59→      setCanvasItems(canvasItems.map((ci) => ci.productId === productId ? { ...ci, qty: ci.qty + 1 } : ci));
+    60→    60→    } else {
+    61→    61→      setCanvasItems([...canvasItems, { productId, qty: 1 }]);
+    62→    62→    }
+    63→    63→  }
+    64→    64→
+    65→    65→  function updateQty(productId: string, delta: number) {
+    66→    66→    setCanvasItems(
+    67→    67→      canvasItems
+    68→    68→        .map((ci) => ci.productId === productId ? { ...ci, qty: Math.max(0, ci.qty + delta) } : ci)
+    69→    69→        .filter((ci) => ci.qty > 0)
+    70→    70→    );
+    71→    71→  }
+    72→    72→
+    73→    73→  function removeItem(productId: string) {
+    74→    74→    setCanvasItems(canvasItems.filter((ci) => ci.productId !== productId));
+    75→    75→  }
+    76→    76→
+    77→    77→  function openNewBuilder() {
+    78→    78→    setClient('');
+    79→    79→    setProject('');
+    80→    80→    setCanvasItems([]);
+    81→    81→    setShowBuilder(true);
+    82→    82→  }
+    83→    83→
+    84→    84→  function saveProposal(status: 'draft' | 'sent') {
+    85→    85→    if (!client.trim()) {
+    86→    86→      addToast('warning', '⚠️', 'Client name is required');
+    87→    87→      return;
+    88→    88→    }
+    89→    89→    if (canvasItems.length === 0) {
+    90→    90→      addToast('warning', '⚠️', 'Add at least one item');
+    91→    91→      return;
+    92→    92→    }
+    93→    93→    const proposal: Proposal = {
+    94→    94→      id: generateId(),
+    95→    95→      client: client.trim(),
+    96→    96→      project: project.trim() || 'General',
+    97→    97→      date: new Date().toISOString().slice(0, 10),
+    98→    98→      items: canvasItems,
+    99→    99→      status,
+   100→   100→      createdAt: getTimestamp(),
+   101→   101→      sentAt: status === 'sent' ? getTimestamp() : undefined,
+   102→   102→      subtotal,
+   103→   103→      markup,
+   104→   104→      total,
+   105→   105→    };
+   106→   106→    const updated = [...proposals, proposal];
+   107→   107→    setProposals(updated);
+   108→   108→    addToast('success', '✅', `Proposal ${status === 'sent' ? 'sent' : 'saved as draft'}`);
+   109→   109→    addActivity({
+   110→   110→      id: generateId(),
+   111→   111→      text: `Proposal ${status === 'sent' ? 'sent' : 'created'}`,
+   112→   112→      detail: `${client} · ${formatPrice(total, currency)}`,
+   113→   113→      icon: '📋',
+   114→   114→      timestamp: getTimestamp(),
+   115→   115→    });
+   116→   116→    setShowBuilder(false);
+   117→   117→  }
+   118→   118→
+   119→   119→  function deleteProposal(id: string) {
+   120→   120→    setProposals(proposals.filter((p) => p.id !== id));
+   121→   121→    addToast('info', '🗑️', 'Proposal deleted');
+   122→   122→  }
+   123→   123→
+   124→   124→  function handlePrint() {
+   125→   125→    window.print();
+   126→   126→  }
+   127→   127→
+   128→   128→  // ── Catalog-Style Preview (full-page) ────────────────────────
+   129→   129→  if (previewProposal) {
+   130→   130→    const prop = previewProposal;
+   131→   131→    const sm = PROPOSAL_STATUS_MAP[prop.status] || PROPOSAL_STATUS_MAP.draft;
+   132→   132→    const propProducts = prop.items
+   133→   133→      .map((item) => {
+   134→   134→        const prod = products.find((p) => p.id === item.productId);
+   135→   135→        return prod ? { ...prod, qty: item.qty } : null;
+   136→   136→      })
+   137→   137→      .filter(Boolean) as (typeof products[number] & { qty: number })[];
+   138→   138→
+   139→   139→    return (
+   140→   140→      <div className="animate-fade-up print:p-0">
+   141→   141→        {/* Toolbar (hidden on print) */}
+   142→   142→        <div className="flex items-center justify-between mb-6 print:hidden">
+   143→   143→          <button
+   144→   144→            onClick={() => setPreviewProposal(null)}
+   145→   145→            className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+   146→   146→          >
+   147→   147→            ← Back to Proposals
+   148→   148→          </button>
+   149→   149→          <button
+   150→   150→            onClick={handlePrint}
+   151→   151→            className="flex items-center gap-2 rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors"
+   152→   152→          >
+   153→   153→            <Printer className="h-4 w-4" /> Print / PDF
+   154→   154→          </button>
+   155→   155→        </div>
+   156→   156→
+   157→   157→        {/* Catalog Document */}
+   158→   158→        <div className="max-w-4xl mx-auto">
+   159→   159→          {/* Cover Header */}
+   160→   160→          <div className="rounded-t-2xl border border-b-0 border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8">
+   161→   161→            <div className="flex items-start justify-between mb-8">
+   162→   162→              <div>
+   163→   163→                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">Proposal</p>
+   164→   164→                <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+   165→   165→                  {prop.project}
+   166→   166→                </h1>
+   167→   167→              </div>
+   168→   168→              <StatusBadge status={sm.status} label={sm.label} />
+   169→   169→            </div>
+   170→   170→
+   171→   171→            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm border-t border-border pt-6">
+   172→   172→              <div>
+   173→   173→                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Prepared for</p>
+   174→   174→                <p className="font-semibold text-foreground">{prop.client}</p>
+   175→   175→              </div>
+   176→   176→              <div>
+   177→   177→                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Date</p>
+   178→   178→                <p className="font-semibold text-foreground">{formatDate(prop.date)}</p>
+   179→   179→              </div>
+   180→   180→              <div>
+   181→   181→                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Reference</p>
+   182→   182→                <p className="font-semibold text-foreground">{prop.id.slice(-6).toUpperCase()}</p>
+   183→   183→              </div>
+   184→   184→            </div>
+   185→   185→          </div>
+   186→   186→
+   187→   187→          {/* Intro */}
+   188→   188→          <div className="border-x border-border bg-card px-8 md:px-12 py-6 print:border-x-0 print:border print:px-8">
+   189→   189→            <p className="text-sm text-muted-foreground leading-relaxed">
+   190→   190→              Thank you for your trust in <span className="text-foreground font-semibold">Future OS</span>.
+   191→   191→              Below you will find a curated selection of premium furnishings tailored to your project.
+   192→   192→              Each piece has been chosen to meet the highest standards of quality, comfort, and design.
+   193→   193→            </p>
+   194→   194→          </div>
+   195→   195→
+   196→   196→          {/* Product Pages */}
+   197→   197→          <div className="border-x border-border print:border-x-0 print:border">
+   198→   198→            {propProducts.map((prod, idx) => (
+   199→   199→              <div
+   200→   200→                key={prod.id}
+   201→   201→                className={`print-break-inside-avoid border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 ${idx % 2 === 0 ? '' : ''}`}
+   202→   202→              >
+   203→   203→                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+   204→   204→                  {/* Photo — use plain <img> for print compatibility */}
+   205→   205→                  <div className="print-break-inside-avoid">
+   206→   206→                    {prod.imageUrl ? (
+   207→   207→                      <img
+   208→   208→                        src={prod.imageUrl}
+   209→   209→                        alt={prod.name}
+   210→   210→                        className="w-full aspect-[4/3] object-cover rounded-xl"
+   211→   211→                        loading="lazy"
+   212→   212→                      />
+   213→   213→                    ) : (
+   214→   214→                      <div className="flex items-center justify-center h-full aspect-[4/3] bg-muted rounded-xl text-6xl">{prod.emoji}</div>
+   215→   215→                    )}
+   216→   216→                  </div>
+   217→   217→
+   218→   218→                  {/* Details */}
+   219→   219→                  <div className="flex flex-col justify-center">
+   220→   220→                    <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold mb-2">
+   221→   221→                      {prod.category} · {prod.supplier}
+   222→   222→                    </p>
+   223→   223→                    <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-3">
+   224→   224→                      {prod.name}
+   225→   225→                    </h2>
+   226→   226→                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+   227→   227→                      {prod.description}
+   228→   228→                    </p>
+   229→   229→
+   230→   230→                    {/* Specs grid */}
+   231→   231→                    <div className="grid grid-cols-2 gap-x-6 gap-y-2 mb-5">
+   232→   232→                      <div>
+   233→   233→                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Origin</p>
+   234→   234→                        <p className="text-sm font-medium text-foreground">{prod.origin}</p>
+   235→   235→                      </div>
+   236→   236→                      <div>
+   237→   237→                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lead Time</p>
+   238→   238→                        <p className="text-sm font-medium text-foreground">{prod.leadTime} days</p>
+   239→   239→                      </div>
+   240→   240→                      <div className="col-span-2">
+   241→   241→                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Specifications</p>
+   242→   242→                        <p className="text-sm font-medium text-foreground">{prod.specs}</p>
+   243→   243→                      </div>
+   244→   244→                    </div>
+   245→   245→
+   246→   246→                    {/* Quantity + Price */}
+   247→   247→                    <div className="rounded-lg bg-muted/50 border border-border p-4">
+   248→   248→                      <div className="flex items-end justify-between">
+   249→   249→                        <div>
+   250→   250→                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+   251→   251→                            Unit Price
+   252→   252→                          </p>
+   253→   253→                          <p className="text-sm font-mono text-foreground">{formatPrice(prod.price, currency)}</p>
+   254→   254→                        </div>
+   255→   255→                        <div className="text-center">
+   256→   256→                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Qty</p>
+   257→   257→                          <p className="text-2xl font-bold text-foreground">{prod.qty}</p>
+   258→   258→                        </div>
+   259→   259→                        <div className="text-right">
+   260→   260→                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Line Total</p>
+   261→   261→                          <p className="text-lg font-bold font-mono text-gold">
+   262→   262→                            {formatPrice(prod.price * prod.qty, currency)}
+   263→   263→                          </p>
+   264→   264→                        </div>
+   265→   265→                      </div>
+   266→   266→                    </div>
+   267→   267→                  </div>
+   268→   268→                </div>
+   269→   269→              </div>
+   270→   270→            ))}
+   271→   271→          </div>
+   272→   272→
+   273→   273→          {/* Summary / Footer */}
+   274→   274→          <div className="rounded-b-2xl border border-t border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8 print-break-inside-avoid">
+   275→   275→            <div className="max-w-xs ml-auto space-y-3">
+   276→   276→              <div className="flex justify-between text-sm text-muted-foreground">
+   277→   277→                <span>Subtotal ({prop.items.length} items)</span>
+   278→   278→                <span className="font-mono">{formatPrice(prop.subtotal, currency)}</span>
+   279→   279→              </div>
+   280→   280→              <div className="flex justify-between text-sm text-muted-foreground">
+   281→   281→                <span>Professional fee (15%)</span>
+   282→   282→                <span className="font-mono">{formatPrice(prop.markup, currency)}</span>
+   283→   283→              </div>
+   284→   284→              <div className="flex justify-between text-lg font-bold text-foreground pt-3 border-t border-border">
+   285→   285→                <span>Total</span>
+   286→   286→                <span className="font-mono text-gold">{formatPrice(prop.total, currency)}</span>
+   287→   287→              </div>
+   288→   288→            </div>
+   289→   289→
+   290→   290→            <div className="mt-8 pt-6 border-t border-border">
+   291→   291→              <p className="text-xs text-muted-foreground leading-relaxed">
+   292→   292→                This proposal is valid for 30 days from the date above. Prices include delivery to site
+   293→   293→                in Bamako, Mali. Installation services are available upon request. We look forward to
+   294→   294→                bringing your vision to life.
+   295→   295→              </p>
+   296→   296→              <div className="mt-4 flex items-center gap-2">
+   297→   297→                <div className="h-8 w-8 rounded-full bg-gold flex items-center justify-center text-os-dark font-bold text-xs">
+   298→   298→                  FO
+   299→   299→                </div>
+   300→   300→                <div>
+   301→   301→                  <p className="text-sm font-semibold text-foreground">Future OS</p>
+   302→   302→                  <p className="text-[10px] text-muted-foreground">Bamako, Mali · visionandcost@futureos.ml</p>
+   303→   303→                </div>
+   304→   304→              </div>
+   305→   305→            </div>
+   306→   306→          </div>
+   307→   307→        </div>
+   308→   308→      </div>
+   309→   309→    );
+   310→   310→  }
+   311→   311→
+   312→   312→  // ── Builder Mode ─────────────────────────────────────────────
+   313→   313→  if (showBuilder) {
+   314→   314→    return (
+   315→   315→      <div className="animate-fade-up space-y-4">
+   316→   316→        <div className="flex items-center justify-between">
+   317→   317→          <h2 className="text-lg font-bold text-foreground">Proposal Builder</h2>
+   318→   318→          <button onClick={() => setShowBuilder(false)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+   319→   319→            <X className="h-5 w-5" />
+   320→   320→          </button>
+   321→   321→        </div>
+   322→   322→        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+   323→   323→          {/* Catalog Panel */}
+   324→   324→          <div className="lg:col-span-3 rounded-xl border border-border bg-card p-4 space-y-3">
+   325→   325→            <h3 className="text-sm font-semibold text-foreground">Product Catalog</h3>
+   326→   326→            <div className="flex flex-col sm:flex-row gap-2">
+   327→   327→              <div className="relative flex-1">
+   328→   328→                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+   329→   329→                <input
+   330→   330→                  ref={searchRef}
+   331→   331→                  type="text"
+   332→   332→                  placeholder="Search products..."
+   333→   333→                  value={catSearch}
+   334→   334→                  onChange={(e) => setCatSearch(e.target.value)}
+   335→   335→                  className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+   336→   336→                />
+   337→   337→              </div>
+   338→   338→              <div className="flex gap-1 flex-wrap">
+   339→   339→                {CATEGORIES.map((cat) => (
+   340→   340→                  <button
+   341→   341→                    key={cat}
+   342→   342→                    onClick={() => setCatFilter(cat)}
+   343→   343→                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium capitalize transition-all ${catFilter === cat ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+   344→   344→                  >
+   345→   345→                    {cat}
+   346→   346→                  </button>
+   347→   347→                ))}
+   348→   348→              </div>
+   349→   349→            </div>
+   350→   350→            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[500px] overflow-y-auto pr-1">
+   351→   351→              {filteredCatalog.map((p) => (
+   352→   352→                <div key={p.id} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
+   353→   353→                  {p.imageUrl ? (
+   354→   354→                    <div className="relative h-10 w-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
+   355→   355→                      <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="40px" />
+   356→   356→                    </div>
+   357→   357→                  ) : (
+   358→   358→                    <span className="text-2xl">{p.emoji}</span>
+   359→   359→                  )}
+   360→   360→                  <div className="flex-1 min-w-0">
+   361→   361→                    <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
+   362→   362→                    <p className="text-xs text-muted-foreground">{p.supplier}</p>
+   363→   363→                    <p className="text-xs font-mono text-gold mt-0.5">{formatPrice(p.price, currency)}</p>
+   364→   364→                  </div>
+   365→   365→                  <button
+   366→   366→                    onClick={() => addProductToCanvas(p.id)}
+   367→   367→                    className="rounded-md bg-gold/10 text-gold hover:bg-gold hover:text-os-dark p-1.5 transition-all"
+   368→   368→                    aria-label={`Add ${p.name}`}
+   369→   369→                  >
+   370→   370→                    <Plus className="h-4 w-4" />
+   371→   371→                  </button>
+   372→   372→                </div>
+   373→   373→              ))}
+   374→   374→              {filteredCatalog.length === 0 && (
+   375→   375→                <p className="col-span-2 text-sm text-muted-foreground py-8 text-center">No products found</p>
+   376→   376→              )}
+   377→   377→            </div>
+   378→   378→          </div>
+   379→   379→
+   380→   380→          {/* Canvas Panel */}
+   381→   381→          <div className="lg:col-span-2 rounded-xl border border-border bg-card p-4 space-y-3">
+   382→   382→            <h3 className="text-sm font-semibold text-foreground">Proposal Canvas</h3>
+   383→   383→            <div className="space-y-2">
+   384→   384→              <div>
+   385→   385→                <label className="text-xs font-medium text-muted-foreground">Client *</label>
+   386→   386→                <input
+   387→   387→                  type="text"
+   388→   388→                  value={client}
+   389→   389→                  onChange={(e) => setClient(e.target.value)}
+   390→   390→                  placeholder="Client name"
+   391→   391→                  className="w-full mt-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+   392→   392→                />
+   393→   393→              </div>
+   394→   394→              <div>
+   395→   395→                <label className="text-xs font-medium text-muted-foreground">Project</label>
+   396→   396→                <input
+   397→   397→                  type="text"
+   398→   398→                  value={project}
+   399→   399→                  onChange={(e) => setProject(e.target.value)}
+   400→   400→                  placeholder="Project name (optional)"
+   401→   401→                  className="w-full mt-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+   402→   402→                />
+   403→   403→              </div>
+   404→   404→            </div>
+   405→   405→
+   406→   406→            <div className="border-t border-border pt-3">
+   407→   407→              <p className="text-xs font-medium text-muted-foreground mb-2">Items ({canvasItems.length})</p>
+   408→   408→              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+   409→   409→                {canvasItems.length === 0 && (
+   410→   410→                  <p className="text-xs text-muted-foreground text-center py-4">Click + to add products</p>
+   411→   411→                )}
+   412→   412→                {canvasItems.map((ci) => {
+   413→   413→                  const prod = products.find((p) => p.id === ci.productId);
+   414→   414→                  if (!prod) return null;
+   415→   415→                  return (
+   416→   416→                    <div key={ci.productId} className="flex items-center gap-2 rounded-lg border border-border p-2">
+   417→   417→                      {prod.imageUrl ? (
+   418→   418→                        <div className="relative h-7 w-7 rounded overflow-hidden bg-muted flex-shrink-0">
+   419→   419→                          <Image src={prod.imageUrl} alt={prod.name} fill className="object-cover" sizes="28px" />
+   420→   420→                        </div>
+   421→   421→                      ) : (
+   422→   422→                        <span className="text-lg">{prod.emoji}</span>
+   423→   423→                      )}
+   424→   424→                      <div className="flex-1 min-w-0">
+   425→   425→                        <p className="text-xs font-medium text-foreground truncate">{prod.name}</p>
+   426→   426→                        <p className="text-[10px] text-muted-foreground">{formatPrice(prod.price, currency)} each</p>
+   427→   427→                      </div>
+   428→   428→                      <div className="flex items-center gap-1">
+   429→   429→                        <button onClick={() => updateQty(ci.productId, -1)} className="rounded p-1 hover:bg-muted transition-colors"><Minus className="h-3 w-3" /></button>
+   430→   430→                        <span className="w-6 text-center text-xs font-mono font-medium">{ci.qty}</span>
+   431→   431→                        <button onClick={() => updateQty(ci.productId, 1)} className="rounded p-1 hover:bg-muted transition-colors"><Plus className="h-3 w-3" /></button>
+   432→   432→                      </div>
+   433→   433→                      <button onClick={() => removeItem(ci.productId)} className="rounded p-1 text-muted-foreground hover:text-red-500 transition-colors">
+   434→   434→                        <X className="h-3 w-3" />
+   435→   435→                      </button>
+   436→   436→                    </div>
+   437→   437→                  );
+   438→   438→                })}
+   439→   439→              </div>
+   440→   440→            </div>
+   441→   441→
+   442→   442→            <div className="border-t border-border pt-3 space-y-1.5 text-sm">
+   443→   443→              <div className="flex justify-between text-muted-foreground">
+   444→   444→                <span>Subtotal</span>
+   445→   445→                <span className="font-mono">{formatPrice(subtotal, currency)}</span>
+   446→   446→              </div>
+   447→   447→              <div className="flex justify-between text-muted-foreground">
+   448→   448→                <span>Markup (15%)</span>
+   449→   449→                <span className="font-mono">{formatPrice(markup, currency)}</span>
+   450→   450→              </div>
+   451→   451→              <div className="flex justify-between font-bold text-foreground pt-1 border-t border-border">
+   452→   452→                <span>Total</span>
+   453→   453→                <span className="font-mono text-gold">{formatPrice(total, currency)}</span>
+   454→   454→              </div>
+   455→   455→            </div>
+   456→   456→
+   457→   457→            <div className="flex gap-2 pt-2">
+   458→   458→              <button onClick={() => saveProposal('draft')} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors">
+   459→   459→                <Save className="h-4 w-4" /> Save Draft
+   460→   460→              </button>
+   461→   461→              <button onClick={() => saveProposal('sent')} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">
+   462→   462→                <Send className="h-4 w-4" /> Send
+   463→   463→              </button>
+   464→   464→            </div>
+   465→   465→          </div>
+   466→   466→        </div>
+   467→   467→      </div>
+   468→   468→    );
+   469→   469→  }
+   470→   470→
+   471→   471→  // ── Proposal List ────────────────────────────────────────────
+   472→   472→  return (
+   473→   473→    <div className="animate-fade-up space-y-4">
+   474→   474→      <div className="flex items-center justify-between">
+   475→   475→        <h2 className="text-lg font-bold text-foreground">Proposals</h2>
+   476→   476→        <button
+   477→   477→          onClick={openNewBuilder}
+   478→   478→          className="flex items-center gap-2 rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors"
+   479→   479→        >
+   480→   480→          <Plus className="h-4 w-4" /> New Proposal
+   481→   481→        </button>
+   482→   482→      </div>
+   483→   483→
+   484→   484→      {proposals.length === 0 ? (
+   485→   485→        <div className="rounded-xl border border-border bg-card p-12 text-center">
+   486→   486→          <p className="text-muted-foreground">No proposals yet. Create your first proposal.</p>
+   487→   487→        </div>
+   488→   488→      ) : (
+   489→   489→        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+   490→   490→          {proposals.map((p) => {
+   491→   491→            const sm = PROPOSAL_STATUS_MAP[p.status] || PROPOSAL_STATUS_MAP.draft;
+   492→   492→            // Show first 3 product thumbnails
+   493→   493→            const cardProducts = p.items
+   494→   494→              .map((item) => products.find((pr) => pr.id === item.productId))
+   495→   495→              .filter(Boolean)
+   496→   496→              .slice(0, 3);
+   497→   497→            const remaining = p.items.length - cardProducts.length;
+   498→   498→
+   499→   499→            return (
+   500→   500→              <div key={p.id} className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-lg transition-all group">
+   501→   501→                {/* Thumbnail strip */}
+   502→   502→                <div className="flex h-24 bg-muted">
+   503→   503→                  {cardProducts.map((prod) =>
+   504→   504→                    prod?.imageUrl ? (
+   505→   505→                      <div key={prod.id} className="relative flex-1 first:rounded-tl-xl overflow-hidden">
+   506→   506→                        <Image
+   507→   507→                          src={prod.imageUrl}
+   508→   508→                          alt={prod.name}
+   509→   509→                          fill
+   510→   510→                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+   511→   511→                          sizes="200px"
+   512→   512→                        />
+   513→   513→                      </div>
+   514→   514→                    ) : (
+   515→   515→                      <div key={prod!.id} className="flex-1 flex items-center justify-center text-2xl bg-muted">
+   516→   516→                        {prod!.emoji}
+   517→   517→                      </div>
+   518→   518→                    )
+   519→   519→                  )}
+   520→   520→                  {remaining > 0 && (
+   521→   521→                    <div className="flex items-center justify-center flex-1 bg-muted text-xs font-medium text-muted-foreground">
+   522→   522→                      +{remaining} more
+   523→   523→                    </div>
+   524→   524→                  )}
+   525→   525→                  {cardProducts.length === 0 && (
+   526→   526→                    <div className="flex-1 flex items-center justify-center text-muted-foreground text-xs">
+   527→   527→                      No items
+   528→   528→                    </div>
+   529→   529→                  )}
+   530→   530→                </div>
+   531→   531→
+   532→   532→                {/* Card body */}
+   533→   533→                <div className="p-4">
+   534→   534→                  <div className="flex items-start justify-between mb-2">
+   535→   535→                    <div>
+   536→   536→                      <p className="font-semibold text-foreground text-sm">{p.client}</p>
+   537→   537→                      <p className="text-xs text-muted-foreground">{p.project}</p>
+   538→   538→                    </div>
+   539→   539→                    <StatusBadge status={sm.status} label={sm.label} />
+   540→   540→                  </div>
+   541→   541→                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+   542→   542→                    <span>{formatDate(p.date)}</span>
+   543→   543→                    <span>{p.items.length} items</span>
+   544→   544→                  </div>
+   545→   545→                  <div className="flex items-center justify-between">
+   546→   546→                    <span className="text-lg font-bold text-gold font-mono">{formatPrice(p.total, currency)}</span>
+   547→   547→                    <div className="flex items-center gap-1">
+   548→   548→                      <button
+   549→   549→                        onClick={() => setPreviewProposal(p)}
+   550→   550→                        className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+   551→   551→                        aria-label="Preview proposal"
+   552→   552→                      >
+   553→   553→                        <Eye className="h-4 w-4" />
+   554→   554→                      </button>
+   555→   555→                      <button
+   556→   556→                        onClick={() => deleteProposal(p.id)}
+   557→   557→                        className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+   558→   558→                        aria-label="Delete proposal"
+   559→   559→                      >
+   560→   560→                        <Trash2 className="h-4 w-4" />
+   561→   561→                      </button>
+   562→   562→                    </div>
+   563→   563→                  </div>
+   564→   564→                </div>
+   565→   565→              </div>
+   566→   566→            );
+   567→   567→          })}
+   568→   568→        </div>
+   569→   569→      )}
+   570→   570→    </div>
+   571→   571→  );
+   572→   572→}
+   573→   573→

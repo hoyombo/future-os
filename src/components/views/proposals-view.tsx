@@ -198,11 +198,11 @@ export function ProposalsView() {
             {propProducts.map((prod, idx) => (
               <div
                 key={prod.id}
-                className={`print-break-inside-avoid border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 ${idx % 2 === 0 ? '' : ''}`}
+                className={`border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 print:break-before-auto ${idx % 2 === 0 ? '' : ''}`}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                   {/* Photo — use plain <img> for print compatibility */}
-                  <div className="print-break-inside-avoid">
+                  <div>
                     {prod.imageUrl ? (
                       <img
                         src={prod.imageUrl}
@@ -271,7 +271,7 @@ export function ProposalsView() {
           </div>
 
           {/* Summary / Footer */}
-          <div className="rounded-b-2xl border border-t border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8 print-break-inside-avoid">
+          <div className="rounded-b-2xl border border-t border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8 print:break-before-auto">
             <div className="max-w-xs ml-auto space-y-3">
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Subtotal ({prop.items.length} items)</span>
