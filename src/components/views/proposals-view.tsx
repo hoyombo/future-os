@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from 'react';
 import {
   Plus, Search, Trash2, Send, Save, X, Minus, ChevronDown,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
 import type { Proposal, ProposalItem, ProductCategory, Status } from '@/lib/types';
@@ -159,7 +160,13 @@ export function ProposalsView() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-96 overflow-y-auto">
               {filteredCatalog.map((p) => (
                 <div key={p.id} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
-                  <span className="text-2xl">{p.emoji}</span>
+                  {p.imageUrl ? (
+                    <div className="relative h-10 w-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                      <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="40px" />
+                    </div>
+                  ) : (
+                    <span className="text-2xl">{p.emoji}</span>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
                     <p className="text-xs text-muted-foreground">{p.supplier}</p>
@@ -217,7 +224,13 @@ export function ProposalsView() {
                   if (!prod) return null;
                   return (
                     <div key={ci.productId} className="flex items-center gap-2 rounded-lg border border-border p-2">
-                      <span className="text-lg">{prod.emoji}</span>
+                      {prod.imageUrl ? (
+                        <div className="relative h-7 w-7 rounded overflow-hidden bg-muted flex-shrink-0">
+                          <Image src={prod.imageUrl} alt={prod.name} fill className="object-cover" sizes="28px" />
+                        </div>
+                      ) : (
+                        <span className="text-lg">{prod.emoji}</span>
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-foreground truncate">{prod.name}</p>
                         <p className="text-[10px] text-muted-foreground">{formatPrice(prod.price, currency)} each</p>

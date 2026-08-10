@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { useAppStore, formatPrice, stockStatus } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
@@ -31,6 +32,11 @@ export function CatalogView() {
     const statusKey: Status = st.className.includes('red') ? 'red' : st.className.includes('orange') ? 'orange' : 'green';
     openModal(p.name, (
       <div className="space-y-3">
+        {p.imageUrl ? (
+          <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-muted">
+            <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="400px" />
+          </div>
+        ) : null}
         <div className="flex items-center gap-3">
           <span className="text-4xl">{p.emoji}</span>
           <div>
@@ -93,8 +99,14 @@ export function CatalogView() {
               onClick={() => showDetail(p)}
               className="text-left rounded-xl border border-border bg-card p-4 hover:shadow-md transition-all group"
             >
-              <div className="flex items-start justify-between mb-2">
-                <span className="text-3xl">{p.emoji}</span>
+              <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted mb-2">
+                {p.imageUrl ? (
+                  <Image src={p.imageUrl} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-4xl">{p.emoji}</div>
+                )}
+              </div>
+              <div className="flex items-start justify-between">
                 <StatusBadge status={statusKey} label={st.label} />
               </div>
               <h3 className="text-sm font-semibold text-foreground group-hover:text-gold transition-colors">{p.name}</h3>

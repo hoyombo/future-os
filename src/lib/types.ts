@@ -34,6 +34,7 @@ export interface Product {
   description: string;
   origin: string;
   leadTime: number;    // days
+  imageUrl?: string;  // product photo URL
 }
 
 export interface Project {

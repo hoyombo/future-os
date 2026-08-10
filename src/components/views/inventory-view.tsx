@@ -1,6 +1,7 @@
 'use client';
 
 import { useAppStore, formatPrice, stockStatus } from '@/lib/store';
+import Image from 'next/image';
 import { StatusBadge } from '@/components/shared/status-badge';
 import type { Status } from '@/lib/types';
 
@@ -44,7 +45,13 @@ export function InventoryView() {
                   <tr key={p.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{p.emoji}</span>
+                        {p.imageUrl ? (
+                          <div className="relative h-8 w-8 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                            <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="32px" />
+                          </div>
+                        ) : (
+                          <span className="text-lg">{p.emoji}</span>
+                        )}
                         <div>
                           <p className="font-medium text-foreground">{p.name}</p>
                           <p className="text-xs text-muted-foreground md:hidden">{p.supplier}</p>

@@ -6,6 +6,7 @@ import {
   Ship, Clock, ArrowRight,
 } from 'lucide-react';
 import { useAppStore, formatPrice, formatDate, stockStatus, projectBudgetClass } from '@/lib/store';
+import Image from 'next/image';
 import { StatusBadge } from '@/components/shared/status-badge';
 import type { Status } from '@/lib/types';
 
@@ -131,8 +132,16 @@ export function DashboardView() {
                     return (
                       <tr key={p.id} className="hover:bg-muted/50 transition-colors">
                         <td className="py-2">
-                          <span className="mr-1.5">{p.emoji}</span>
-                          <span className="font-medium">{p.name}</span>
+                          <div className="flex items-center gap-1.5">
+                            {p.imageUrl ? (
+                              <div className="relative h-5 w-5 rounded overflow-hidden bg-muted flex-shrink-0">
+                                <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="20px" />
+                              </div>
+                            ) : (
+                              <span className="text-sm">{p.emoji}</span>
+                            )}
+                            <span className="font-medium">{p.name}</span>
+                          </div>
                         </td>
                         <td className="py-2 text-right font-mono text-xs">
                           {p.inStock}/{p.stock}

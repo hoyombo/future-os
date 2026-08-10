@@ -18,6 +18,7 @@ export const PRODUCTS: Product[] = [
     specs: 'Ergonomic, 12-yr warranty, 3D LiveBack',
     description: 'Premium task chair with 3D LiveBack technology. Ideal for executive offices.',
     origin: 'Italy', leadTime: 14,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/681f9b6f93da.jpg',
   },
   {
     id: 'p2', name: 'Frezza F1 Desk', supplier: 'Frezza IT', category: 'desks', emoji: '🪵',
@@ -25,6 +26,7 @@ export const PRODUCTS: Product[] = [
     specs: '120×75cm, adjustable height, cable mgmt',
     description: 'Modern sit-stand desk with integrated cable management.',
     origin: 'Italy', leadTime: 10,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/9401e97dd9de.jpg',
   },
   {
     id: 'p3', name: 'Dieffebi Wall System', supplier: 'Dieffebi FR', category: 'walls', emoji: '🧱',
@@ -32,6 +34,7 @@ export const PRODUCTS: Product[] = [
     specs: 'Modular, 3m height, acoustic panels',
     description: 'Flexible partition wall system for open offices. Soundproof.',
     origin: 'France', leadTime: 7,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/d37db16d548a.jpg',
   },
   {
     id: 'p4', name: 'Luxury LED Panel', supplier: 'Mali Lumière', category: 'lighting', emoji: '💡',
@@ -39,6 +42,7 @@ export const PRODUCTS: Product[] = [
     specs: '600×600mm, 4000K, dimmable, 50W',
     description: 'High-end LED ceiling panel with daylight simulation. Local assembly.',
     origin: 'Mali (assembled)', leadTime: 3,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/71dca60bea28.jpg',
   },
   {
     id: 'p5', name: 'Steelcase Please', supplier: 'Steelcase EU', category: 'seating', emoji: '🪑',
@@ -46,6 +50,7 @@ export const PRODUCTS: Product[] = [
     specs: 'Executive chair, leather, lumbar support',
     description: 'Premium executive seating with polished aluminum base.',
     origin: 'Italy', leadTime: 14,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/e8a593a82c8a.jpg',
   },
   {
     id: 'p6', name: 'Frezza Meeting Table', supplier: 'Frezza IT', category: 'desks', emoji: '🪵',
@@ -53,6 +58,7 @@ export const PRODUCTS: Product[] = [
     specs: '300×120cm, oval, power outlets',
     description: 'Large conference table with integrated power and data ports.',
     origin: 'Italy', leadTime: 12,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/7923d28a1aae.jpg',
   },
   {
     id: 'p7', name: 'Dieffebi Glass Wall', supplier: 'Dieffebi FR', category: 'walls', emoji: '🪟',
@@ -60,6 +66,7 @@ export const PRODUCTS: Product[] = [
     specs: 'Full glass, 2.5m, soundproof, sliding',
     description: 'Elegant glass partition with sliding doors. Modern aesthetic.',
     origin: 'France', leadTime: 10,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/5b7087af96f6.jpg',
   },
   {
     id: 'p8', name: 'SmartTrack Lighting', supplier: 'Mali Lumière', category: 'lighting', emoji: '💡',
@@ -67,6 +74,7 @@ export const PRODUCTS: Product[] = [
     specs: 'Track system, 24V, dimmable LEDs',
     description: 'Versatile track lighting for galleries, showrooms, and offices.',
     origin: 'Mali (assembled)', leadTime: 2,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/d6fc22c73b99.jpg',
   },
   {
     id: 'p9', name: 'Steelcase Storage Cabinet', supplier: 'Steelcase EU', category: 'storage', emoji: '🗄️',
@@ -74,6 +82,7 @@ export const PRODUCTS: Product[] = [
     specs: '120×45×180cm, lockable, 4 shelves',
     description: 'Secure storage cabinet for offices. Powder-coated steel.',
     origin: 'Italy', leadTime: 14,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/fe6c1fac1001.jpg',
   },
   {
     id: 'p10', name: 'Frezza Sideboard', supplier: 'Frezza IT', category: 'storage', emoji: '🗄️',
@@ -81,6 +90,7 @@ export const PRODUCTS: Product[] = [
     specs: '150×50×75cm, wood veneer, 2 doors',
     description: 'Elegant sideboard for meeting rooms and reception areas.',
     origin: 'Italy', leadTime: 10,
+    imageUrl: 'https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/54227993a50c.jpg',
   },
 ];
 
