@@ -30,6 +30,19 @@ export function AppSidebar() {
 
   const [time, setTime] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const tick = () => {
@@ -155,8 +168,8 @@ export function AppSidebar() {
 
         <div className="flex items-center justify-between px-3 text-[11px] text-sidebar-foreground/60">
           <div className="flex items-center gap-1.5">
-            <Wifi className="h-3 w-3 text-emerald-500" />
-            <span>4 online</span>
+            <Wifi className={`h-3 w-3 ${isOnline ? 'text-emerald-500' : 'text-red-500'}`} />
+            <span>{isOnline ? 'Online' : 'Offline'}</span>
           </div>
           <span>{products.length} products</span>
         </div>

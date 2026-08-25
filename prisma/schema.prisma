@@ -1,32 +1,288 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ── USERS & AUTH ──────────────────────────────────────────────
 
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  name      String?
+  name      String
+  password  String
+  role      String   @default("member") // admin | manager | member
+  avatarUrl String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activityLog    ActivityEntry[]
+  expenses       Expense[]
+  teamMember     TeamMember?
+
+  @@index([email])
+}
+
+// ── PRODUCTS ──────────────────────────────────────────────────
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  supplier    String
+  category    String  // seating | desks | walls | lighting | storage
+  emoji       String
+  cost        Int     // purchase cost in XOF
+  price       Int     // selling price in XOF
+  stock       Int     // total ordered
+  inStock     Int     // available in warehouse
+  specs       String
+  description String
+  origin      String
+  leadTime    Int     // days
+  imageUrl    String?
+
+  proposalItems ProposalItem[]
+  projectItems  ProjectItem[]
+
+  @@index([category])
+  @@index([name])
+}
+
+// ── PROJECTS ─────────────────────────────────────────────────
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  client    String
+  budget    Int
+  spent     Int
+  status    String   @default("active") // active | completed | on-hold
+  phase     String
+  startDate DateTime
+  endDate   DateTime
+  location  String
+
+  items     ProjectItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([client])
+}
+
+model ProjectItem {
+  id        String  @id @default(cuid())
+  projectId String
+  productId String
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, productId])
+  @@index([projectId])
+  @@index([productId])
+}
+
+// ── PROPOSALS ────────────────────────────────────────────────
+
+model Proposal {
+  id        String   @id @default(cuid())
+  client    String
+  project   String
+  date      DateTime
+  status    String   @default("draft") // draft | sent | approved | rejected
+  createdAt DateTime @default(now())
+  sentAt    DateTime?
+  subtotal  Int
+  markup    Int
+  total     Int
+
+  items ProposalItem[]
+
+  @@index([status])
+  @@index([client])
+  @@index([createdAt])
+}
+
+model ProposalItem {
+  id        String  @id @default(cuid())
+  proposalId String
+  productId  String
+  qty        Int
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalId, productId])
+  @@index([proposalId])
+  @@index([productId])
+}
+
+// ── FINANCE ──────────────────────────────────────────────────
+
+model Expense {
+  id        String   @id @default(cuid())
+  title     String
+  amount    Int
+  category  String
+  date      DateTime
+  status    String   @default("pending") // pending | approved
+  approval  String   @default("pending") // pending | approved
+  createdBy String
+  userId    String?
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  client    String
+  amount    Int
+  date      DateTime
+  status    String   @default("pending") // pending | partial | paid
+  dueDate   DateTime
+  paidAmount Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([client])
+  @@index([createdAt])
+}
+
+model Bill {
+  id        String   @id @default(cuid())
+  supplier  String
+  amount    Int
+  date      DateTime
+  status    String   @default("pending") // pending | paid
+  dueDate   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([supplier])
+  @@index([createdAt])
+}
+
+model RecurringExpense {
+  id        String   @id @default(cuid())
+  title     String
+  amount    Int
+  frequency String   // Monthly | Quarterly | Yearly
+  nextDate  DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([frequency])
+}
+
+// ── TEAM ─────────────────────────────────────────────────────
+
+model TeamMember {
+  id     String @id @default(cuid())
+  name   String
+  role   String
+  status String @default("Active") // Active | On Leave | Inactive
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+}
+
+// ── PROCUREMENT ──────────────────────────────────────────────
+
+model PurchaseOrder {
+  id               String   @id @default(cuid())
+  supplier         String
+  items            String
+  totalAmount      Int
+  status           String   @default("draft") // draft | processing | in-transit | delivered
+  date             DateTime
+  expectedDelivery DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([supplier])
+  @@index([createdAt])
+}
+
+// ── AFTER-SALES ──────────────────────────────────────────────
+
+model AfterSalesTicket {
+  id       String @id @default(cuid())
+  client   String
+  project  String
+  issue    String
+  priority String @default("Medium") // Low | Medium | High
+  status   String @default("Open")   // Open | In Progress | Pending Parts | Resolved
+  date     DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([client])
+  @@index([createdAt])
+}
+
+// ── LOGISTICS ────────────────────────────────────────────────
+
+model LogisticsEvent {
+  id        String   @id @default(cuid())
+  title     String
+  desc      String
+  eta       DateTime
+  dot       String
+  timestamp DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([timestamp])
+}
+
+// ── BUDGET ───────────────────────────────────────────────────
+
+model BudgetItem {
+  id       String @id @default(cuid())
+  category String @unique
+  budget   Int
+  actual   Int
+
   updatedAt DateTime @updatedAt
 }
 
-model Post {
+// ── ACTIVITY LOG ─────────────────────────────────────────────
+
+model ActivityEntry {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  text      String
+  detail    String?
+  icon      String?
+  timestamp DateTime
+  userId    String?
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([createdAt])
 }

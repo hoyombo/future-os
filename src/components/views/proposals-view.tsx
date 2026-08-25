@@ -34,7 +34,28 @@ export function ProposalsView() {
   const [canvasItems, setCanvasItems] = useState<ProposalItem[]>([]);
   const [catSearch, setCatSearch] = useState('');
   const [catFilter, setCatFilter] = useState<ProductCategory | 'all'>('all');
+  const [proposalSearch, setProposalSearch] = useState('');
+  const [proposalStatusFilter, setProposalStatusFilter] = useState<string>('all');
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const PROPOSAL_STATUSES: string[] = ['all', 'draft', 'sent', 'approved', 'rejected'];
+  const PROPOSAL_STATUS_LABELS: Record<string, string> = {
+    all: 'All',
+    draft: 'Draft',
+    sent: 'Sent',
+    approved: 'Approved',
+    rejected: 'Rejected',
+  };
+
+  const filteredProposals = useMemo(() => {
+    return proposals.filter((p) => {
+      const matchSearch = proposalSearch === '' ||
+        p.client.toLowerCase().includes(proposalSearch.toLowerCase()) ||
+        p.project.toLowerCase().includes(proposalSearch.toLowerCase());
+      const matchStatus = proposalStatusFilter === 'all' || p.status === proposalStatusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [proposals, proposalSearch, proposalStatusFilter]);
 
   const filteredCatalog = useMemo(() => {
     return products.filter((p) => {
@@ -156,41 +177,60 @@ export function ProposalsView() {
 
         {/* Catalog Document */}
         <div className="max-w-4xl mx-auto">
-          {/* Cover Header */}
-          <div className="rounded-t-2xl border border-b-0 border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8">
-            <div className="flex items-start justify-between mb-8">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">Proposal</p>
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-                  {prop.project}
-                </h1>
+          {/* Cover Page */}
+          <div className="rounded-t-2xl border border-b-0 border-border bg-card print:rounded-none print:border print:break-inside-avoid">
+            {/* Company Header */}
+            <div className="text-center py-10 md:py-14 px-8 md:px-12 border-b border-border">
+              <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-gold text-os-dark font-bold text-lg mb-4">
+                FO
               </div>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">Future OS</h2>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mt-1">Premium Interiors, Bamako</p>
+            </div>
+
+            {/* Project Title */}
+            <div className="text-center py-10 md:py-14 px-8 md:px-12">
+              <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold mb-4">Commercial Proposal</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
+                {prop.project}
+              </h1>
               <StatusBadge status={sm.status} label={sm.label} />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm border-t border-border pt-6">
+            {/* Client & Meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm border-t border-border mx-8 md:mx-12 py-6">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Prepared for</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Prepared for</p>
                 <p className="font-semibold text-foreground">{prop.client}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Date</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Date</p>
                 <p className="font-semibold text-foreground">{formatDate(prop.date)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Reference</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Reference</p>
                 <p className="font-semibold text-foreground">{prop.id.slice(-6).toUpperCase()}</p>
               </div>
             </div>
-          </div>
 
-          {/* Intro */}
-          <div className="border-x border-border bg-card px-8 md:px-12 py-6 print:border-x-0 print:border print:px-8">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Thank you for your trust in <span className="text-foreground font-semibold">Future OS</span>.
-              Below you will find a curated selection of premium furnishings tailored to your project.
-              Each piece has been chosen to meet the highest standards of quality, comfort, and design.
-            </p>
+            {/* Project Scope */}
+            <div className="border-t border-border bg-muted/30 px-8 md:px-12 py-6">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold mb-2">Project Scope</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Thank you for your trust in <span className="text-foreground font-semibold">Future OS</span>.
+                Below you will find a curated selection of premium furnishings tailored to your project.
+                Each piece has been chosen to meet the highest standards of quality, comfort, and design.
+              </p>
+            </div>
+
+            {/* Contact Footer */}
+            <div className="border-t border-border px-8 md:px-12 py-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-muted-foreground">
+              <span>Quartier du Fleuve, Bamako, Mali</span>
+              <span className="hidden sm:inline">·</span>
+              <span>+223 76 00 00 00</span>
+              <span className="hidden sm:inline">·</span>
+              <span>visionandcost@futureos.ml</span>
+            </div>
           </div>
 
           {/* Product Pages */}
@@ -198,9 +238,9 @@ export function ProposalsView() {
             {propProducts.map((prod, idx) => (
               <div
                 key={prod.id}
-                className={`border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 print:break-before-auto ${idx % 2 === 0 ? '' : ''}`}
+                className={`border-t border-border bg-card px-8 md:px-12 py-8 md:py-10 print:border-x-0 print:px-8 print:break-before-auto print:break-inside-avoid ${idx > 0 ? 'print-product-page' : ''}`}
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-start">
                   {/* Photo — use plain <img> for print compatibility */}
                   <div>
                     {prod.imageUrl ? (
@@ -270,38 +310,93 @@ export function ProposalsView() {
             ))}
           </div>
 
-          {/* Summary / Footer */}
-          <div className="rounded-b-2xl border border-t border-border bg-card p-8 md:p-12 print:rounded-none print:border print:p-8 print:break-before-auto">
-            <div className="max-w-xs ml-auto space-y-3">
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Subtotal ({prop.items.length} items)</span>
-                <span className="font-mono">{formatPrice(prop.subtotal, currency)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Professional fee (15%)</span>
-                <span className="font-mono">{formatPrice(prop.markup, currency)}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold text-foreground pt-3 border-t border-border">
-                <span>Total</span>
-                <span className="font-mono text-gold">{formatPrice(prop.total, currency)}</span>
+          {/* Summary / Footer Page */}
+          <div className="rounded-b-2xl border border-t border-border bg-card print:rounded-none print:border print:break-before-auto print:break-inside-avoid">
+            {/* Pricing Summary */}
+            <div className="p-8 md:p-12 pb-6 md:pb-6">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold mb-4">Pricing Summary</p>
+              <div className="max-w-xs ml-auto space-y-3">
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Subtotal ({prop.items.length} items)</span>
+                  <span className="font-mono">{formatPrice(prop.subtotal, currency)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Professional fee (15%)</span>
+                  <span className="font-mono">{formatPrice(prop.markup, currency)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold text-foreground pt-3 border-t border-border">
+                  <span>Total</span>
+                  <span className="font-mono text-gold">{formatPrice(prop.total, currency)}</span>
+                </div>
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-border">
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                This proposal is valid for 30 days from the date above. Prices include delivery to site
-                in Bamako, Mali. Installation services are available upon request. We look forward to
-                bringing your vision to life.
-              </p>
-              <div className="mt-4 flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gold flex items-center justify-center text-os-dark font-bold text-xs">
-                  FO
+            {/* Terms & Conditions */}
+            <div className="border-t border-border px-8 md:px-12 py-6">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold mb-3">Terms & Conditions</p>
+              <ul className="text-xs text-muted-foreground leading-relaxed space-y-1.5">
+                <li>This proposal is valid for <span className="text-foreground font-medium">30 days</span> from the date above.</li>
+                <li>Payment terms: <span className="text-foreground font-medium">50% advance upon approval, 50% upon delivery</span>.</li>
+                <li>Prices include delivery to site in Bamako, Mali.</li>
+                <li>Installation services are available upon request at additional cost.</li>
+                <li>Lead times begin upon receipt of advance payment.</li>
+                <li>Manufacturer warranty applies to all products as per individual product terms.</li>
+              </ul>
+            </div>
+
+            {/* Company Details */}
+            <div className="border-t border-border px-8 md:px-12 py-6">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold mb-3">Company Details</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Legal Name</p>
+                  <p className="font-medium text-foreground">Future OS SARL</p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Future OS</p>
-                  <p className="text-[10px] text-muted-foreground">Bamako, Mali · visionandcost@futureos.ml</p>
+                  <p className="text-muted-foreground mb-0.5">NIF</p>
+                  <p className="font-medium text-foreground">XXXXXXXX-X</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-0.5">RCCM</p>
+                  <p className="font-medium text-foreground">XXXXX-B-20XX</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-0.5">Address</p>
+                  <p className="font-medium text-foreground">Quartier du Fleuve, Bamako, Mali</p>
                 </div>
               </div>
+            </div>
+
+            {/* Approval Signature */}
+            <div className="border-t border-border px-8 md:px-12 py-6">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-gold font-semibold mb-4">Client Approval</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-6">Client Name</p>
+                  <div className="border-b border-foreground/30" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-6">Date</p>
+                  <div className="border-b border-foreground/30" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-6">Signature</p>
+                  <div className="border-b border-foreground/30" />
+                </div>
+              </div>
+            </div>
+
+            {/* Branding Footer */}
+            <div className="border-t border-border px-8 md:px-12 py-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-full bg-gold flex items-center justify-center text-os-dark font-bold text-[9px]">
+                  FO
+                </div>
+                <span className="font-medium text-foreground">Future OS</span>
+              </div>
+              <span>Quartier du Fleuve, Bamako, Mali</span>
+              <span>+223 76 00 00 00</span>
+              <span>visionandcost@futureos.ml</span>
             </div>
           </div>
         </div>
@@ -481,13 +576,43 @@ export function ProposalsView() {
         </button>
       </div>
 
+      {proposals.length > 0 && (
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by client or project..."
+              value={proposalSearch}
+              onChange={(e) => setProposalSearch(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            {PROPOSAL_STATUSES.map((s) => (
+              <button
+                key={s}
+                onClick={() => setProposalStatusFilter(s)}
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${proposalStatusFilter === s ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+              >
+                {PROPOSAL_STATUS_LABELS[s]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {proposals.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-muted-foreground">No proposals yet. Create your first proposal.</p>
         </div>
+      ) : filteredProposals.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
+          <p className="text-muted-foreground">No proposals match your search.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {proposals.map((p) => {
+          {filteredProposals.map((p) => {
             const sm = PROPOSAL_STATUS_MAP[p.status] || PROPOSAL_STATUS_MAP.draft;
             // Show first 3 product thumbnails
             const cardProducts = p.items

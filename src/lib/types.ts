@@ -152,6 +152,8 @@ export interface ActivityEntry {
 }
 
 export interface BudgetItem {
+  id: string;
+  category: string;
   budget: number;
   actual: number;
 }
@@ -192,10 +194,12 @@ export interface IAppService {
   // Invoices
   getInvoices(): Invoice[];
   addInvoice(invoice: Invoice): void;
+  deleteInvoice(id: string): void;
 
   // Bills
   getBills(): Bill[];
   addBill(bill: Bill): void;
+  deleteBill(id: string): void;
 
   // Recurring
   getRecurringExpenses(): RecurringExpense[];

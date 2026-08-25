@@ -14,6 +14,7 @@ import {
   PRODUCTS, PROJECTS_DATA, LOGISTICS_EVENTS,
   PURCHASE_ORDERS, AFTER_SALES_TICKETS, BUDGET_DATA,
   SEED_TEAM, SEED_EXPENSES, SEED_INVOICES, SEED_BILLS, SEED_RECURRING,
+  SEED_PROPOSALS, SEED_ACTIVITY,
 } from './mock-data';
 
 // ── LocalStorage helpers ──────────────────────────────────────
@@ -55,13 +56,13 @@ function save<T>(key: string, data: T): boolean {
 // ── Factory ───────────────────────────────────────────────────
 export function mockService(): IAppService {
   // Mutable state (survives page reload via localStorage)
-  let proposals: Proposal[] = load<Proposal[]>('proposals', []);
+  let proposals: Proposal[] = load<Proposal[]>('proposals', SEED_PROPOSALS);
   let expenses: Expense[] = load<Expense[]>('expenses', SEED_EXPENSES);
   let invoices: Invoice[] = load<Invoice[]>('invoices', SEED_INVOICES);
   let bills: Bill[] = load<Bill[]>('bills', SEED_BILLS);
   let recurringExpenses: RecurringExpense[] = load<RecurringExpense[]>('recurring', SEED_RECURRING);
   let teamMembers: TeamMember[] = load<TeamMember[]>('team', SEED_TEAM);
-  let activityLog: ActivityEntry[] = load<ActivityEntry[]>('activity', []);
+  let activityLog: ActivityEntry[] = load<ActivityEntry[]>('activity', SEED_ACTIVITY);
 
   return {
     // ── Products (read-only from mock data) ──────────────────
@@ -105,11 +106,19 @@ export function mockService(): IAppService {
       invoices.push(invoice);
       save('invoices', invoices);
     },
+    deleteInvoice(id: string) {
+      invoices = invoices.filter(i => i.id !== id);
+      save('invoices', invoices);
+    },
 
     // ── Bills (CRUD) ──────────────────────────────────────────
     getBills() { return bills; },
     addBill(bill: Bill) {
       bills.push(bill);
+      save('bills', bills);
+    },
+    deleteBill(id: string) {
+      bills = bills.filter(b => b.id !== id);
       save('bills', bills);
     },
 

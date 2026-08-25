@@ -1,9 +1,16 @@
-:81 {
+:80 {
 	@transform_port_query {
+		# Only allow numeric ports 1024-65535 to prevent SSRF
 		query XTransformPort=*
 	}
 
 	handle @transform_port_query {
+		# Validate port is numeric and within safe range
+		@bad_port `{query.XTransformPort}<1024 || {query.XTransformPort}>65535`
+		handle @bad_port {
+			respond "Forbidden" 403
+		}
+
 		reverse_proxy localhost:{query.XTransformPort} {
 			header_up Host {host}
 			header_up X-Forwarded-For {remote_host}
@@ -13,6 +20,16 @@
 	}
 
 	handle {
+		# Security headers
+		header {
+			X-Frame-Options "DENY"
+			X-Content-Type-Options "nosniff"
+			X-XSS-Protection "1; mode=block"
+			Referrer-Policy "strict-origin-when-cross-origin"
+			Permissions-Policy "camera=(), microphone=(), geolocation=()"
+			-Server
+		}
+
 		reverse_proxy localhost:3000 {
 			header_up Host {host}
 			header_up X-Forwarded-For {remote_host}

@@ -184,8 +184,18 @@
 
   /* Prevent content from being cut at page breaks */
   .relative { position: relative !important; overflow: visible !important; }
-  img { max-height: 40vh !important; max-width: 100% !important; object-fit: cover !important; }
+  img { max-height: 140mm !important; max-width: 100% !important; object-fit: cover !important; }
   .aspect-\[4\/3\] { aspect-ratio: 4/3 !important; height: auto !important; }
+
+  /* Fix: reset overflow constraints so all pages render in print/PDF */
+  .h-screen { height: auto !important; }
+  .overflow-hidden { overflow: visible !important; }
+  .overflow-y-auto { overflow: visible !important; }
+  main { overflow: visible !important; }
+  .flex { overflow: visible !important; }
+
+  /* Force each product onto its own page in print */
+  .print-product-page { break-before: page !important; page-break-before: page !important; }
 
   /* Avoid breaking inside small blocks like summary/footer */
   .print-break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }

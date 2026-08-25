@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import {
   Plus, Trash2, TrendingUp, TrendingDown, DollarSign,
-  Receipt, FileText, ArrowUpRight, ArrowDownRight, Repeat, Calculator,
+  Receipt, FileText, ArrowUpRight, ArrowDownRight, Repeat, Calculator, Search,
 } from 'lucide-react';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
@@ -110,6 +110,10 @@ export function FinanceView() {
             service?.addInvoice(inv);
             setInvoices([...invoices, inv]);
             addToast('success', '✅', 'Invoice added');
+          }} onDelete={(id) => {
+            service?.deleteInvoice(id);
+            setInvoices(invoices.filter(i => i.id !== id));
+            addToast('info', '🗑️', 'Invoice deleted');
           }} />
         )}
         {activeTab === 'bills' && (
@@ -117,6 +121,10 @@ export function FinanceView() {
             service?.addBill(bill);
             setBills([...bills, bill]);
             addToast('success', '✅', 'Bill added');
+          }} onDelete={(id) => {
+            service?.deleteBill(id);
+            setBills(bills.filter(b => b.id !== id));
+            addToast('info', '🗑️', 'Bill deleted');
           }} />
         )}
         {activeTab === 'cashflow' && <CashFlowTab invoices={invoices} expenses={expenses} currency={currency} />}
@@ -150,9 +158,15 @@ function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
   expenses: Expense[]; currency: Currency; onDelete: (id: string) => void; onAdd: (e: Expense) => void;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Operations');
+
+  const filtered = useMemo(() => expenses.filter(e =>
+    e.title.toLowerCase().includes(search.toLowerCase()) ||
+    e.category.toLowerCase().includes(search.toLowerCase())
+  ), [expenses, search]);
 
   function handleAdd() {
     if (!title.trim() || !amount) { return; }
@@ -168,10 +182,20 @@ function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Expenses ({expenses.length})</h3>
+        <h3 className="text-sm font-semibold text-foreground">Expenses ({filtered.length})</h3>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
           <Plus className="h-3.5 w-3.5" /> Add Expense
         </button>
+      </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search by title or category..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
       </div>
       {showForm && (
         <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
@@ -196,7 +220,7 @@ function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {expenses.map((e) => {
+            {filtered.map((e) => {
               const sm = EXPENSE_STATUS_MAP[e.status] || EXPENSE_STATUS_MAP['Pending'];
               return (
                 <tr key={e.id} className="hover:bg-muted/50 transition-colors">
@@ -211,7 +235,7 @@ function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
                 </tr>
               );
             })}
-            {expenses.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">No expenses recorded</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">{search ? 'No expenses match search' : 'No expenses recorded'}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -220,12 +244,17 @@ function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
 }
 
 // ── Invoices Tab ──────────────────────────────────────────────────
-function InvoicesTab({ invoices, currency, onAdd }: {
-  invoices: Invoice[]; currency: Currency; onAdd: (i: Invoice) => void;
+function InvoicesTab({ invoices, currency, onAdd, onDelete }: {
+  invoices: Invoice[]; currency: Currency; onAdd: (i: Invoice) => void; onDelete: (id: string) => void;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
   const [client, setClient] = useState('');
   const [amount, setAmount] = useState('');
+
+  const filtered = useMemo(() => invoices.filter(i =>
+    i.client.toLowerCase().includes(search.toLowerCase())
+  ), [invoices, search]);
 
   function handleAdd() {
     if (!client.trim() || !amount) return;
@@ -242,10 +271,20 @@ function InvoicesTab({ invoices, currency, onAdd }: {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Invoices ({invoices.length})</h3>
+        <h3 className="text-sm font-semibold text-foreground">Invoices ({filtered.length})</h3>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
           <Plus className="h-3.5 w-3.5" /> Add Invoice
         </button>
+      </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search by client..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
       </div>
       {showForm && (
         <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
@@ -263,10 +302,11 @@ function InvoicesTab({ invoices, currency, onAdd }: {
               <th className="text-center pb-2 font-medium">Status</th>
               <th className="text-right pb-2 font-medium hidden sm:table-cell">Due</th>
               <th className="text-right pb-2 font-medium hidden md:table-cell">Paid</th>
+              <th className="text-right pb-2 font-medium w-10"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {invoices.map((inv) => {
+            {filtered.map((inv) => {
               const sm = INVOICE_STATUS_MAP[inv.status] || INVOICE_STATUS_MAP['Draft'];
               return (
                 <tr key={inv.id} className="hover:bg-muted/50 transition-colors">
@@ -275,10 +315,13 @@ function InvoicesTab({ invoices, currency, onAdd }: {
                   <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
                   <td className="py-2.5 text-right text-xs text-muted-foreground hidden sm:table-cell">{formatDate(inv.dueDate)}</td>
                   <td className="py-2.5 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 hidden md:table-cell">{formatPrice(inv.paidAmount, currency)}</td>
+                  <td className="py-2.5 text-right">
+                    <button onClick={() => onDelete(inv.id)} className="p-1 text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </td>
                 </tr>
               );
             })}
-            {invoices.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-muted-foreground text-xs">No invoices recorded</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">{search ? 'No invoices match search' : 'No invoices recorded'}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -287,12 +330,17 @@ function InvoicesTab({ invoices, currency, onAdd }: {
 }
 
 // ── Bills Tab ─────────────────────────────────────────────────────
-function BillsTab({ bills, currency, onAdd }: {
-  bills: Bill[]; currency: Currency; onAdd: (b: Bill) => void;
+function BillsTab({ bills, currency, onAdd, onDelete }: {
+  bills: Bill[]; currency: Currency; onAdd: (b: Bill) => void; onDelete: (id: string) => void;
 }) {
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
   const [supplier, setSupplier] = useState('');
   const [amount, setAmount] = useState('');
+
+  const filtered = useMemo(() => bills.filter(b =>
+    b.supplier.toLowerCase().includes(search.toLowerCase())
+  ), [bills, search]);
 
   function handleAdd() {
     if (!supplier.trim() || !amount) return;
@@ -308,10 +356,20 @@ function BillsTab({ bills, currency, onAdd }: {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Bills ({bills.length})</h3>
+        <h3 className="text-sm font-semibold text-foreground">Bills ({filtered.length})</h3>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
           <Plus className="h-3.5 w-3.5" /> Add Bill
         </button>
+      </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search by supplier..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
       </div>
       {showForm && (
         <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
@@ -328,10 +386,11 @@ function BillsTab({ bills, currency, onAdd }: {
               <th className="text-right pb-2 font-medium">Amount</th>
               <th className="text-center pb-2 font-medium">Status</th>
               <th className="text-right pb-2 font-medium hidden sm:table-cell">Due</th>
+              <th className="text-right pb-2 font-medium w-10"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {bills.map((b) => {
+            {filtered.map((b) => {
               const sm = BILL_STATUS_MAP[b.status] || BILL_STATUS_MAP['Pending'];
               return (
                 <tr key={b.id} className="hover:bg-muted/50 transition-colors">
@@ -339,10 +398,13 @@ function BillsTab({ bills, currency, onAdd }: {
                   <td className="py-2.5 text-right font-mono text-xs">{formatPrice(b.amount, currency)}</td>
                   <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
                   <td className="py-2.5 text-right text-xs text-muted-foreground hidden sm:table-cell">{formatDate(b.dueDate)}</td>
+                  <td className="py-2.5 text-right">
+                    <button onClick={() => onDelete(b.id)} className="p-1 text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </td>
                 </tr>
               );
             })}
-            {bills.length === 0 && <tr><td colSpan={4} className="py-8 text-center text-muted-foreground text-xs">No bills recorded</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-muted-foreground text-xs">{search ? 'No bills match search' : 'No bills recorded'}</td></tr>}
           </tbody>
         </table>
       </div>
