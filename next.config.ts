@@ -13,6 +13,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
   reactStrictMode: true,
+  env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://future-os-future-concept.vercel.app',
+  },
   headers: async () => [
     {
       source: '/:path*',
