@@ -62,7 +62,11 @@ export default function Home() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/login');
+      // Debounce: transient session-fetch failures (flaky mobile networks,
+      // service worker races) must not eject users to /login. If the session
+      // recovers, the status change re-runs this effect and cancels the timer.
+      const t = setTimeout(() => router.push('/login'), 1200);
+      return () => clearTimeout(t);
     }
   }, [status, router]);
 
@@ -139,7 +143,7 @@ export default function Home() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-dvh items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-gold border-t-transparent" />
           <p className="text-sm text-muted-foreground">Loading Future OS...</p>
@@ -151,7 +155,7 @@ export default function Home() {
   if (status === 'unauthenticated') return null;
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-dvh overflow-hidden">
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <AppTopbar />

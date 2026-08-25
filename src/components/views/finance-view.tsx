@@ -341,7 +341,7 @@ function ExpensesTab() {
                       )}
                       <button
                         onClick={() => setDeleteTarget(e)}
-                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                         aria-label={`Delete ${e.title}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -357,7 +357,7 @@ function ExpensesTab() {
 
       {/* Add Expense Dialog */}
       <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Expense</DialogTitle>
             <DialogDescription>Submit an expense for approval</DialogDescription>
@@ -607,7 +607,7 @@ function InvoicesTab() {
                       )}
                       <button
                         onClick={() => setDeleteTarget(inv)}
-                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                         aria-label={`Delete invoice for ${inv.client}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -623,7 +623,7 @@ function InvoicesTab() {
 
       {/* Add Invoice Dialog */}
       <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Invoice</DialogTitle>
             <DialogDescription>Create an invoice for a client</DialogDescription>
@@ -676,7 +676,7 @@ function InvoicesTab() {
 
       {/* Record Payment Dialog */}
       <Dialog open={!!paymentTarget} onOpenChange={(open) => { if (!open) setPaymentTarget(null); }}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Record Payment</DialogTitle>
             <DialogDescription>
@@ -861,7 +861,7 @@ function BillsTab() {
                       )}
                       <button
                         onClick={() => setDeleteTarget(b)}
-                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                         aria-label={`Delete bill from ${b.supplier}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -877,7 +877,7 @@ function BillsTab() {
 
       {/* Add Bill Dialog */}
       <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Bill</DialogTitle>
             <DialogDescription>Record a supplier bill</DialogDescription>
@@ -1121,12 +1121,12 @@ function RecurringTab() {
               </div>
               <div className="flex items-center gap-2" >
                 <span className="text-sm font-mono font-bold text-gold">{formatPrice(r.amount, currency)}</span>
-                <Button variant="outline" size="sm" className="h-7 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => postExpense(r)} aria-label={`Post ${r.title}`}>
+                <Button variant="outline" size="sm" className="h-7 px-2 text-xs opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity" onClick={() => postExpense(r)} aria-label={`Post ${r.title}`}>
                   <Repeat className="h-3 w-3" /> Post
                 </Button>
                 <button
                   onClick={() => setDeleteTarget(r)}
-                  className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                  className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   aria-label={`Delete ${r.title}`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -1139,7 +1139,7 @@ function RecurringTab() {
 
       {/* Add Recurring Dialog */}
       <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Recurring Expense</DialogTitle>
             <DialogDescription>Set up a repeating expense</DialogDescription>

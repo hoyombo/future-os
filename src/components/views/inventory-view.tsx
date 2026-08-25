@@ -284,21 +284,21 @@ export function InventoryView() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={(e) => handleAdjust(p, -1, e)}
-                            className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors opacity-0 group-hover:opacity-100 disabled:pointer-events-none disabled:opacity-30"
+                            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:pointer-events-none disabled:opacity-30"
                             disabled={p.inStock <= 0}
                             aria-label={`Remove one ${p.name}`}
                           >
-                            <Minus className="h-3 w-3" />
+                            <Minus className="h-4 w-4" />
                           </button>
                           <span className={`font-mono text-xs min-w-[42px] ${isCritical ? 'text-red-500 font-bold' : 'text-foreground'}`}>
                             {p.inStock}<span className="text-muted-foreground">/{p.stock}</span>
                           </span>
                           <button
                             onClick={(e) => handleAdjust(p, 1, e)}
-                            className="rounded p-0.5 text-gold hover:bg-gold/10 transition-colors opacity-0 group-hover:opacity-100"
+                            className="rounded-md p-1.5 text-gold hover:bg-gold/10 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                             aria-label={`Add one ${p.name}`}
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -312,7 +312,7 @@ export function InventoryView() {
                       <td className="px-2 py-3 text-right">
                         <button
                           onClick={(e) => { e.stopPropagation(); setDeleteTarget(p); }}
-                          className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                          className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                           aria-label={`Delete ${p.name}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

@@ -338,7 +338,7 @@ export function ProcurementView() {
                     </Select>
                     <button
                       onClick={() => setDeleteTarget(po)}
-                      className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                      className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                       aria-label={`Delete ${po.id.toUpperCase()}`}
                     >
                       <Trash2 className="h-4 w-4" />

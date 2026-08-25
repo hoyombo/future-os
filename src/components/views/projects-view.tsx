@@ -167,7 +167,7 @@ export function ProjectsView() {
                           className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                           sizes="200px"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
                     ) : (
                       <div key={prod!.id} className="flex-1 flex items-center justify-center text-2xl bg-muted">
@@ -187,7 +187,7 @@ export function ProjectsView() {
                   )}
                   {/* Hover overlay */}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none">
-                    <span className="opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-xs font-medium text-white bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
+                    <span className="opacity-100 md:opacity-0 md:group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-xs font-medium text-white bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
                       View Project
                     </span>
                   </div>
@@ -228,17 +228,17 @@ export function ProjectsView() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                    <div className="grid grid-cols-3 gap-2 flex-1">
-                      <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-border/50">
+                    <div className="grid grid-cols-3 gap-2 flex-1 min-w-0">
+                      <div className="min-w-0">
                         <p className="text-[10px] text-muted-foreground">Phase</p>
-                        <p className="text-xs font-medium text-foreground">{p.phase}</p>
+                        <p className="text-xs font-medium text-foreground truncate">{p.phase}</p>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[10px] text-muted-foreground">Revenue</p>
-                        <p className="text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400">{formatPrice(estimatedRevenue, currency)}</p>
+                        <p className="text-[10px] sm:text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 truncate">{formatPrice(estimatedRevenue, currency)}</p>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[10px] text-muted-foreground">Margin</p>
                         <p className={`text-xs font-mono font-medium ${margin >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
                           {margin}%
@@ -247,7 +247,7 @@ export function ProjectsView() {
                     </div>
                     <button
                       onClick={(e) => confirmDelete(p.id, p.name, e)}
-                      className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100 ml-2"
+                      className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 ml-2"
                       aria-label="Delete project"
                     >
                       <Trash2 className="h-4 w-4" />

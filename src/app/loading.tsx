@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Loading() {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-dvh">
       {/* Sidebar skeleton */}
       <aside className="hidden md:flex w-[270px] bg-os-dark flex-col p-6 gap-4">
         <Skeleton className="h-8 w-32 bg-white/10" />

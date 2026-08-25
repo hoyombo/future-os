@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -9,7 +9,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { status } = useSession();
   const router = useRouter();
+
+  // Already signed in? Never show the login form — this is what made the
+  // browser back button look like a forced logout.
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/');
+    }
+  }, [status, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,13 +35,14 @@ export default function LoginPage() {
       setError('Invalid email or password');
       setLoading(false);
     } else {
-      router.push('/');
+      // replace (not push): keeps /login out of history so Back never returns here
+      router.replace('/');
       router.refresh();
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold">

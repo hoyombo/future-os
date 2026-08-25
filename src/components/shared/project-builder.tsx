@@ -355,7 +355,7 @@ export function ProjectBuilder({ open, onOpenChange }: ProjectBuilderProps) {
                     ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-none sm:max-h-[400px] overflow-y-auto pr-1">
                   {filteredCatalog.map((p) => {
                     const isSelected = selectedProducts.includes(p.id);
                     return (
@@ -428,7 +428,7 @@ export function ProjectBuilder({ open, onOpenChange }: ProjectBuilderProps) {
                       </FormItem>
                     )} />
                     {showClientSuggestions && filteredClientSuggestions.length > 0 && (
-                      <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-md max-h-40 overflow-y-auto">
+                      <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-md max-h-none sm:max-h-40 overflow-y-auto">
                         {filteredClientSuggestions.map((c) => (
                           <button
                             key={c}
@@ -554,7 +554,7 @@ export function ProjectBuilder({ open, onOpenChange }: ProjectBuilderProps) {
                       <span className="text-xs font-mono text-gold">{formatPrice(suggestedBudget, currency)}</span>
                     )}
                   </div>
-                  <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  <div className="space-y-1.5 max-h-none sm:max-h-40 overflow-y-auto pr-1">
                     {selectedProducts.length === 0 && (
                       <p className="text-xs text-muted-foreground text-center py-3">Click products to add them</p>
                     )}

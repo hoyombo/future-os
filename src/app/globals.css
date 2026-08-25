@@ -188,7 +188,7 @@
   .aspect-\[4\/3\] { aspect-ratio: 4/3 !important; height: auto !important; }
 
   /* Fix: reset overflow constraints so all pages render in print/PDF */
-  .h-screen { height: auto !important; }
+  .h-dvh { height: auto !important; }
   .overflow-hidden { overflow: visible !important; }
   .overflow-y-auto { overflow: visible !important; }
   main { overflow: visible !important; }

@@ -309,7 +309,7 @@ export function AftersalesView() {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); setDeleteTarget(t); }}
-                    className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                    className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                     aria-label={`Delete ticket ${t.id.toUpperCase()}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -318,7 +318,7 @@ export function AftersalesView() {
 
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{t.issue}</p>
 
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Select value={t.status} onValueChange={(v) => handleFieldChange(t, { status: v as TicketStatus }, '🔧', `${t.id.toUpperCase()} → ${v}`)}>
                       <SelectTrigger size="sm" aria-label="Update status">

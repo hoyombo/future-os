@@ -180,7 +180,7 @@ export function AppSidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="os-sidebar hidden lg:flex flex-col w-60 shrink-0 bg-os-dark border-r border-sidebar-border text-sidebar-foreground h-screen sticky top-0 overflow-hidden">
+      <aside className="os-sidebar hidden lg:flex flex-col w-60 shrink-0 bg-os-dark border-r border-sidebar-border text-sidebar-foreground h-dvh sticky top-0 overflow-hidden">
         {sidebarContent}
       </aside>
 

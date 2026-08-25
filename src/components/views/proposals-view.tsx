@@ -520,7 +520,7 @@ export function ProposalsView() {
                             className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                             sizes="200px"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
                       ) : (
                         <div key={prod!.id} className="flex-1 flex items-center justify-center text-2xl bg-muted">
@@ -539,7 +539,7 @@ export function ProposalsView() {
                       </div>
                     )}
                     <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none">
-                      <span className="opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-xs font-medium text-white bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
+                      <span className="opacity-100 md:opacity-0 md:group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-xs font-medium text-white bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
                         View Proposal
                       </span>
                     </div>
@@ -562,7 +562,7 @@ export function ProposalsView() {
                       <span className="text-lg font-bold text-gold font-mono">{formatPrice(p.total, currency)}</span>
                       <button
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget(p.id); }}
-                        className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                        className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                         aria-label="Delete proposal"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -613,7 +613,7 @@ export function ProposalsView() {
                     ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-none sm:max-h-[400px] overflow-y-auto pr-1">
                   {filteredCatalog.map((p) => (
                     <div key={p.id} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
                       {p.imageUrl ? (
@@ -668,7 +668,7 @@ export function ProposalsView() {
 
                 <div className="border-t border-border pt-3">
                   <p className="text-xs font-medium text-muted-foreground mb-2">Items ({canvasItems.length})</p>
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-none sm:max-h-64 overflow-y-auto pr-1">
                     {canvasItems.length === 0 && (
                       <p className="text-xs text-muted-foreground text-center py-4">Click + to add products</p>
                     )}
