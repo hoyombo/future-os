@@ -93,7 +93,7 @@ export function ProcurementView() {
   }, [purchaseOrders]);
 
   function openDetail(po: PurchaseOrder) {
-    const sm = PO_STATUS_MAP[po.status];
+    const sm = PO_STATUS_MAP[po.status as PurchaseOrderStatus] ?? { status: 'gold' as Status, label: po.status || 'Draft' };
     openModal(`Purchase Order · ${po.supplier}`, (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -283,7 +283,7 @@ export function ProcurementView() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredPOs.map((po) => {
-            const sm = PO_STATUS_MAP[po.status];
+            const sm = PO_STATUS_MAP[po.status as PurchaseOrderStatus] ?? { status: 'gold' as Status, label: po.status || 'Draft' };
             const today = new Date().toISOString().slice(0, 10);
             const isOverdue = po.status !== 'delivered' && po.expectedDelivery < today;
             const itemNames = po.items.split(',').map((i) => i.trim()).filter(Boolean);
