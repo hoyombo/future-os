@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef } from 'react';
 import {
   Plus, Search, Trash2, Send, Save, X, Minus, ChevronDown,
-  Eye, Printer,
+  Printer,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
@@ -622,9 +622,13 @@ export function ProposalsView() {
             const remaining = p.items.length - cardProducts.length;
 
             return (
-              <div key={p.id} className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-lg transition-all group">
+              <div
+                key={p.id}
+                onClick={() => setPreviewProposal(p)}
+                className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-md hover:shadow-xl hover:border-gold/30 transition-all duration-300 group cursor-pointer"
+              >
                 {/* Thumbnail strip */}
-                <div className="flex h-24 bg-muted">
+                <div className="flex h-28 bg-muted relative overflow-hidden">
                   {cardProducts.map((prod) =>
                     prod?.imageUrl ? (
                       <div key={prod.id} className="relative flex-1 first:rounded-tl-xl overflow-hidden">
@@ -632,9 +636,10 @@ export function ProposalsView() {
                           src={prod.imageUrl}
                           alt={prod.name}
                           fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                           sizes="200px"
                         />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
                     ) : (
                       <div key={prod!.id} className="flex-1 flex items-center justify-center text-2xl bg-muted">
@@ -652,13 +657,19 @@ export function ProposalsView() {
                       No items
                     </div>
                   )}
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none">
+                    <span className="opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-xs font-medium text-white bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
+                      View Proposal
+                    </span>
+                  </div>
                 </div>
 
                 {/* Card body */}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="font-semibold text-foreground text-sm">{p.client}</p>
+                      <p className="font-semibold text-foreground text-sm group-hover:text-gold transition-colors duration-200">{p.client}</p>
                       <p className="text-xs text-muted-foreground">{p.project}</p>
                     </div>
                     <StatusBadge status={sm.status} label={sm.label} />
@@ -667,24 +678,15 @@ export function ProposalsView() {
                     <span>{formatDate(p.date)}</span>
                     <span>{p.items.length} items</span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
                     <span className="text-lg font-bold text-gold font-mono">{formatPrice(p.total, currency)}</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setPreviewProposal(p)}
-                        className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        aria-label="Preview proposal"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteProposal(p.id)}
-                        className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        aria-label="Delete proposal"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteProposal(p.id); }}
+                      className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                      aria-label="Delete proposal"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </div>
