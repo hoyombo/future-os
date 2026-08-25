@@ -48,10 +48,29 @@ export function apiService(): IAppService {
     // ── Products ────────────────────────────────────────────────
     getProducts() { return []; }, // hydrated async
     getProduct(_id: string) { return undefined; },
+    saveProduct(product: Product) {
+      const method = product.id ? 'PUT' : 'POST';
+      const path = product.id ? `/api/products/${product.id}` : '/api/products';
+      api(path, { method, body: JSON.stringify(product) });
+    },
+    deleteProduct(id: string) {
+      api(`/api/products/${id}`, { method: 'DELETE' });
+    },
+    adjustStock(id: string, delta: number) {
+      api(`/api/products/${id}`, { method: 'PATCH', body: JSON.stringify({ delta }) });
+    },
 
     // ── Projects ────────────────────────────────────────────────
     getProjects() { return []; },
     getProject(_id: string) { return undefined; },
+    saveProject(project: Project) {
+      const method = project.id ? 'PUT' : 'POST';
+      const path = project.id ? `/api/projects/${project.id}` : '/api/projects';
+      api(path, { method, body: JSON.stringify(project) });
+    },
+    deleteProject(id: string) {
+      api(`/api/projects/${id}`, { method: 'DELETE' });
+    },
 
     // ── Logistics ───────────────────────────────────────────────
     getLogisticsEvents() { return []; },
@@ -69,8 +88,11 @@ export function apiService(): IAppService {
 
     // ── Expenses ────────────────────────────────────────────────
     getExpenses() { return []; },
-    addExpense(expense: Expense) {
-      api('/api/expenses', { method: 'POST', body: JSON.stringify(expense) });
+    saveExpense(expense: Expense) {
+      const isNew = /^\d+$/.test(expense.id);
+      const path = isNew ? '/api/expenses' : `/api/expenses/${expense.id}`;
+      const method = isNew ? 'POST' : 'PUT';
+      api(path, { method, body: JSON.stringify(expense) });
     },
     deleteExpense(id: string) {
       api(`/api/expenses/${id}`, { method: 'DELETE' });
@@ -78,8 +100,11 @@ export function apiService(): IAppService {
 
     // ── Invoices ────────────────────────────────────────────────
     getInvoices() { return []; },
-    addInvoice(invoice: Invoice) {
-      api('/api/invoices', { method: 'POST', body: JSON.stringify(invoice) });
+    saveInvoice(invoice: Invoice) {
+      const isNew = /^\d+$/.test(invoice.id);
+      const path = isNew ? '/api/invoices' : `/api/invoices/${invoice.id}`;
+      const method = isNew ? 'POST' : 'PUT';
+      api(path, { method, body: JSON.stringify(invoice) });
     },
     deleteInvoice(id: string) {
       api(`/api/invoices/${id}`, { method: 'DELETE' });
@@ -87,8 +112,11 @@ export function apiService(): IAppService {
 
     // ── Bills ───────────────────────────────────────────────────
     getBills() { return []; },
-    addBill(bill: Bill) {
-      api('/api/bills', { method: 'POST', body: JSON.stringify(bill) });
+    saveBill(bill: Bill) {
+      const isNew = /^\d+$/.test(bill.id);
+      const path = isNew ? '/api/bills' : `/api/bills/${bill.id}`;
+      const method = isNew ? 'POST' : 'PUT';
+      api(path, { method, body: JSON.stringify(bill) });
     },
     deleteBill(id: string) {
       api(`/api/bills/${id}`, { method: 'DELETE' });
@@ -96,17 +124,22 @@ export function apiService(): IAppService {
 
     // ── Recurring ───────────────────────────────────────────────
     getRecurringExpenses() { return []; },
-    addRecurringExpense(re: RecurringExpense) {
-      api('/api/recurring', { method: 'POST', body: JSON.stringify(re) });
+    saveRecurringExpense(re: RecurringExpense) {
+      const isNew = /^\d+$/.test(re.id);
+      const path = isNew ? '/api/recurring' : `/api/recurring/${re.id}`;
+      const method = isNew ? 'POST' : 'PUT';
+      api(path, { method, body: JSON.stringify(re) });
     },
-    updateRecurringExpense(re: RecurringExpense) {
-      api(`/api/recurring/${re.id}`, { method: 'PUT', body: JSON.stringify(re) });
+    deleteRecurringExpense(id: string) {
+      api(`/api/recurring/${id}`, { method: 'DELETE' });
     },
 
     // ── Team ────────────────────────────────────────────────────
     getTeamMembers() { return []; },
-    addTeamMember(member: TeamMember) {
-      api('/api/team', { method: 'POST', body: JSON.stringify(member) });
+    saveTeamMember(member: TeamMember) {
+      const isNew = /^\d+$/.test(member.id);
+      const path = isNew ? '/api/team' : `/api/team/${member.id}`;
+      api(path, { method: isNew ? 'POST' : 'PUT', body: JSON.stringify(member) });
     },
     deleteTeamMember(id: string) {
       api(`/api/team/${id}`, { method: 'DELETE' });
@@ -124,8 +157,27 @@ export function apiService(): IAppService {
     // ── Purchase Orders ─────────────────────────────────────────
     getPurchaseOrders() { return []; },
 
+    savePurchaseOrder(po: PurchaseOrder) {
+      // UI-generated ids are numeric (generateId()); seeded/DB ids are not.
+      const isNew = /^\d+$/.test(po.id);
+      const path = isNew ? '/api/purchase-orders/create' : `/api/purchase-orders/${po.id}`;
+      api(path, { method: 'POST', body: JSON.stringify(po) });
+    },
+    deletePurchaseOrder(id: string) {
+      api(`/api/purchase-orders/${id}`, { method: 'DELETE' });
+    },
+
     // ── After-Sales ─────────────────────────────────────────────
     getAfterSalesTickets() { return []; },
+
+    saveTicket(ticket: AfterSalesTicket) {
+      const isNew = /^\d+$/.test(ticket.id);
+      const path = isNew ? '/api/after-sales/create' : `/api/after-sales/${ticket.id}`;
+      api(path, { method: 'POST', body: JSON.stringify(ticket) });
+    },
+    deleteTicket(id: string) {
+      api(`/api/after-sales/${id}`, { method: 'DELETE' });
+    },
 
     // ── Budget ──────────────────────────────────────────────────
     getBudgetData() { return {}; },

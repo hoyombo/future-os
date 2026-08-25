@@ -79,7 +79,7 @@ export function AppSidebar() {
 
   const openProposals = proposals.filter((p) => p.status === 'draft' || p.status === 'sent').length;
   const openTickets = afterSalesTickets.filter((t) => t.status === 'Open' || t.status === 'In Progress').length;
-  const pendingPOs = purchaseOrders.filter((p) => p.status !== 'Delivered').length;
+  const pendingPOs = purchaseOrders.filter((p) => p.status !== 'delivered').length;
 
   const navItems: NavItem[] = [
     { view: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },

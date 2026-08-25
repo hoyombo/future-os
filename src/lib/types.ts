@@ -78,14 +78,18 @@ export interface Proposal {
   total: number;
 }
 
+export type ExpenseStatus = 'pending' | 'approved' | 'rejected';
+export type InvoiceStatus = 'draft' | 'pending' | 'partial' | 'paid' | 'overdue';
+export type BillStatus = 'pending' | 'paid' | 'overdue';
+
 export interface Expense {
   id: string;
   title: string;
   amount: number;
   category: string;
   date: string;
-  status: string;
-  approval: string;
+  status: ExpenseStatus;
+  approval: ExpenseStatus;
   createdBy: string;
 }
 
@@ -94,7 +98,7 @@ export interface Invoice {
   client: string;
   amount: number;
   date: string;
-  status: string;
+  status: InvoiceStatus;
   dueDate: string;
   paidAmount: number;
 }
@@ -104,7 +108,7 @@ export interface Bill {
   supplier: string;
   amount: number;
   date: string;
-  status: string;
+  status: BillStatus;
   dueDate: string;
 }
 
@@ -123,23 +127,28 @@ export interface TeamMember {
   status: 'Active' | 'On Leave' | 'Inactive';
 }
 
+export type PurchaseOrderStatus = 'draft' | 'processing' | 'in-transit' | 'delivered';
+
 export interface PurchaseOrder {
   id: string;
   supplier: string;
   items: string;
   totalAmount: number;
-  status: string;
+  status: PurchaseOrderStatus;
   date: string;
   expectedDelivery: string;
 }
+
+export type TicketPriority = 'Low' | 'Medium' | 'High';
+export type TicketStatus = 'Open' | 'In Progress' | 'Pending Parts' | 'Resolved';
 
 export interface AfterSalesTicket {
   id: string;
   client: string;
   project: string;
   issue: string;
-  priority: string;
-  status: string;
+  priority: TicketPriority;
+  status: TicketStatus;
   date: string;
 }
 
@@ -173,10 +182,15 @@ export interface IAppService {
   // Products
   getProducts(): Product[];
   getProduct(id: string): Product | undefined;
+  saveProduct(product: Product): void;
+  deleteProduct(id: string): void;
+  adjustStock(id: string, delta: number): void;
 
   // Projects
   getProjects(): Project[];
   getProject(id: string): Project | undefined;
+  saveProject(project: Project): void;
+  deleteProject(id: string): void;
 
   // Logistics
   getLogisticsEvents(): LogisticsEvent[];
@@ -188,27 +202,27 @@ export interface IAppService {
 
   // Expenses
   getExpenses(): Expense[];
-  addExpense(expense: Expense): void;
+  saveExpense(expense: Expense): void;
   deleteExpense(id: string): void;
 
   // Invoices
   getInvoices(): Invoice[];
-  addInvoice(invoice: Invoice): void;
+  saveInvoice(invoice: Invoice): void;
   deleteInvoice(id: string): void;
 
   // Bills
   getBills(): Bill[];
-  addBill(bill: Bill): void;
+  saveBill(bill: Bill): void;
   deleteBill(id: string): void;
 
   // Recurring
   getRecurringExpenses(): RecurringExpense[];
-  addRecurringExpense(re: RecurringExpense): void;
-  updateRecurringExpense(re: RecurringExpense): void;
+  saveRecurringExpense(re: RecurringExpense): void;
+  deleteRecurringExpense(id: string): void;
 
   // Team
   getTeamMembers(): TeamMember[];
-  addTeamMember(member: TeamMember): void;
+  saveTeamMember(member: TeamMember): void;
   deleteTeamMember(id: string): void;
 
   // Activity
@@ -218,9 +232,13 @@ export interface IAppService {
 
   // Purchase Orders
   getPurchaseOrders(): PurchaseOrder[];
+  savePurchaseOrder(po: PurchaseOrder): void;
+  deletePurchaseOrder(id: string): void;
 
   // After-Sales
   getAfterSalesTickets(): AfterSalesTicket[];
+  saveTicket(ticket: AfterSalesTicket): void;
+  deleteTicket(id: string): void;
 
   // Budget
   getBudgetData(): Record<string, BudgetItem>;

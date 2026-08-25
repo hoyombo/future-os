@@ -1,13 +1,35 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Plus, Trash2, TrendingUp, TrendingDown, DollarSign,
   Receipt, FileText, ArrowUpRight, ArrowDownRight, Repeat, Calculator, Search,
+  Loader2, Wallet,
 } from 'lucide-react';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
-import type { Status, Expense, Invoice, Bill, RecurringExpense, Currency } from '@/lib/types';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  Form, FormField, FormItem, FormLabel, FormControl, FormMessage,
+} from '@/components/ui/form';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { expenseSchema, invoiceSchema, billSchema, recurringExpenseSchema } from '@/lib/validations';
+import type {
+  Status, Expense, Invoice, Bill, RecurringExpense, Currency,
+  ExpenseStatus, InvoiceStatus, BillStatus,
+} from '@/lib/types';
 
 type FinanceTab = 'expenses' | 'invoices' | 'bills' | 'cashflow' | 'budget' | 'recurring' | 'tax';
 
@@ -21,46 +43,50 @@ const TABS: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
   { id: 'tax', label: 'Tax', icon: <ArrowUpRight className="h-3.5 w-3.5" /> },
 ];
 
-const EXPENSE_STATUS_MAP: Record<string, { status: Status; label: string }> = {
-  Approved: { status: 'green', label: 'Approved' },
-  Pending: { status: 'gold', label: 'Pending' },
-  Rejected: { status: 'red', label: 'Rejected' },
+const EXPENSE_STATUS_MAP: Record<ExpenseStatus, Status> = {
+  approved: 'green',
+  pending: 'gold',
+  rejected: 'red',
 };
 
-const INVOICE_STATUS_MAP: Record<string, { status: Status; label: string }> = {
-  Paid: { status: 'green', label: 'Paid' },
-  Pending: { status: 'gold', label: 'Pending' },
-  Overdue: { status: 'red', label: 'Overdue' },
-  Draft: { status: 'blue', label: 'Draft' },
+const INVOICE_STATUS_MAP: Record<InvoiceStatus, { status: Status; label: string }> = {
+  paid: { status: 'green', label: 'Paid' },
+  pending: { status: 'gold', label: 'Pending' },
+  partial: { status: 'blue', label: 'Partial' },
+  draft: { status: 'blue', label: 'Draft' },
+  overdue: { status: 'red', label: 'Overdue' },
 };
 
-const BILL_STATUS_MAP: Record<string, { status: Status; label: string }> = {
-  Paid: { status: 'green', label: 'Paid' },
-  Pending: { status: 'gold', label: 'Pending' },
-  Overdue: { status: 'red', label: 'Overdue' },
+const BILL_STATUS_MAP: Record<BillStatus, { status: Status; label: string }> = {
+  paid: { status: 'green', label: 'Paid' },
+  pending: { status: 'gold', label: 'Pending' },
+  overdue: { status: 'red', label: 'Overdue' },
 };
+
+const CATEGORIES = ['Operations', 'Logistics', 'Installation', 'Admin', 'Marketing', 'Travel'];
+const TODAY = () => new Date().toISOString().slice(0, 10);
+const PLUS_30_DAYS = () => new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+
+function isInvoiceOverdue(inv: Invoice): boolean {
+  return (inv.status === 'pending' || inv.status === 'partial') && inv.dueDate < TODAY();
+}
+
+function effectiveInvoiceStatus(inv: Invoice): InvoiceStatus {
+  return inv.status !== 'paid' && inv.dueDate < TODAY() ? 'overdue' : inv.status;
+}
 
 export function FinanceView() {
   const [activeTab, setActiveTab] = useState<FinanceTab>('expenses');
   const expenses = useAppStore((s) => s.expenses);
   const invoices = useAppStore((s) => s.invoices);
   const bills = useAppStore((s) => s.bills);
-  const recurringExpenses = useAppStore((s) => s.recurringExpenses);
   const budgetData = useAppStore((s) => s.budgetData);
-  const currency = useAppStore((s) => s.currency);
-  const setExpenses = useAppStore((s) => s.setExpenses);
-  const setInvoices = useAppStore((s) => s.setInvoices);
-  const setBills = useAppStore((s) => s.setBills);
-  const setRecurringExpenses = useAppStore((s) => s.setRecurringExpenses);
-  const addToast = useAppStore((s) => s.addToast);
-  const addActivity = useAppStore((s) => s.addActivity);
-  const service = useAppStore((s) => s._service);
 
   // Summary cards
-  const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
+  const totalRevenue = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.paidAmount, 0);
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
   const netProfit = totalRevenue - totalExpenses;
-  const arOutstanding = invoices.filter(i => i.status !== 'Paid').reduce((s, i) => s + (i.amount - i.paidAmount), 0);
+  const arOutstanding = invoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.amount - i.paidAmount), 0);
 
   return (
     <div className="animate-fade-up space-y-4">
@@ -93,46 +119,13 @@ export function FinanceView() {
 
       {/* Tab content */}
       <div className="rounded-xl border border-border bg-card p-4 md:p-5">
-        {activeTab === 'expenses' && (
-          <ExpensesTab expenses={expenses} currency={currency} onDelete={(id) => {
-            service?.deleteExpense(id);
-            setExpenses(expenses.filter(e => e.id !== id));
-            addToast('info', '🗑️', 'Expense deleted');
-          }} onAdd={(exp) => {
-            service?.addExpense(exp);
-            setExpenses([...expenses, exp]);
-            addActivity({ id: generateId(), text: 'Expense added', detail: exp.title, icon: '💰', timestamp: getTimestamp() });
-            addToast('success', '✅', 'Expense added');
-          }} />
-        )}
-        {activeTab === 'invoices' && (
-          <InvoicesTab invoices={invoices} currency={currency} onAdd={(inv) => {
-            service?.addInvoice(inv);
-            setInvoices([...invoices, inv]);
-            addToast('success', '✅', 'Invoice added');
-          }} onDelete={(id) => {
-            service?.deleteInvoice(id);
-            setInvoices(invoices.filter(i => i.id !== id));
-            addToast('info', '🗑️', 'Invoice deleted');
-          }} />
-        )}
-        {activeTab === 'bills' && (
-          <BillsTab bills={bills} currency={currency} onAdd={(bill) => {
-            service?.addBill(bill);
-            setBills([...bills, bill]);
-            addToast('success', '✅', 'Bill added');
-          }} onDelete={(id) => {
-            service?.deleteBill(id);
-            setBills(bills.filter(b => b.id !== id));
-            addToast('info', '🗑️', 'Bill deleted');
-          }} />
-        )}
-        {activeTab === 'cashflow' && <CashFlowTab invoices={invoices} expenses={expenses} currency={currency} />}
-        {activeTab === 'budget' && <BudgetTab budgetData={budgetData} currency={currency} />}
-        {activeTab === 'recurring' && (
-          <RecurringTab recurringExpenses={recurringExpenses} currency={currency} setRecurringExpenses={setRecurringExpenses} addToast={addToast} />
-        )}
-        {activeTab === 'tax' && <TaxTab invoices={invoices} expenses={expenses} currency={currency} />}
+        {activeTab === 'expenses' && <ExpensesTab />}
+        {activeTab === 'invoices' && <InvoicesTab />}
+        {activeTab === 'bills' && <BillsTab />}
+        {activeTab === 'cashflow' && <CashFlowTab invoices={invoices} expenses={expenses} bills={bills} />}
+        {activeTab === 'budget' && <BudgetTab budgetData={budgetData} />}
+        {activeTab === 'recurring' && <RecurringTab />}
+        {activeTab === 'tax' && <TaxTab invoices={invoices} expenses={expenses} />}
       </div>
     </div>
   );
@@ -153,61 +146,165 @@ function FinanceSummaryCard({ label, value, icon, positive = false, highlight = 
   );
 }
 
-// ── Expenses Tab ──────────────────────────────────────────────────
-function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
-  expenses: Expense[]; currency: Currency; onDelete: (id: string) => void; onAdd: (e: Expense) => void;
+// ── Shared bits ───────────────────────────────────────────────────
+function FilterChips({ options, value, onChange }: {
+  options: { key: string; label: string }[]; value: string; onChange: (k: string) => void;
 }) {
-  const [showForm, setShowForm] = useState(false);
+  return (
+    <div className="flex gap-1 flex-wrap">
+      {options.map((o) => (
+        <button
+          key={o.key}
+          onClick={() => onChange(o.key)}
+          className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${value === o.key ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SearchBar({ placeholder, value, onChange }: { placeholder: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} className="pl-9" />
+    </div>
+  );
+}
+
+function DeleteDialog({ open, onOpenChange, title, description, onConfirm }: {
+  open: boolean; onOpenChange: (o: boolean) => void; title: string; description: string; onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-white hover:bg-destructive/90">
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+// ── Expenses Tab ──────────────────────────────────────────────────
+type ExpenseFormData = { title: string; amount: number; category: string; date: string };
+
+function ExpensesTab() {
+  const expenses = useAppStore((s) => s.expenses);
+  const currency = useAppStore((s) => s.currency);
+  const openModal = useAppStore((s) => s.openModal);
+  const saveExpense = useAppStore((s) => s.saveExpense);
+  const deleteExpense = useAppStore((s) => s.deleteExpense);
+  const addToast = useAppStore((s) => s.addToast);
+  const addActivity = useAppStore((s) => s.addActivity);
+
   const [search, setSearch] = useState('');
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('Operations');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const filtered = useMemo(() => expenses.filter(e =>
-    e.title.toLowerCase().includes(search.toLowerCase()) ||
-    e.category.toLowerCase().includes(search.toLowerCase())
-  ), [expenses, search]);
+  const form = useForm<ExpenseFormData>({
+    resolver: zodResolver(expenseSchema.omit({ status: true, approval: true, createdBy: true })) as any,
+    defaultValues: { title: '', amount: 0, category: 'Operations', date: '' },
+  });
 
-  function handleAdd() {
-    if (!title.trim() || !amount) { return; }
-    onAdd({
-      id: generateId(), title: title.trim(),
-      amount: parseInt(amount, 10) || 0, category,
-      date: new Date().toISOString().slice(0, 10),
-      status: 'Pending', approval: 'Pending', createdBy: 'Moussa',
+  const filtered = useMemo(() => expenses.filter(e => {
+    if (statusFilter !== 'all' && e.status !== statusFilter) return false;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return e.title.toLowerCase().includes(q) || e.category.toLowerCase().includes(q);
+  }), [expenses, search, statusFilter]);
+
+  function openDetail(e: Expense) {
+    openModal(e.title, (
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div><span className="text-muted-foreground">Category:</span> {e.category}</div>
+          <div><span className="text-muted-foreground">Amount:</span> <span className="font-mono">{formatPrice(e.amount, currency)}</span></div>
+          <div><span className="text-muted-foreground">Status:</span> <span className="capitalize">{e.approval}</span></div>
+          <div><span className="text-muted-foreground">Date:</span> {formatDate(e.date)}</div>
+          <div className="col-span-2"><span className="text-muted-foreground">Requested by:</span> {e.createdBy}</div>
+        </div>
+      </div>
+    ));
+  }
+
+  function handleApproval(e: Expense, nextRaw: string) {
+    const next = nextRaw as Exclude<ExpenseStatus, 'pending'>;
+    if (next === e.approval) return;
+    saveExpense({ ...e, status: next, approval: next });
+    addToast(next === 'approved' ? 'success' : 'info', next === 'approved' ? '✅' : '🚫', `${e.title} ${next}`);
+    addActivity({
+      id: generateId(),
+      text: `Expense ${next}`,
+      detail: `${e.title} · ${formatPrice(e.amount, currency)}`,
+      icon: next === 'approved' ? '✅' : '🚫',
+      timestamp: getTimestamp(),
     });
-    setTitle(''); setAmount(''); setShowForm(false);
+  }
+
+  async function onSubmit(data: ExpenseFormData) {
+    setIsSaving(true);
+    try {
+      saveExpense({
+        id: generateId(), title: data.title.trim(),
+        amount: data.amount, category: data.category, date: data.date,
+        status: 'pending', approval: 'pending', createdBy: 'Moussa',
+      });
+      addToast('success', '✅', 'Expense submitted for approval');
+      addActivity({ id: generateId(), text: 'Expense added', detail: data.title.trim(), icon: '💰', timestamp: getTimestamp() });
+      form.reset({ title: '', amount: 0, category: 'Operations', date: '' });
+      setBuilderOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">Expenses ({filtered.length})</h3>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+        <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
           <Plus className="h-3.5 w-3.5" /> Add Expense
-        </button>
+        </Button>
       </div>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search by title or category..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
-      {showForm && (
-        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-          <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <select value={category} onChange={e => setCategory(e.target.value)} className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-            <option>Operations</option><option>Logistics</option><option>Installation</option><option>Admin</option><option>Marketing</option>
-          </select>
-          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
-        </div>
+
+      {expenses.length > 0 && (
+        <>
+          <SearchBar placeholder="Search by title or category..." value={search} onChange={setSearch} />
+          <FilterChips
+            options={[
+              { key: 'all', label: 'All' },
+              { key: 'pending', label: 'Pending' },
+              { key: 'approved', label: 'Approved' },
+              { key: 'rejected', label: 'Rejected' },
+            ]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </>
       )}
-      <div className="max-h-80 overflow-y-auto">
+
+      {expenses.length === 0 ? (
+        <div className="py-12 text-center space-y-3">
+          <p className="text-muted-foreground text-sm">No expenses recorded.</p>
+          <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
+            <Plus className="h-3.5 w-3.5" /> Add your first expense
+          </Button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="py-8 text-center text-muted-foreground text-xs">No expenses match your search.</p>
+      ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted-foreground">
@@ -216,84 +313,263 @@ function ExpensesTab({ expenses, currency, onDelete, onAdd }: {
               <th className="text-right pb-2 font-medium">Amount</th>
               <th className="text-center pb-2 font-medium">Status</th>
               <th className="text-right pb-2 font-medium hidden md:table-cell">Date</th>
-              <th className="text-right pb-2 font-medium w-10"></th>
+              <th className="text-right pb-2 font-medium w-24"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {filtered.map((e) => {
-              const sm = EXPENSE_STATUS_MAP[e.status] || EXPENSE_STATUS_MAP['Pending'];
               return (
-                <tr key={e.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="py-2.5 font-medium text-foreground text-xs">{e.title}</td>
+                <tr key={e.id} onClick={() => openDetail(e)} className="hover:bg-muted/50 cursor-pointer transition-colors group">
+                  <td className="py-2.5 font-medium text-foreground text-xs group-hover:text-gold transition-colors">{e.title}</td>
                   <td className="py-2.5 text-muted-foreground text-xs hidden sm:table-cell">{e.category}</td>
                   <td className="py-2.5 text-right font-mono text-xs">{formatPrice(e.amount, currency)}</td>
-                  <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
+                  <td className="py-2.5 text-center"><StatusBadge status={EXPENSE_STATUS_MAP[e.status]} label={e.status.charAt(0).toUpperCase() + e.status.slice(1)} /></td>
                   <td className="py-2.5 text-right text-xs text-muted-foreground hidden md:table-cell">{formatDate(e.date)}</td>
-                  <td className="py-2.5 text-right">
-                    <button onClick={() => onDelete(e.id)} className="p-1 text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <td className="py-2.5 text-right" onClick={(ev) => ev.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1">
+                      {e.status === 'pending' && (
+                        <Select value={e.status} onValueChange={(v) => handleApproval(e, v)}>
+                          <SelectTrigger size="sm" className="w-[92px] h-7 text-xs" aria-label="Review expense">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="approved">Approve</SelectItem>
+                            <SelectItem value="rejected">Reject</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <button
+                        onClick={() => setDeleteTarget(e)}
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        aria-label={`Delete ${e.title}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
             })}
-            {filtered.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">{search ? 'No expenses match search' : 'No expenses recorded'}</td></tr>}
           </tbody>
         </table>
-      </div>
+      )}
+
+      {/* Add Expense Dialog */}
+      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Expense</DialogTitle>
+            <DialogDescription>Submit an expense for approval</DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="title" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title *</FormLabel>
+                  <FormControl><Input placeholder="e.g. Site preparation" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-2">
+                <FormField control={form.control} name="amount" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount (XOF) *</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="date" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="category" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setBuilderOpen(false)} className="flex-1">Cancel</Button>
+                <Button type="submit" disabled={isSaving} className="flex-1 bg-gold text-os-dark hover:bg-gold-dark">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}
+        title="Delete expense?"
+        description={`This will permanently delete "${deleteTarget?.title}". This action cannot be undone.`}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteExpense(deleteTarget.id);
+          addToast('info', '🗑️', 'Expense deleted');
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
 
 // ── Invoices Tab ──────────────────────────────────────────────────
-function InvoicesTab({ invoices, currency, onAdd, onDelete }: {
-  invoices: Invoice[]; currency: Currency; onAdd: (i: Invoice) => void; onDelete: (id: string) => void;
-}) {
-  const [showForm, setShowForm] = useState(false);
+type InvoiceFormData = { client: string; amount: number; date: string; dueDate: string };
+
+function InvoicesTab() {
+  const invoices = useAppStore((s) => s.invoices);
+  const currency = useAppStore((s) => s.currency);
+  const openModal = useAppStore((s) => s.openModal);
+  const saveInvoice = useAppStore((s) => s.saveInvoice);
+  const deleteInvoice = useAppStore((s) => s.deleteInvoice);
+  const addToast = useAppStore((s) => s.addToast);
+  const addActivity = useAppStore((s) => s.addActivity);
+
   const [search, setSearch] = useState('');
-  const [client, setClient] = useState('');
-  const [amount, setAmount] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [paymentTarget, setPaymentTarget] = useState<Invoice | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const filtered = useMemo(() => invoices.filter(i =>
-    i.client.toLowerCase().includes(search.toLowerCase())
-  ), [invoices, search]);
+  const form = useForm<InvoiceFormData>({
+    resolver: zodResolver(invoiceSchema.omit({ status: true, paidAmount: true })) as any,
+    defaultValues: { client: '', amount: 0, date: TODAY(), dueDate: PLUS_30_DAYS() },
+  });
 
-  function handleAdd() {
-    if (!client.trim() || !amount) return;
-    onAdd({
-      id: generateId(), client: client.trim(),
-      amount: parseInt(amount, 10) || 0,
-      date: new Date().toISOString().slice(0, 10),
-      status: 'Pending', dueDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-      paidAmount: 0,
+  const paymentForm = useForm<{ payment: number }>({ defaultValues: { payment: 0 } });
+
+  const filtered = useMemo(() => invoices.filter(i => {
+    const eff = effectiveInvoiceStatus(i);
+    if (statusFilter !== 'all' && eff !== statusFilter) return false;
+    if (!search) return true;
+    return i.client.toLowerCase().includes(search.toLowerCase());
+  }), [invoices, search, statusFilter]);
+
+  function openDetail(inv: Invoice) {
+    const eff = effectiveInvoiceStatus(inv);
+    const remaining = inv.amount - inv.paidAmount;
+    openModal(`Invoice · ${inv.client}`, (
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div><span className="text-muted-foreground">Client:</span> {inv.client}</div>
+          <div><span className="text-muted-foreground">Status:</span> {INVOICE_STATUS_MAP[eff].label}</div>
+          <div><span className="text-muted-foreground">Issued:</span> {formatDate(inv.date)}</div>
+          <div><span className="text-muted-foreground">Due:</span> {formatDate(inv.dueDate)}</div>
+          <div><span className="text-muted-foreground">Total:</span> <span className="font-mono">{formatPrice(inv.amount, currency)}</span></div>
+          <div><span className="text-muted-foreground">Paid:</span> <span className="font-mono text-emerald-600 dark:text-emerald-400">{formatPrice(inv.paidAmount, currency)}</span></div>
+          <div className="col-span-2"><span className="text-muted-foreground">Remaining:</span> <span className="font-mono font-medium">{formatPrice(remaining, currency)}</span></div>
+        </div>
+      </div>
+    ));
+  }
+
+  function openPaymentDialog(inv: Invoice) {
+    setPaymentTarget(inv);
+    paymentForm.reset({ payment: inv.amount - inv.paidAmount });
+  }
+
+  function handleRecordPayment() {
+    if (!paymentTarget) return;
+    const remaining = paymentTarget.amount - paymentTarget.paidAmount;
+    const amt = Math.max(0, Math.min(paymentForm.getValues('payment') || 0, remaining));
+    if (amt <= 0) {
+      paymentForm.setError('payment', { message: 'Enter a payment amount' });
+      return;
+    }
+    const paidAmount = paymentTarget.paidAmount + amt;
+    const updated: Invoice = {
+      ...paymentTarget,
+      paidAmount,
+      status: paidAmount >= paymentTarget.amount ? 'paid' : 'partial',
+    };
+    saveInvoice(updated);
+    addToast('success', '💰', `Payment of ${formatPrice(amt, currency)} recorded`);
+    addActivity({
+      id: generateId(),
+      text: 'Invoice payment recorded',
+      detail: `${updated.client} · ${formatPrice(amt, currency)}${updated.status === 'paid' ? ' · Fully paid' : ''}`,
+      icon: '💰',
+      timestamp: getTimestamp(),
     });
-    setClient(''); setAmount(''); setShowForm(false);
+    setPaymentTarget(null);
+  }
+
+  async function onSubmit(data: InvoiceFormData) {
+    setIsSaving(true);
+    try {
+      saveInvoice({
+        id: generateId(), client: data.client.trim(),
+        amount: data.amount, date: data.date, dueDate: data.dueDate,
+        status: 'pending', paidAmount: 0,
+      });
+      addToast('success', '✅', 'Invoice created');
+      addActivity({
+        id: generateId(), text: 'Invoice created',
+        detail: `${data.client.trim()} · ${formatPrice(data.amount, currency)}`,
+        icon: '📄', timestamp: getTimestamp(),
+      });
+      form.reset({ client: '', amount: 0, date: TODAY(), dueDate: PLUS_30_DAYS() });
+      setBuilderOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">Invoices ({filtered.length})</h3>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+        <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
           <Plus className="h-3.5 w-3.5" /> Add Invoice
-        </button>
+        </Button>
       </div>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search by client..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
-      {showForm && (
-        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-          <input type="text" placeholder="Client" value={client} onChange={e => setClient(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
-        </div>
+
+      {invoices.length > 0 && (
+        <>
+          <SearchBar placeholder="Search by client..." value={search} onChange={setSearch} />
+          <FilterChips
+            options={[
+              { key: 'all', label: 'All' },
+              { key: 'pending', label: 'Pending' },
+              { key: 'partial', label: 'Partial' },
+              { key: 'overdue', label: 'Overdue' },
+              { key: 'paid', label: 'Paid' },
+            ]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </>
       )}
-      <div className="max-h-80 overflow-y-auto">
+
+      {invoices.length === 0 ? (
+        <div className="py-12 text-center space-y-3">
+          <p className="text-muted-foreground text-sm">No invoices recorded.</p>
+          <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
+            <Plus className="h-3.5 w-3.5" /> Create your first invoice
+          </Button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="py-8 text-center text-muted-foreground text-xs">No invoices match your search.</p>
+      ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted-foreground">
@@ -302,83 +578,258 @@ function InvoicesTab({ invoices, currency, onAdd, onDelete }: {
               <th className="text-center pb-2 font-medium">Status</th>
               <th className="text-right pb-2 font-medium hidden sm:table-cell">Due</th>
               <th className="text-right pb-2 font-medium hidden md:table-cell">Paid</th>
-              <th className="text-right pb-2 font-medium w-10"></th>
+              <th className="text-right pb-2 font-medium w-32"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {filtered.map((inv) => {
-              const sm = INVOICE_STATUS_MAP[inv.status] || INVOICE_STATUS_MAP['Draft'];
+              const eff = effectiveInvoiceStatus(inv);
+              const sm = INVOICE_STATUS_MAP[eff];
+              const overdue = eff === 'overdue';
+              const fullyPaid = inv.status === 'paid';
               return (
-                <tr key={inv.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="py-2.5 font-medium text-foreground text-xs">{inv.client}</td>
+                <tr key={inv.id} onClick={() => openDetail(inv)} className="hover:bg-muted/50 cursor-pointer transition-colors group">
+                  <td className="py-2.5 font-medium text-foreground text-xs group-hover:text-gold transition-colors">{inv.client}</td>
                   <td className="py-2.5 text-right font-mono text-xs">{formatPrice(inv.amount, currency)}</td>
                   <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
-                  <td className="py-2.5 text-right text-xs text-muted-foreground hidden sm:table-cell">{formatDate(inv.dueDate)}</td>
-                  <td className="py-2.5 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 hidden md:table-cell">{formatPrice(inv.paidAmount, currency)}</td>
-                  <td className="py-2.5 text-right">
-                    <button onClick={() => onDelete(inv.id)} className="p-1 text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <td className={`py-2.5 text-right text-xs hidden sm:table-cell ${overdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                    {overdue ? 'Overdue · ' : ''}{formatDate(inv.dueDate)}
+                  </td>
+                  <td className="py-2.5 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 hidden md:table-cell">
+                    {formatPrice(inv.paidAmount, currency)}
+                  </td>
+                  <td className="py-2.5 text-right" onClick={(ev) => ev.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1">
+                      {!fullyPaid && (
+                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openPaymentDialog(inv)}>
+                          <Wallet className="h-3 w-3" /> Pay
+                        </Button>
+                      )}
+                      <button
+                        onClick={() => setDeleteTarget(inv)}
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        aria-label={`Delete invoice for ${inv.client}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
             })}
-            {filtered.length === 0 && <tr><td colSpan={6} className="py-8 text-center text-muted-foreground text-xs">{search ? 'No invoices match search' : 'No invoices recorded'}</td></tr>}
           </tbody>
         </table>
-      </div>
+      )}
+
+      {/* Add Invoice Dialog */}
+      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>New Invoice</DialogTitle>
+            <DialogDescription>Create an invoice for a client</DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="client" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client *</FormLabel>
+                  <FormControl><Input placeholder="Client name" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="amount" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount (XOF) *</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-2">
+                <FormField control={form.control} name="date" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Issued *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="dueDate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setBuilderOpen(false)} className="flex-1">Cancel</Button>
+                <Button type="submit" disabled={isSaving} className="flex-1 bg-gold text-os-dark hover:bg-gold-dark">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {isSaving ? 'Creating...' : 'Create'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Record Payment Dialog */}
+      <Dialog open={!!paymentTarget} onOpenChange={(open) => { if (!open) setPaymentTarget(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Record Payment</DialogTitle>
+            <DialogDescription>
+              {paymentTarget?.client} · Remaining {paymentTarget ? formatPrice(paymentTarget.amount - paymentTarget.paidAmount, currency) : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...paymentForm}>
+            <form onSubmit={paymentForm.handleSubmit(handleRecordPayment)} className="space-y-4">
+              <FormField control={paymentForm.control} name="payment" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Amount (XOF)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0" autoFocus {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setPaymentTarget(null)} className="flex-1">Cancel</Button>
+                <Button type="submit" className="flex-1 bg-gold text-os-dark hover:bg-gold-dark">
+                  <Wallet className="h-4 w-4" /> Record
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}
+        title="Delete invoice?"
+        description={`This will permanently delete the invoice for ${deleteTarget?.client}. This action cannot be undone.`}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteInvoice(deleteTarget.id);
+          addToast('info', '🗑️', 'Invoice deleted');
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
 
 // ── Bills Tab ─────────────────────────────────────────────────────
-function BillsTab({ bills, currency, onAdd, onDelete }: {
-  bills: Bill[]; currency: Currency; onAdd: (b: Bill) => void; onDelete: (id: string) => void;
-}) {
-  const [showForm, setShowForm] = useState(false);
+type BillFormData = { supplier: string; amount: number; date: string; dueDate: string };
+
+function BillsTab() {
+  const bills = useAppStore((s) => s.bills);
+  const currency = useAppStore((s) => s.currency);
+  const openModal = useAppStore((s) => s.openModal);
+  const saveBill = useAppStore((s) => s.saveBill);
+  const deleteBill = useAppStore((s) => s.deleteBill);
+  const addToast = useAppStore((s) => s.addToast);
+  const addActivity = useAppStore((s) => s.addActivity);
+
   const [search, setSearch] = useState('');
-  const [supplier, setSupplier] = useState('');
-  const [amount, setAmount] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState<Bill | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const filtered = useMemo(() => bills.filter(b =>
-    b.supplier.toLowerCase().includes(search.toLowerCase())
-  ), [bills, search]);
+  const form = useForm<BillFormData>({
+    resolver: zodResolver(billSchema.omit({ status: true })) as any,
+    defaultValues: { supplier: '', amount: 0, date: TODAY(), dueDate: PLUS_30_DAYS() },
+  });
 
-  function handleAdd() {
-    if (!supplier.trim() || !amount) return;
-    onAdd({
-      id: generateId(), supplier: supplier.trim(),
-      amount: parseInt(amount, 10) || 0,
-      date: new Date().toISOString().slice(0, 10),
-      status: 'Pending', dueDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+  const effectiveBillStatus = (b: Bill): BillStatus =>
+    b.status !== 'paid' && b.dueDate < TODAY() ? 'overdue' : b.status;
+
+  const filtered = useMemo(() => bills.filter(b => {
+    const eff = effectiveBillStatus(b);
+    if (statusFilter !== 'all' && eff !== statusFilter) return false;
+    if (!search) return true;
+    return b.supplier.toLowerCase().includes(search.toLowerCase());
+  }), [bills, search, statusFilter]);
+
+  function openDetail(b: Bill) {
+    openModal(`Bill · ${b.supplier}`, (
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div><span className="text-muted-foreground">Supplier:</span> {b.supplier}</div>
+        <div><span className="text-muted-foreground">Status:</span> {BILL_STATUS_MAP[effectiveBillStatus(b)].label}</div>
+        <div><span className="text-muted-foreground">Amount:</span> <span className="font-mono">{formatPrice(b.amount, currency)}</span></div>
+        <div><span className="text-muted-foreground">Due:</span> {formatDate(b.dueDate)}</div>
+      </div>
+    ));
+  }
+
+  function payBill(b: Bill) {
+    saveBill({ ...b, status: 'paid' });
+    addToast('success', '🧾', `Bill paid · ${b.supplier}`);
+    addActivity({
+      id: generateId(), text: 'Bill paid',
+      detail: `${b.supplier} · ${formatPrice(b.amount, currency)}`,
+      icon: '🧾', timestamp: getTimestamp(),
     });
-    setSupplier(''); setAmount(''); setShowForm(false);
+  }
+
+  async function onSubmit(data: BillFormData) {
+    setIsSaving(true);
+    try {
+      saveBill({
+        id: generateId(), supplier: data.supplier.trim(),
+        amount: data.amount, date: data.date, dueDate: data.dueDate, status: 'pending',
+      });
+      addToast('success', '✅', 'Bill added');
+      addActivity({
+        id: generateId(), text: 'Bill added',
+        detail: `${data.supplier.trim()} · ${formatPrice(data.amount, currency)}`,
+        icon: '🧾', timestamp: getTimestamp(),
+      });
+      form.reset({ supplier: '', amount: 0, date: TODAY(), dueDate: PLUS_30_DAYS() });
+      setBuilderOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">Bills ({filtered.length})</h3>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+        <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
           <Plus className="h-3.5 w-3.5" /> Add Bill
-        </button>
+        </Button>
       </div>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search by supplier..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
-      {showForm && (
-        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-          <input type="text" placeholder="Supplier" value={supplier} onChange={e => setSupplier(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
-        </div>
+
+      {bills.length > 0 && (
+        <>
+          <SearchBar placeholder="Search by supplier..." value={search} onChange={setSearch} />
+          <FilterChips
+            options={[
+              { key: 'all', label: 'All' },
+              { key: 'pending', label: 'Pending' },
+              { key: 'overdue', label: 'Overdue' },
+              { key: 'paid', label: 'Paid' },
+            ]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </>
       )}
-      <div className="max-h-80 overflow-y-auto">
+
+      {bills.length === 0 ? (
+        <div className="py-12 text-center space-y-3">
+          <p className="text-muted-foreground text-sm">No bills recorded.</p>
+          <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
+            <Plus className="h-3.5 w-3.5" /> Add your first bill
+          </Button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="py-8 text-center text-muted-foreground text-xs">No bills match your search.</p>
+      ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted-foreground">
@@ -386,38 +837,121 @@ function BillsTab({ bills, currency, onAdd, onDelete }: {
               <th className="text-right pb-2 font-medium">Amount</th>
               <th className="text-center pb-2 font-medium">Status</th>
               <th className="text-right pb-2 font-medium hidden sm:table-cell">Due</th>
-              <th className="text-right pb-2 font-medium w-10"></th>
+              <th className="text-right pb-2 font-medium w-24"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {filtered.map((b) => {
-              const sm = BILL_STATUS_MAP[b.status] || BILL_STATUS_MAP['Pending'];
+              const eff = effectiveBillStatus(b);
+              const sm = BILL_STATUS_MAP[eff];
               return (
-                <tr key={b.id} className="hover:bg-muted/50 transition-colors">
-                  <td className="py-2.5 font-medium text-foreground text-xs">{b.supplier}</td>
+                <tr key={b.id} onClick={() => openDetail(b)} className="hover:bg-muted/50 cursor-pointer transition-colors group">
+                  <td className="py-2.5 font-medium text-foreground text-xs group-hover:text-gold transition-colors">{b.supplier}</td>
                   <td className="py-2.5 text-right font-mono text-xs">{formatPrice(b.amount, currency)}</td>
                   <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
-                  <td className="py-2.5 text-right text-xs text-muted-foreground hidden sm:table-cell">{formatDate(b.dueDate)}</td>
-                  <td className="py-2.5 text-right">
-                    <button onClick={() => onDelete(b.id)} className="p-1 text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                  <td className={`py-2.5 text-right text-xs hidden sm:table-cell ${eff === 'overdue' ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                    {eff === 'overdue' ? 'Overdue · ' : ''}{formatDate(b.dueDate)}
+                  </td>
+                  <td className="py-2.5 text-right" onClick={(ev) => ev.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1">
+                      {b.status !== 'paid' && (
+                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => payBill(b)}>
+                          <Wallet className="h-3 w-3" /> Pay
+                        </Button>
+                      )}
+                      <button
+                        onClick={() => setDeleteTarget(b)}
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        aria-label={`Delete bill from ${b.supplier}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
             })}
-            {filtered.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-muted-foreground text-xs">{search ? 'No bills match search' : 'No bills recorded'}</td></tr>}
           </tbody>
         </table>
-      </div>
+      )}
+
+      {/* Add Bill Dialog */}
+      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>New Bill</DialogTitle>
+            <DialogDescription>Record a supplier bill</DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="supplier" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Supplier *</FormLabel>
+                  <FormControl><Input placeholder="Supplier name" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="amount" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount (XOF) *</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-2">
+                <FormField control={form.control} name="date" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Received *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="dueDate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setBuilderOpen(false)} className="flex-1">Cancel</Button>
+                <Button type="submit" disabled={isSaving} className="flex-1 bg-gold text-os-dark hover:bg-gold-dark">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}
+        title="Delete bill?"
+        description={`This will permanently delete the bill from ${deleteTarget?.supplier}. This action cannot be undone.`}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteBill(deleteTarget.id);
+          addToast('info', '🗑️', 'Bill deleted');
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
 
 // ── Cash Flow Tab ─────────────────────────────────────────────────
-function CashFlowTab({ invoices, expenses, currency }: {
-  invoices: Invoice[]; expenses: Expense[]; currency: Currency;
+function CashFlowTab({ invoices, expenses, bills }: {
+  invoices: Invoice[]; expenses: Expense[]; bills: Bill[];
 }) {
-  const totalInflow = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
-  const totalOutflow = expenses.reduce((s, e) => s + e.amount, 0);
+  const currency = useAppStore((s) => s.currency);
+  const totalInflow = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.paidAmount, 0);
+  const unpaidBills = bills.filter(b => b.status !== 'paid').reduce((s, b) => s + b.amount, 0);
+  const totalOutflow = expenses.reduce((s, e) => s + e.amount, 0) + unpaidBills;
   const maxVal = Math.max(totalInflow, totalOutflow, 1);
   const net = totalInflow - totalOutflow;
 
@@ -436,7 +970,7 @@ function CashFlowTab({ invoices, expenses, currency }: {
         </div>
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-medium text-foreground flex items-center gap-1.5"><ArrowUpRight className="h-3.5 w-3.5 text-red-500" /> Outflow (Expenses)</span>
+            <span className="text-xs font-medium text-foreground flex items-center gap-1.5"><ArrowUpRight className="h-3.5 w-3.5 text-red-500" /> Outflow (Expenses + Unpaid Bills)</span>
             <span className="text-xs font-mono text-red-500">{formatPrice(totalOutflow, currency)}</span>
           </div>
           <div className="h-4 rounded-full bg-muted overflow-hidden">
@@ -453,9 +987,10 @@ function CashFlowTab({ invoices, expenses, currency }: {
 }
 
 // ── Budget vs Actual Tab ──────────────────────────────────────────
-function BudgetTab({ budgetData, currency }: {
-  budgetData: Record<string, import('@/lib/types').BudgetItem>; currency: Currency;
+function BudgetTab({ budgetData }: {
+  budgetData: Record<string, import('@/lib/types').BudgetItem>;
 }) {
+  const currency = useAppStore((s) => s.currency);
   const entries = Object.entries(budgetData);
   const totalBudget = entries.reduce((s, [, v]) => s + v.budget, 0);
   const totalActual = entries.reduce((s, [, v]) => s + v.actual, 0);
@@ -497,32 +1032,65 @@ function BudgetTab({ budgetData, currency }: {
 }
 
 // ── Recurring Tab ─────────────────────────────────────────────────
-function RecurringTab({ recurringExpenses, currency, setRecurringExpenses, addToast }: {
-  recurringExpenses: RecurringExpense[]; currency: Currency;
-  setRecurringExpenses: (r: RecurringExpense[]) => void;
-  addToast: (t: import('@/lib/types').ToastType, i: string, m: string) => void;
-}) {
-  const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [frequency, setFrequency] = useState<'Monthly' | 'Quarterly' | 'Yearly'>('Monthly');
+type RecurringFormData = { title: string; amount: number; frequency: 'Monthly' | 'Quarterly' | 'Yearly'; nextDate: string };
 
-  function handleAdd() {
-    if (!title.trim() || !amount) return;
-    const re: RecurringExpense = {
-      id: generateId(), title: title.trim(),
-      amount: parseInt(amount, 10) || 0, frequency,
-      nextDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-    };
-    setRecurringExpenses([...recurringExpenses, re]);
-    addToast('success', '✅', 'Recurring expense added');
-    setTitle(''); setAmount(''); setShowForm(false);
-  }
+function advanceNextDate(dateStr: string, frequency: RecurringExpense['frequency']): string {
+  const days = frequency === 'Monthly' ? 30 : frequency === 'Quarterly' ? 91 : 365;
+  return new Date(new Date(dateStr).getTime() + days * 86400000).toISOString().slice(0, 10);
+}
+
+function RecurringTab() {
+  const recurringExpenses = useAppStore((s) => s.recurringExpenses);
+  const currency = useAppStore((s) => s.currency);
+  const saveRecurring = useAppStore((s) => s.saveRecurring);
+  const deleteRecurring = useAppStore((s) => s.deleteRecurring);
+  const addToast = useAppStore((s) => s.addToast);
+  const addActivity = useAppStore((s) => s.addActivity);
+
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<RecurringExpense | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const form = useForm<RecurringFormData>({
+    resolver: zodResolver(recurringExpenseSchema) as any,
+    defaultValues: { title: '', amount: 0, frequency: 'Monthly', nextDate: PLUS_30_DAYS() },
+  });
 
   const totalMonthly = recurringExpenses.reduce((s, r) => {
     const mult = r.frequency === 'Monthly' ? 1 : r.frequency === 'Quarterly' ? 1 / 3 : 1 / 12;
     return s + r.amount * mult;
   }, 0);
+
+  function postExpense(r: RecurringExpense) {
+    const nextDate = advanceNextDate(r.nextDate, r.frequency);
+    saveRecurring({ ...r, nextDate });
+    addToast('success', '🔁', `${r.title} posted · next ${formatDate(nextDate)}`);
+    addActivity({
+      id: generateId(), text: 'Recurring expense posted',
+      detail: `${r.title} · ${formatPrice(r.amount, currency)}`,
+      icon: '🔁', timestamp: getTimestamp(),
+    });
+  }
+
+  async function onSubmit(data: RecurringFormData) {
+    setIsSaving(true);
+    try {
+      saveRecurring({
+        id: generateId(), title: data.title.trim(),
+        amount: data.amount, frequency: data.frequency, nextDate: data.nextDate,
+      });
+      addToast('success', '✅', 'Recurring expense added');
+      addActivity({
+        id: generateId(), text: 'Recurring expense created',
+        detail: `${data.title.trim()} · ${formatPrice(data.amount, currency)} ${data.frequency.toLowerCase()}`,
+        icon: '🔁', timestamp: getTimestamp(),
+      });
+      form.reset({ title: '', amount: 0, frequency: 'Monthly', nextDate: PLUS_30_DAYS() });
+      setBuilderOpen(false);
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div className="space-y-3">
@@ -531,41 +1099,128 @@ function RecurringTab({ recurringExpenses, currency, setRecurringExpenses, addTo
           <h3 className="text-sm font-semibold text-foreground">Recurring Expenses ({recurringExpenses.length})</h3>
           <p className="text-[11px] text-muted-foreground">Est. monthly: {formatPrice(Math.round(totalMonthly), currency)}</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-3 py-1.5 text-xs font-medium hover:bg-gold-dark transition-colors">
+        <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
           <Plus className="h-3.5 w-3.5" /> Add
-        </button>
+        </Button>
       </div>
-      {showForm && (
-        <div className="os-inline-form flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-          <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <input type="number" placeholder="Amount (XOF)" value={amount} onChange={e => setAmount(e.target.value)} className="w-40 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
-          <select value={frequency} onChange={e => setFrequency(e.target.value as 'Monthly' | 'Quarterly' | 'Yearly')} className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-            <option>Monthly</option><option>Quarterly</option><option>Yearly</option>
-          </select>
-          <button onClick={handleAdd} className="rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">Save</button>
+
+      {recurringExpenses.length === 0 ? (
+        <div className="py-12 text-center space-y-3">
+          <p className="text-muted-foreground text-sm">No recurring expenses.</p>
+          <Button onClick={() => setBuilderOpen(true)} size="sm" className="bg-gold text-os-dark hover:bg-gold-dark">
+            <Plus className="h-3.5 w-3.5" /> Add your first recurring expense
+          </Button>
+        </div>
+      ) : (
+        <div className="max-h-80 overflow-y-auto space-y-2">
+          {recurringExpenses.map((r) => (
+            <div key={r.id} className="group flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
+              <div>
+                <p className="text-sm font-medium text-foreground">{r.title}</p>
+                <p className="text-xs text-muted-foreground">{r.frequency} · Next: {formatDate(r.nextDate)}</p>
+              </div>
+              <div className="flex items-center gap-2" >
+                <span className="text-sm font-mono font-bold text-gold">{formatPrice(r.amount, currency)}</span>
+                <Button variant="outline" size="sm" className="h-7 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => postExpense(r)} aria-label={`Post ${r.title}`}>
+                  <Repeat className="h-3 w-3" /> Post
+                </Button>
+                <button
+                  onClick={() => setDeleteTarget(r)}
+                  className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                  aria-label={`Delete ${r.title}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
-      <div className="max-h-80 overflow-y-auto space-y-2">
-        {recurringExpenses.map((r) => (
-          <div key={r.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
-            <div>
-              <p className="text-sm font-medium text-foreground">{r.title}</p>
-              <p className="text-xs text-muted-foreground">{r.frequency} · Next: {formatDate(r.nextDate)}</p>
-            </div>
-            <span className="text-sm font-mono font-bold text-gold">{formatPrice(r.amount, currency)}</span>
-          </div>
-        ))}
-        {recurringExpenses.length === 0 && <p className="text-center text-muted-foreground text-xs py-8">No recurring expenses</p>}
-      </div>
+
+      {/* Add Recurring Dialog */}
+      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Recurring Expense</DialogTitle>
+            <DialogDescription>Set up a repeating expense</DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="title" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title *</FormLabel>
+                  <FormControl><Input placeholder="e.g. Office rent" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-2">
+                <FormField control={form.control} name="amount" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount (XOF) *</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="nextDate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Next Date *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="frequency" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Frequency *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Monthly">Monthly</SelectItem>
+                      <SelectItem value="Quarterly">Quarterly</SelectItem>
+                      <SelectItem value="Yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setBuilderOpen(false)} className="flex-1">Cancel</Button>
+                <Button type="submit" disabled={isSaving} className="flex-1 bg-gold text-os-dark hover:bg-gold-dark">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}
+        title="Delete recurring expense?"
+        description={`This will permanently delete "${deleteTarget?.title}". This action cannot be undone.`}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteRecurring(deleteTarget.id);
+          addToast('info', '🗑️', 'Recurring expense deleted');
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
 
 // ── Tax Tab ───────────────────────────────────────────────────────
-function TaxTab({ invoices, expenses, currency }: {
-  invoices: Invoice[]; expenses: Expense[]; currency: Currency;
+function TaxTab({ invoices, expenses }: {
+  invoices: Invoice[]; expenses: Expense[];
 }) {
-  const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
+  const currency = useAppStore((s) => s.currency);
+  const totalRevenue = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.paidAmount, 0);
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
   const vatRate = 0.18;
   const estimatedVAT = Math.round(totalRevenue * vatRate);

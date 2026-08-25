@@ -1,138 +1,349 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Trash2, UserCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Trash2, Search, Loader2, Users, UserCheck, UserMinus } from 'lucide-react';
 import { useAppStore, generateId, getTimestamp } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
-import type { Status, TeamMember } from '@/lib/types';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  Form, FormField, FormItem, FormLabel, FormControl, FormMessage,
+} from '@/components/ui/form';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { teamMemberSchema } from '@/lib/validations';
+import type { TeamMember, Status } from '@/lib/types';
 
-const MEMBER_STATUS_MAP: Record<string, { status: Status; label: string }> = {
-  Active: { status: 'green', label: 'Active' },
-  'On Leave': { status: 'gold', label: 'On Leave' },
-  Inactive: { status: 'red', label: 'Inactive' },
+const MEMBER_STATUS_MAP: Record<TeamMember['status'], Status> = {
+  Active: 'green',
+  'On Leave': 'gold',
+  Inactive: 'red',
 };
 
-const ROLES = ['Project Manager', 'Procurement Officer', 'Installer', 'Accountant', 'Designer', 'Logistics Coordinator', 'Sales Manager', 'Admin'];
+const STATUS_FLOW: TeamMember['status'][] = ['Active', 'On Leave', 'Inactive'];
+
+const ROLES = [
+  'Managing Director',
+  'Project Manager',
+  'Procurement Officer',
+  'Lead Installer',
+  'Installer',
+  'Accountant',
+  'Designer',
+  'Logistics Coordinator',
+  'Sales Manager',
+  'Admin',
+];
+
+function initials(name: string): string {
+  return name.split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+
+type MemberFormData = {
+  name: string;
+  role: string;
+  status: TeamMember['status'];
+};
 
 export function TeamView() {
   const teamMembers = useAppStore((s) => s.teamMembers);
-  const setTeamMembers = useAppStore((s) => s.setTeamMembers);
+  const openModal = useAppStore((s) => s.openModal);
+  const saveTeamMember = useAppStore((s) => s.saveTeamMember);
+  const deleteTeamMember = useAppStore((s) => s.deleteTeamMember);
   const addToast = useAppStore((s) => s.addToast);
   const addActivity = useAppStore((s) => s.addActivity);
-  const service = useAppStore((s) => s._service);
 
-  const [name, setName] = useState('');
-  const [role, setRole] = useState(ROLES[0]);
-  const [status, setStatus] = useState<'Active' | 'On Leave' | 'Inactive'>('Active');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState<TeamMember | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  function addMember() {
-    if (!name.trim()) {
-      addToast('warning', '⚠️', 'Name is required');
-      return;
-    }
-    const member: TeamMember = {
-      id: generateId(),
-      name: name.trim(),
-      role,
-      status,
-    };
-    service?.addTeamMember(member);
-    setTeamMembers([...teamMembers, member]);
-    addActivity({ id: generateId(), text: 'Team member added', detail: `${name.trim()} · ${role}`, icon: '👤', timestamp: getTimestamp() });
-    addToast('success', '✅', `${name.trim()} added to team`);
-    setName('');
+  const form = useForm<MemberFormData>({
+    resolver: zodResolver(teamMemberSchema) as any,
+    defaultValues: { name: '', role: 'Project Manager', status: 'Active' },
+  });
+
+  const stats = useMemo(() => ({
+    total: teamMembers.length,
+    active: teamMembers.filter((m) => m.status === 'Active').length,
+    onLeave: teamMembers.filter((m) => m.status === 'On Leave').length,
+  }), [teamMembers]);
+
+  const filtered = useMemo(() => teamMembers.filter((m) => {
+    if (statusFilter !== 'all' && m.status !== statusFilter) return false;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return m.name.toLowerCase().includes(q) || m.role.toLowerCase().includes(q);
+  }), [teamMembers, search, statusFilter]);
+
+  function openDetail(m: TeamMember) {
+    openModal(m.name, (
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div><span className="text-muted-foreground">Role:</span> {m.role}</div>
+        <div><span className="text-muted-foreground">Status:</span> {m.status}</div>
+      </div>
+    ));
   }
 
-  function deleteMember(id: string, memberName: string) {
-    service?.deleteTeamMember(id);
-    setTeamMembers(teamMembers.filter((m) => m.id !== id));
-    addToast('info', '🗑️', `${memberName} removed`);
+  function handleStatusChange(member: TeamMember, nextRaw: string) {
+    const next = nextRaw as TeamMember['status'];
+    if (next === member.status) return;
+    saveTeamMember({ ...member, status: next });
+    addToast('success', '👤', `${member.name} → ${next}`);
+    addActivity({
+      id: generateId(),
+      text: 'Team member status updated',
+      detail: `${member.name} · ${member.role} → ${next}`,
+      icon: '👤',
+      timestamp: getTimestamp(),
+    });
+  }
+
+  async function onSubmit(data: MemberFormData) {
+    setIsSaving(true);
+    try {
+      const member: TeamMember = {
+        id: generateId(),
+        name: data.name.trim(),
+        role: data.role,
+        status: data.status,
+      };
+      saveTeamMember(member);
+      addToast('success', '✅', `${member.name} added to the team`);
+      addActivity({
+        id: generateId(),
+        text: 'Team member added',
+        detail: `${member.name} · ${member.role}`,
+        icon: '👤',
+        timestamp: getTimestamp(),
+      });
+      form.reset({ name: '', role: 'Project Manager', status: 'Active' });
+      setBuilderOpen(false);
+    } catch {
+      addToast('error', '❌', 'Failed to add team member. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
     <div className="animate-fade-up space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">Team</h2>
-        <span className="text-sm text-muted-foreground">{teamMembers.length} members</span>
+        <Button onClick={() => setBuilderOpen(true)} className="bg-gold text-os-dark hover:bg-gold-dark">
+          <Plus className="h-4 w-4" /> Add Member
+        </Button>
       </div>
 
-      {/* Add form */}
-      <div className="rounded-xl border border-border bg-card p-4">
-        <h3 className="text-sm font-semibold text-foreground mb-3">Add Team Member</h3>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            type="text"
-            placeholder="Full name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addMember()}
-            className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as 'Active' | 'On Leave' | 'Inactive')}
-            className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option>Active</option>
-            <option>On Leave</option>
-            <option>Inactive</option>
-          </select>
-          <button
-            onClick={addMember}
-            className="flex items-center gap-1.5 rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors whitespace-nowrap"
-          >
-            <Plus className="h-4 w-4" /> Add Member
-          </button>
+      {/* Summary strip */}
+      {teamMembers.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+              <Users className="h-4 w-4 text-foreground" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
+              <p className="text-sm font-bold text-foreground">{stats.total} member{stats.total === 1 ? '' : 's'}</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+              <UserCheck className="h-4 w-4 text-green-500" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Active</p>
+              <p className="text-sm font-bold text-foreground">{stats.active}</p>
+            </div>
+          </div>
+          <div className={`rounded-xl border bg-card p-4 flex items-center gap-3 ${stats.onLeave > 0 ? 'border-gold/30' : 'border-border'}`}>
+            <div className="h-9 w-9 rounded-lg bg-gold/10 flex items-center justify-center flex-shrink-0">
+              <UserMinus className="h-4 w-4 text-gold" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">On Leave</p>
+              <p className="text-sm font-bold text-foreground">{stats.onLeave}</p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Member list */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {teamMembers.map((m) => {
-          const sm = MEMBER_STATUS_MAP[m.status] || MEMBER_STATUS_MAP['Active'];
-          const initials = m.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
-          return (
-            <div key={m.id} className="rounded-xl border border-border bg-card p-4 hover:shadow-md transition-all">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-sm">
-                    {initials}
+      {teamMembers.length > 0 && (
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or role..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${statusFilter === 'all' ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+            >
+              All
+            </button>
+            {STATUS_FLOW.map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${statusFilter === s ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {teamMembers.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-12 text-center space-y-3">
+          <p className="text-muted-foreground">No team members yet.</p>
+          <Button onClick={() => setBuilderOpen(true)} className="bg-gold text-os-dark hover:bg-gold-dark">
+            <Plus className="h-4 w-4" /> Add your first team member
+          </Button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
+          <p className="text-muted-foreground">No members match your search.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((m) => (
+            <div
+              key={m.id}
+              onClick={() => openDetail(m)}
+              className="rounded-xl border border-border/60 bg-card p-4 shadow-md hover:shadow-xl hover:border-gold/30 transition-all duration-300 group cursor-pointer"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-full bg-gold/20 text-gold flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    {initials(m.name)}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{m.name}</p>
-                    <p className="text-xs text-muted-foreground">{m.role}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-foreground group-hover:text-gold transition-colors duration-200 truncate">{m.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{m.role}</p>
                   </div>
                 </div>
-                <StatusBadge status={sm.status} label={sm.label} />
+                <StatusBadge status={MEMBER_STATUS_MAP[m.status]} label={m.status} />
               </div>
-              <div className="flex justify-end mt-3">
+
+              <div className="flex items-center justify-between pt-2 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+                <Select value={m.status} onValueChange={(v) => handleStatusChange(m, v)}>
+                  <SelectTrigger size="sm" className="w-[120px] h-7 text-xs" aria-label={`Update status for ${m.name}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_FLOW.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <button
-                  onClick={() => deleteMember(m.id, m.name)}
-                  className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  aria-label={`Remove ${m.name}`}
+                  onClick={() => setDeleteTarget(m)}
+                  className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                  aria-label={`Delete ${m.name}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
-          );
-        })}
-        {teamMembers.length === 0 && (
-          <div className="col-span-full rounded-xl border border-border bg-card p-12 text-center">
-            <UserCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No team members yet. Add your first member above.</p>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add Member Dialog */}
+      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Team Member</DialogTitle>
+            <DialogDescription>Add a new member to your team</DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name *</FormLabel>
+                  <FormControl><Input placeholder="e.g. Moussa Diallo" autoFocus {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="role" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="status" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {STATUS_FLOW.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setBuilderOpen(false)} className="flex-1">Cancel</Button>
+                <Button type="submit" disabled={isSaving} className="flex-1 bg-gold text-os-dark hover:bg-gold-dark">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  {isSaving ? 'Adding...' : 'Add Member'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove team member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove {deleteTarget?.name} ({deleteTarget?.role}) from the team. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (!deleteTarget) return;
+              deleteTeamMember(deleteTarget.id);
+              addToast('info', '🗑️', `${deleteTarget.name} removed`);
+              setDeleteTarget(null);
+            }} className="bg-destructive text-white hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

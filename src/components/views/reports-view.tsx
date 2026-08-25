@@ -32,7 +32,7 @@ export function ReportsView() {
   const currency = useAppStore((s) => s.currency);
   const addToast = useAppStore((s) => s.addToast);
 
-  const totalRevenue = invoices.filter((i) => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
+  const totalRevenue = invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + i.paidAmount, 0);
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
   const grossProfit = totalRevenue - totalExpenses;
   const opex = totalExpenses;
@@ -62,8 +62,8 @@ export function ReportsView() {
             <h3 className="text-base font-bold text-foreground">Balance Sheet</h3>
             <div className="space-y-2">
               <ReportLine label="Inventory Value" value={inventoryValue} bold />
-              <ReportLine label="Accounts Receivable" value={invoices.filter(i => i.status !== 'Paid').reduce((s, i) => s + (i.amount - i.paidAmount), 0)} bold />
-              <ReportLine label="Total Assets" value={inventoryValue + invoices.filter(i => i.status !== 'Paid').reduce((s, i) => s + (i.amount - i.paidAmount), 0)} bold separator />
+              <ReportLine label="Accounts Receivable" value={invoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.amount - i.paidAmount), 0)} bold />
+              <ReportLine label="Total Assets" value={inventoryValue + invoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.amount - i.paidAmount), 0)} bold separator />
               <ReportLine label="Accounts Payable" value={totalExpenses} bold />
               <ReportLine label="Total Budget Allocated" value={totalBudget} bold />
             </div>

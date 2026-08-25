@@ -64,3 +64,4 @@ prisma/dev.db-journal
 /tool-results/
 /mini-services-dist/
 /.zscripts/dev.pid
+.env*

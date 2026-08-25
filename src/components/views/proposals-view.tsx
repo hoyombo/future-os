@@ -1,13 +1,28 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  Plus, Search, Trash2, Send, Save, X, Minus, ChevronDown,
-  Printer,
+  Plus, Search, Trash2, Send, Save, X, Minus,
+  Printer, Loader2,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  Form, FormField, FormItem, FormLabel, FormControl, FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { proposalSchema } from '@/lib/validations';
 import type { Proposal, ProposalItem, ProductCategory, Status } from '@/lib/types';
 
 const PROPOSAL_STATUS_MAP: Record<string, { status: Status; label: string }> = {
@@ -19,6 +34,11 @@ const PROPOSAL_STATUS_MAP: Record<string, { status: Status; label: string }> = {
 
 const CATEGORIES: (ProductCategory | 'all')[] = ['all', 'seating', 'desks', 'walls', 'lighting', 'storage'];
 
+type ProposalFormData = {
+  client: string;
+  project: string;
+};
+
 export function ProposalsView() {
   const proposals = useAppStore((s) => s.proposals);
   const products = useAppStore((s) => s.products);
@@ -29,14 +49,22 @@ export function ProposalsView() {
 
   const [showBuilder, setShowBuilder] = useState(false);
   const [previewProposal, setPreviewProposal] = useState<Proposal | null>(null);
-  const [client, setClient] = useState('');
-  const [project, setProject] = useState('');
   const [canvasItems, setCanvasItems] = useState<ProposalItem[]>([]);
   const [catSearch, setCatSearch] = useState('');
   const [catFilter, setCatFilter] = useState<ProductCategory | 'all'>('all');
   const [proposalSearch, setProposalSearch] = useState('');
   const [proposalStatusFilter, setProposalStatusFilter] = useState<string>('all');
+  const [isSaving, setIsSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const form = useForm<ProposalFormData>({
+    resolver: zodResolver(proposalSchema.omit({ date: true, status: true, subtotal: true, markup: true, total: true, items: true })) as any,
+    defaultValues: { client: '', project: '' },
+  });
+
+  const { watch } = form;
+  const watchedClient = watch('client');
 
   const PROPOSAL_STATUSES: string[] = ['all', 'draft', 'sent', 'approved', 'rejected'];
   const PROPOSAL_STATUS_LABELS: Record<string, string> = {
@@ -74,72 +102,82 @@ export function ProposalsView() {
   const markup = Math.round(subtotal * 0.15);
   const total = subtotal + markup;
 
-  function addProductToCanvas(productId: string) {
-    const existing = canvasItems.find((ci) => ci.productId === productId);
-    if (existing) {
-      setCanvasItems(canvasItems.map((ci) => ci.productId === productId ? { ...ci, qty: ci.qty + 1 } : ci));
-    } else {
-      setCanvasItems([...canvasItems, { productId, qty: 1 }]);
-    }
-  }
+  const addProductToCanvas = useCallback((productId: string) => {
+    setCanvasItems((prev) => {
+      const existing = prev.find((ci) => ci.productId === productId);
+      if (existing) {
+        return prev.map((ci) => ci.productId === productId ? { ...ci, qty: ci.qty + 1 } : ci);
+      }
+      return [...prev, { productId, qty: 1 }];
+    });
+  }, []);
 
-  function updateQty(productId: string, delta: number) {
-    setCanvasItems(
-      canvasItems
+  const updateQty = useCallback((productId: string, delta: number) => {
+    setCanvasItems((prev) =>
+      prev
         .map((ci) => ci.productId === productId ? { ...ci, qty: Math.max(0, ci.qty + delta) } : ci)
         .filter((ci) => ci.qty > 0)
     );
-  }
+  }, []);
 
-  function removeItem(productId: string) {
-    setCanvasItems(canvasItems.filter((ci) => ci.productId !== productId));
-  }
+  const removeItem = useCallback((productId: string) => {
+    setCanvasItems((prev) => prev.filter((ci) => ci.productId !== productId));
+  }, []);
 
   function openNewBuilder() {
-    setClient('');
-    setProject('');
+    form.reset({ client: '', project: '' });
     setCanvasItems([]);
     setShowBuilder(true);
   }
 
-  function saveProposal(status: 'draft' | 'sent') {
-    if (!client.trim()) {
-      addToast('warning', '⚠️', 'Client name is required');
+  async function saveProposal(status: 'draft' | 'sent') {
+    const values = form.getValues();
+    if (!values.client.trim()) {
+      form.setError('client', { message: 'Client name is required' });
       return;
     }
     if (canvasItems.length === 0) {
       addToast('warning', '⚠️', 'Add at least one item');
       return;
     }
-    const proposal: Proposal = {
-      id: generateId(),
-      client: client.trim(),
-      project: project.trim() || 'General',
-      date: new Date().toISOString().slice(0, 10),
-      items: canvasItems,
-      status,
-      createdAt: getTimestamp(),
-      sentAt: status === 'sent' ? getTimestamp() : undefined,
-      subtotal,
-      markup,
-      total,
-    };
-    const updated = [...proposals, proposal];
-    setProposals(updated);
-    addToast('success', '✅', `Proposal ${status === 'sent' ? 'sent' : 'saved as draft'}`);
-    addActivity({
-      id: generateId(),
-      text: `Proposal ${status === 'sent' ? 'sent' : 'created'}`,
-      detail: `${client} · ${formatPrice(total, currency)}`,
-      icon: '📋',
-      timestamp: getTimestamp(),
-    });
-    setShowBuilder(false);
+    setIsSaving(true);
+    try {
+      const proposal: Proposal = {
+        id: generateId(),
+        client: values.client.trim(),
+        project: values.project.trim() || 'General',
+        date: new Date().toISOString().slice(0, 10),
+        items: canvasItems,
+        status,
+        createdAt: getTimestamp(),
+        sentAt: status === 'sent' ? getTimestamp() : undefined,
+        subtotal,
+        markup,
+        total,
+      };
+      const updated = [...proposals, proposal];
+      setProposals(updated);
+      addToast('success', '✅', `Proposal ${status === 'sent' ? 'sent' : 'saved as draft'}`);
+      addActivity({
+        id: generateId(),
+        text: `Proposal ${status === 'sent' ? 'sent' : 'created'}`,
+        detail: `${values.client} · ${formatPrice(total, currency)}`,
+        icon: '📋',
+        timestamp: getTimestamp(),
+      });
+      setShowBuilder(false);
+    } catch {
+      addToast('error', '❌', 'Failed to save proposal. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  function deleteProposal(id: string) {
-    setProposals(proposals.filter((p) => p.id !== id));
+  function executeDelete() {
+    if (!deleteTarget) return;
+    setProposals(proposals.filter((p) => p.id !== deleteTarget));
     addToast('info', '🗑️', 'Proposal deleted');
+    setDeleteTarget(null);
   }
 
   function handlePrint() {
@@ -404,296 +442,323 @@ export function ProposalsView() {
     );
   }
 
-  // ── Builder Mode ─────────────────────────────────────────────
-  if (showBuilder) {
-    return (
+  // ── Builder Mode (Radix Dialog) ─────────────────────────────
+  return (
+    <>
       <div className="animate-fade-up space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-foreground">Proposal Builder</h2>
-          <button onClick={() => setShowBuilder(false)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-            <X className="h-5 w-5" />
-          </button>
+          <h2 className="text-lg font-bold text-foreground">Proposals</h2>
+          <Button
+            onClick={openNewBuilder}
+            className="bg-gold text-os-dark hover:bg-gold-dark"
+          >
+            <Plus className="h-4 w-4" /> New Proposal
+          </Button>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* Catalog Panel */}
-          <div className="lg:col-span-3 rounded-xl border border-border bg-card p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Product Catalog</h3>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  placeholder="Search products..."
-                  value={catSearch}
-                  onChange={(e) => setCatSearch(e.target.value)}
-                  className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div className="flex gap-1 flex-wrap">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setCatFilter(cat)}
-                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium capitalize transition-all ${catFilter === cat ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+
+        {proposals.length > 0 && (
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by client or project..."
+                value={proposalSearch}
+                onChange={(e) => setProposalSearch(e.target.value)}
+                className="pl-9"
+              />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[500px] overflow-y-auto pr-1">
-              {filteredCatalog.map((p) => (
-                <div key={p.id} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
-                  {p.imageUrl ? (
-                    <div className="relative h-10 w-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
-                      <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="40px" />
-                    </div>
-                  ) : (
-                    <span className="text-2xl">{p.emoji}</span>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.supplier}</p>
-                    <p className="text-xs font-mono text-gold mt-0.5">{formatPrice(p.price, currency)}</p>
-                  </div>
-                  <button
-                    onClick={() => addProductToCanvas(p.id)}
-                    className="rounded-md bg-gold/10 text-gold hover:bg-gold hover:text-os-dark p-1.5 transition-all"
-                    aria-label={`Add ${p.name}`}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
+            <div className="flex gap-1 flex-wrap">
+              {PROPOSAL_STATUSES.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setProposalStatusFilter(s)}
+                  className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${proposalStatusFilter === s ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                >
+                  {PROPOSAL_STATUS_LABELS[s]}
+                </button>
               ))}
-              {filteredCatalog.length === 0 && (
-                <p className="col-span-2 text-sm text-muted-foreground py-8 text-center">No products found</p>
-              )}
             </div>
           </div>
+        )}
 
-          {/* Canvas Panel */}
-          <div className="lg:col-span-2 rounded-xl border border-border bg-card p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Proposal Canvas</h3>
-            <div className="space-y-2">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Client *</label>
-                <input
-                  type="text"
-                  value={client}
-                  onChange={(e) => setClient(e.target.value)}
-                  placeholder="Client name"
-                  className="w-full mt-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">Project</label>
-                <input
-                  type="text"
-                  value={project}
-                  onChange={(e) => setProject(e.target.value)}
-                  placeholder="Project name (optional)"
-                  className="w-full mt-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-            </div>
+        {proposals.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-12 text-center space-y-3">
+            <p className="text-muted-foreground">No proposals yet.</p>
+            <Button onClick={openNewBuilder} className="bg-gold text-os-dark hover:bg-gold-dark">
+              <Plus className="h-4 w-4" /> Create your first proposal
+            </Button>
+          </div>
+        ) : filteredProposals.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <p className="text-muted-foreground">No proposals match your search.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filteredProposals.map((p) => {
+              const sm = PROPOSAL_STATUS_MAP[p.status] || PROPOSAL_STATUS_MAP.draft;
+              const cardProducts = p.items
+                .map((item) => products.find((pr) => pr.id === item.productId))
+                .filter(Boolean)
+                .slice(0, 3);
+              const remaining = p.items.length - cardProducts.length;
 
-            <div className="border-t border-border pt-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Items ({canvasItems.length})</p>
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                {canvasItems.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-4">Click + to add products</p>
-                )}
-                {canvasItems.map((ci) => {
-                  const prod = products.find((p) => p.id === ci.productId);
-                  if (!prod) return null;
-                  return (
-                    <div key={ci.productId} className="flex items-center gap-2 rounded-lg border border-border p-2">
-                      {prod.imageUrl ? (
-                        <div className="relative h-7 w-7 rounded overflow-hidden bg-muted flex-shrink-0">
-                          <Image src={prod.imageUrl} alt={prod.name} fill className="object-cover" sizes="28px" />
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => setPreviewProposal(p)}
+                  className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-md hover:shadow-xl hover:border-gold/30 transition-all duration-300 group cursor-pointer"
+                >
+                  {/* Thumbnail strip */}
+                  <div className="flex h-28 bg-muted relative overflow-hidden">
+                    {cardProducts.map((prod) =>
+                      prod?.imageUrl ? (
+                        <div key={prod.id} className="relative flex-1 first:rounded-tl-xl overflow-hidden">
+                          <Image
+                            src={prod.imageUrl}
+                            alt={prod.name}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                            sizes="200px"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
                       ) : (
-                        <span className="text-lg">{prod.emoji}</span>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{prod.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{formatPrice(prod.price, currency)} each</p>
+                        <div key={prod!.id} className="flex-1 flex items-center justify-center text-2xl bg-muted">
+                          {prod!.emoji}
+                        </div>
+                      )
+                    )}
+                    {remaining > 0 && (
+                      <div className="flex items-center justify-center flex-1 bg-muted text-xs font-medium text-muted-foreground">
+                        +{remaining} more
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => updateQty(ci.productId, -1)} className="rounded p-1 hover:bg-muted transition-colors"><Minus className="h-3 w-3" /></button>
-                        <span className="w-6 text-center text-xs font-mono font-medium">{ci.qty}</span>
-                        <button onClick={() => updateQty(ci.productId, 1)} className="rounded p-1 hover:bg-muted transition-colors"><Plus className="h-3 w-3" /></button>
+                    )}
+                    {cardProducts.length === 0 && (
+                      <div className="flex-1 flex items-center justify-center text-muted-foreground text-xs">
+                        No items
                       </div>
-                      <button onClick={() => removeItem(ci.productId)} className="rounded p-1 text-muted-foreground hover:text-red-500 transition-colors">
-                        <X className="h-3 w-3" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none">
+                      <span className="opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-xs font-medium text-white bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
+                        View Proposal
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card body */}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-foreground text-sm group-hover:text-gold transition-colors duration-200">{p.client}</p>
+                        <p className="text-xs text-muted-foreground">{p.project}</p>
+                      </div>
+                      <StatusBadge status={sm.status} label={sm.label} />
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                      <span>{formatDate(p.date)}</span>
+                      <span>{p.items.length} items</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <span className="text-lg font-bold text-gold font-mono">{formatPrice(p.total, currency)}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTarget(p.id); }}
+                        className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+                        aria-label="Delete proposal"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="border-t border-border pt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Subtotal</span>
-                <span className="font-mono">{formatPrice(subtotal, currency)}</span>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>Markup (15%)</span>
-                <span className="font-mono">{formatPrice(markup, currency)}</span>
-              </div>
-              <div className="flex justify-between font-bold text-foreground pt-1 border-t border-border">
-                <span>Total</span>
-                <span className="font-mono text-gold">{formatPrice(total, currency)}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button onClick={() => saveProposal('draft')} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors">
-                <Save className="h-4 w-4" /> Save Draft
-              </button>
-              <button onClick={() => saveProposal('sent')} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors">
-                <Send className="h-4 w-4" /> Send
-              </button>
-            </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Proposal List ────────────────────────────────────────────
-  return (
-    <div className="animate-fade-up space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-foreground">Proposals</h2>
-        <button
-          onClick={openNewBuilder}
-          className="flex items-center gap-2 rounded-lg bg-gold text-os-dark px-4 py-2 text-sm font-medium hover:bg-gold-dark transition-colors"
-        >
-          <Plus className="h-4 w-4" /> New Proposal
-        </button>
+        )}
       </div>
 
-      {proposals.length > 0 && (
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search by client or project..."
-              value={proposalSearch}
-              onChange={(e) => setProposalSearch(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div className="flex gap-1 flex-wrap">
-            {PROPOSAL_STATUSES.map((s) => (
-              <button
-                key={s}
-                onClick={() => setProposalStatusFilter(s)}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${proposalStatusFilter === s ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
-              >
-                {PROPOSAL_STATUS_LABELS[s]}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Builder Dialog */}
+      <Dialog open={showBuilder} onOpenChange={setShowBuilder}>
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="px-6 pt-6 pb-0">
+            <DialogTitle>Proposal Builder</DialogTitle>
+            <DialogDescription>Select products and fill in details to create your proposal</DialogDescription>
+          </DialogHeader>
 
-      {proposals.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">No proposals yet. Create your first proposal.</p>
-        </div>
-      ) : filteredProposals.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">No proposals match your search.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredProposals.map((p) => {
-            const sm = PROPOSAL_STATUS_MAP[p.status] || PROPOSAL_STATUS_MAP.draft;
-            // Show first 3 product thumbnails
-            const cardProducts = p.items
-              .map((item) => products.find((pr) => pr.id === item.productId))
-              .filter(Boolean)
-              .slice(0, 3);
-            const remaining = p.items.length - cardProducts.length;
+          <div className="px-6 pb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-4">
+              {/* Catalog Panel */}
+              <div className="lg:col-span-3 rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">Product Catalog</h3>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      ref={searchRef}
+                      placeholder="Search products..."
+                      value={catSearch}
+                      onChange={(e) => setCatSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <div className="flex gap-1 flex-wrap">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setCatFilter(cat)}
+                        className={`rounded-md px-2.5 py-1.5 text-xs font-medium capitalize transition-all ${catFilter === cat ? 'bg-gold text-os-dark' : 'bg-muted text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-1">
+                  {filteredCatalog.map((p) => (
+                    <div key={p.id} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
+                      {p.imageUrl ? (
+                        <div className="relative h-10 w-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                          <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="40px" />
+                        </div>
+                      ) : (
+                        <span className="text-2xl">{p.emoji}</span>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">{p.supplier}</p>
+                        <p className="text-xs font-mono text-gold mt-0.5">{formatPrice(p.price, currency)}</p>
+                      </div>
+                      <button
+                        onClick={() => addProductToCanvas(p.id)}
+                        className="rounded-md bg-gold/10 text-gold hover:bg-gold hover:text-os-dark p-1.5 transition-all"
+                        aria-label={`Add ${p.name}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {filteredCatalog.length === 0 && (
+                    <p className="col-span-2 text-sm text-muted-foreground py-8 text-center">No products found</p>
+                  )}
+                </div>
+              </div>
 
-            return (
-              <div
-                key={p.id}
-                onClick={() => setPreviewProposal(p)}
-                className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-md hover:shadow-xl hover:border-gold/30 transition-all duration-300 group cursor-pointer"
-              >
-                {/* Thumbnail strip */}
-                <div className="flex h-28 bg-muted relative overflow-hidden">
-                  {cardProducts.map((prod) =>
-                    prod?.imageUrl ? (
-                      <div key={prod.id} className="relative flex-1 first:rounded-tl-xl overflow-hidden">
-                        <Image
-                          src={prod.imageUrl}
-                          alt={prod.name}
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                          sizes="200px"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-                    ) : (
-                      <div key={prod!.id} className="flex-1 flex items-center justify-center text-2xl bg-muted">
-                        {prod!.emoji}
-                      </div>
-                    )
-                  )}
-                  {remaining > 0 && (
-                    <div className="flex items-center justify-center flex-1 bg-muted text-xs font-medium text-muted-foreground">
-                      +{remaining} more
-                    </div>
-                  )}
-                  {cardProducts.length === 0 && (
-                    <div className="flex-1 flex items-center justify-center text-muted-foreground text-xs">
-                      No items
-                    </div>
-                  )}
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none">
-                    <span className="opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 text-xs font-medium text-white bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
-                      View Proposal
-                    </span>
+              {/* Canvas Panel */}
+              <div className="lg:col-span-2 rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">Proposal Canvas</h3>
+
+                <Form {...form}>
+                  <div className="space-y-3">
+                    <FormField control={form.control} name="client" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client *</FormLabel>
+                        <FormControl><Input placeholder="Client name" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="project" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Project</FormLabel>
+                        <FormControl><Input placeholder="Project name (optional)" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </Form>
+
+                <div className="border-t border-border pt-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Items ({canvasItems.length})</p>
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {canvasItems.length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-4">Click + to add products</p>
+                    )}
+                    {canvasItems.map((ci) => {
+                      const prod = products.find((p) => p.id === ci.productId);
+                      if (!prod) return null;
+                      return (
+                        <div key={ci.productId} className="flex items-center gap-2 rounded-lg border border-border bg-background p-2">
+                          {prod.imageUrl ? (
+                            <div className="relative h-7 w-7 rounded overflow-hidden bg-muted flex-shrink-0">
+                              <Image src={prod.imageUrl} alt={prod.name} fill className="object-cover" sizes="28px" />
+                            </div>
+                          ) : (
+                            <span className="text-lg">{prod.emoji}</span>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-foreground truncate">{prod.name}</p>
+                            <p className="text-[10px] text-muted-foreground">{formatPrice(prod.price, currency)} each</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button type="button" onClick={() => updateQty(ci.productId, -1)} className="rounded p-1 hover:bg-muted transition-colors"><Minus className="h-3 w-3" /></button>
+                            <span className="w-6 text-center text-xs font-mono font-medium">{ci.qty}</span>
+                            <button type="button" onClick={() => updateQty(ci.productId, 1)} className="rounded p-1 hover:bg-muted transition-colors"><Plus className="h-3 w-3" /></button>
+                          </div>
+                          <button type="button" onClick={() => removeItem(ci.productId)} className="rounded p-1 text-muted-foreground hover:text-red-500 transition-colors">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Card body */}
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-foreground text-sm group-hover:text-gold transition-colors duration-200">{p.client}</p>
-                      <p className="text-xs text-muted-foreground">{p.project}</p>
-                    </div>
-                    <StatusBadge status={sm.status} label={sm.label} />
+                <div className="border-t border-border pt-3 space-y-1.5 text-sm">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span className="font-mono">{formatPrice(subtotal, currency)}</span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                    <span>{formatDate(p.date)}</span>
-                    <span>{p.items.length} items</span>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Markup (15%)</span>
+                    <span className="font-mono">{formatPrice(markup, currency)}</span>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                    <span className="text-lg font-bold text-gold font-mono">{formatPrice(p.total, currency)}</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteProposal(p.id); }}
-                      className="rounded-lg p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
-                      aria-label="Delete proposal"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                  <div className="flex justify-between font-bold text-foreground pt-1 border-t border-border">
+                    <span>Total</span>
+                    <span className="font-mono text-gold">{formatPrice(total, currency)}</span>
                   </div>
                 </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => saveProposal('draft')}
+                    disabled={isSaving}
+                    className="flex-1"
+                  >
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {isSaving ? 'Saving...' : 'Save Draft'}
+                  </Button>
+                  <Button
+                    onClick={() => saveProposal('sent')}
+                    disabled={isSaving}
+                    className="flex-1 bg-gold text-os-dark hover:bg-gold-dark"
+                  >
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    {isSaving ? 'Sending...' : 'Send'}
+                  </Button>
+                </div>
               </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete proposal?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this proposal. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-destructive text-white hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

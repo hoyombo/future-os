@@ -5,8 +5,8 @@ export const expenseSchema = z.object({
   amount: z.number().int().positive(),
   category: z.string().min(1).max(100),
   date: z.string().min(1),
-  status: z.enum(['pending', 'approved']).optional(),
-  approval: z.enum(['pending', 'approved']).optional(),
+  status: z.enum(['pending', 'approved', 'rejected']).optional(),
+  approval: z.enum(['pending', 'approved', 'rejected']).optional(),
   createdBy: z.string().min(1).max(200),
 });
 
@@ -50,6 +50,24 @@ export const proposalSchema = z.object({
   items: z.array(proposalItemSchema).optional(),
 });
 
+export const productSchema = z.object({
+  name: z.string().min(1).max(200),
+  supplier: z.string().min(1).max(200),
+  category: z.enum(['seating', 'desks', 'walls', 'lighting', 'storage']),
+  cost: z.number().int().min(0),
+  price: z.number().int().min(0),
+  stock: z.number().int().min(0),
+  inStock: z.number().int().min(0).optional(),
+  specs: z.string().max(1000).optional(),
+  description: z.string().max(2000).optional(),
+  origin: z.string().max(200).optional(),
+  leadTime: z.number().int().min(0).optional(),
+});
+
+export const projectItemSchema = z.object({
+  productId: z.string().min(1),
+});
+
 export const projectSchema = z.object({
   name: z.string().min(1).max(200),
   client: z.string().min(1).max(200),
@@ -60,6 +78,7 @@ export const projectSchema = z.object({
   startDate: z.string().min(1),
   endDate: z.string().min(1),
   location: z.string().min(1).max(200),
+  items: z.array(projectItemSchema).optional(),
 });
 
 export const teamMemberSchema = z.object({

@@ -265,12 +265,12 @@ export const LOGISTICS_EVENTS: LogisticsEvent[] = [
 
 // ── PURCHASE ORDERS ──────────────────────────────────────────
 export const PURCHASE_ORDERS: PurchaseOrder[] = [
-  { id: 'po-001', supplier: 'Steelcase EU', items: 'Steelcase Gesture ×22, Steelcase Please ×10, Storage Cabinet ×15', totalAmount: 31250000, status: 'Delivered', date: '2026-06-15', expectedDelivery: '2026-07-20' },
-  { id: 'po-002', supplier: 'Frezza IT', items: 'F1 Desk ×12, Meeting Table ×6, Sideboard ×8', totalAmount: 42600000, status: 'In Transit', date: '2026-07-01', expectedDelivery: '2026-08-10' },
-  { id: 'po-003', supplier: 'Dieffebi FR', items: 'Wall System ×50, Glass Wall ×20', totalAmount: 25900000, status: 'Processing', date: '2026-07-20', expectedDelivery: '2026-08-25' },
-  { id: 'po-004', supplier: 'Mali Lumière', items: 'LED Panel ×30, SmartTrack ×60', totalAmount: 10800000, status: 'Delivered', date: '2026-06-10', expectedDelivery: '2026-06-20' },
-  { id: 'po-005', supplier: 'Herman Miller US', items: 'Aeron ×18, OE1 Desk ×10', totalAmount: 52400000, status: 'Processing', date: '2026-08-05', expectedDelivery: '2026-09-10' },
-  { id: 'po-006', supplier: 'Vitra DE', items: 'Soft Pad ×8, Slow Desk ×4, Drawer Unit ×20', totalAmount: 45200000, status: 'Draft', date: '2026-08-10', expectedDelivery: '2026-09-25' },
+  { id: 'po-001', supplier: 'Steelcase EU', items: 'Steelcase Gesture ×22, Steelcase Please ×10, Storage Cabinet ×15', totalAmount: 31250000, status: 'delivered', date: '2026-06-15', expectedDelivery: '2026-07-20' },
+  { id: 'po-002', supplier: 'Frezza IT', items: 'F1 Desk ×12, Meeting Table ×6, Sideboard ×8', totalAmount: 42600000, status: 'in-transit', date: '2026-07-01', expectedDelivery: '2026-08-10' },
+  { id: 'po-003', supplier: 'Dieffebi FR', items: 'Wall System ×50, Glass Wall ×20', totalAmount: 25900000, status: 'processing', date: '2026-07-20', expectedDelivery: '2026-08-25' },
+  { id: 'po-004', supplier: 'Mali Lumière', items: 'LED Panel ×30, SmartTrack ×60', totalAmount: 10800000, status: 'delivered', date: '2026-06-10', expectedDelivery: '2026-06-20' },
+  { id: 'po-005', supplier: 'Herman Miller US', items: 'Aeron ×18, OE1 Desk ×10', totalAmount: 52400000, status: 'processing', date: '2026-08-05', expectedDelivery: '2026-09-10' },
+  { id: 'po-006', supplier: 'Vitra DE', items: 'Soft Pad ×8, Slow Desk ×4, Drawer Unit ×20', totalAmount: 45200000, status: 'draft', date: '2026-08-10', expectedDelivery: '2026-09-25' },
 ];
 
 // ── AFTER-SALES TICKETS ───────────────────────────────────────
@@ -305,30 +305,30 @@ export const SEED_TEAM: TeamMember[] = [
 ];
 
 export const SEED_EXPENSES: Expense[] = [
-  { id: 'ex1', title: 'BCG Tower · Installation labor', amount: 4800000, category: 'Installation', date: '2026-08-05', status: 'Approved', approval: 'Approved', createdBy: 'Moussa' },
-  { id: 'ex2', title: 'Radisson Blu · Freight Dakar-Bamako', amount: 2100000, category: 'Logistics', date: '2026-08-03', status: 'Approved', approval: 'Approved', createdBy: 'Ibrahim' },
-  { id: 'ex3', title: 'Office rent · August', amount: 850000, category: 'Admin', date: '2026-08-01', status: 'Approved', approval: 'Approved', createdBy: 'Fatoumata' },
-  { id: 'ex4', title: 'UN Office · Final inspection', amount: 350000, category: 'Operations', date: '2026-07-28', status: 'Pending', approval: 'Pending', createdBy: 'Aminata' },
-  { id: 'ex5', title: 'Marketing materials · Brochures', amount: 180000, category: 'Marketing', date: '2026-07-25', status: 'Approved', approval: 'Approved', createdBy: 'Moussa' },
-  { id: 'ex6', title: 'BCG Tower · Site preparation', amount: 1200000, category: 'Installation', date: '2026-08-08', status: 'Pending', approval: 'Pending', createdBy: 'Aminata' },
-  { id: 'ex7', title: 'Fleet fuel · August week 1', amount: 420000, category: 'Operations', date: '2026-08-06', status: 'Approved', approval: 'Approved', createdBy: 'Ibrahim' },
-  { id: 'ex8', title: 'Hotel & travel · Bamako-Dakar', amount: 250000, category: 'Travel', date: '2026-08-04', status: 'Pending', approval: 'Pending', createdBy: 'Moussa' },
+  { id: 'ex1', title: 'BCG Tower · Installation labor', amount: 4800000, category: 'Installation', date: '2026-08-05', status: 'approved', approval: 'approved', createdBy: 'Moussa' },
+  { id: 'ex2', title: 'Radisson Blu · Freight Dakar-Bamako', amount: 2100000, category: 'Logistics', date: '2026-08-03', status: 'approved', approval: 'approved', createdBy: 'Ibrahim' },
+  { id: 'ex3', title: 'Office rent · August', amount: 850000, category: 'Admin', date: '2026-08-01', status: 'approved', approval: 'approved', createdBy: 'Fatoumata' },
+  { id: 'ex4', title: 'UN Office · Final inspection', amount: 350000, category: 'Operations', date: '2026-07-28', status: 'pending', approval: 'pending', createdBy: 'Aminata' },
+  { id: 'ex5', title: 'Marketing materials · Brochures', amount: 180000, category: 'Marketing', date: '2026-07-25', status: 'approved', approval: 'approved', createdBy: 'Moussa' },
+  { id: 'ex6', title: 'BCG Tower · Site preparation', amount: 1200000, category: 'Installation', date: '2026-08-08', status: 'pending', approval: 'pending', createdBy: 'Aminata' },
+  { id: 'ex7', title: 'Fleet fuel · August week 1', amount: 420000, category: 'Operations', date: '2026-08-06', status: 'approved', approval: 'approved', createdBy: 'Ibrahim' },
+  { id: 'ex8', title: 'Hotel & travel · Bamako-Dakar', amount: 250000, category: 'Travel', date: '2026-08-04', status: 'pending', approval: 'pending', createdBy: 'Moussa' },
 ];
 
 export const SEED_INVOICES: Invoice[] = [
-  { id: 'inv1', client: 'BCG', amount: 15000000, date: '2026-07-15', status: 'Paid', dueDate: '2026-08-15', paidAmount: 15000000 },
-  { id: 'inv2', client: 'Radisson', amount: 22000000, date: '2026-07-01', status: 'Paid', dueDate: '2026-08-01', paidAmount: 22000000 },
-  { id: 'inv3', client: 'UN', amount: 28000000, date: '2026-06-15', status: 'Paid', dueDate: '2026-07-15', paidAmount: 28000000 },
-  { id: 'inv4', client: 'BNP', amount: 8500000, date: '2026-08-01', status: 'Pending', dueDate: '2026-09-01', paidAmount: 0 },
-  { id: 'inv5', client: 'Ministère', amount: 5200000, date: '2026-08-05', status: 'Pending', dueDate: '2026-09-05', paidAmount: 0 },
-  { id: 'inv6', client: 'BCG', amount: 18500000, date: '2026-08-10', status: 'Partial', dueDate: '2026-09-10', paidAmount: 9000000 },
-  { id: 'inv7', client: 'Radisson', amount: 32000000, date: '2026-08-12', status: 'Pending', dueDate: '2026-09-12', paidAmount: 0 },
+  { id: 'inv1', client: 'BCG', amount: 15000000, date: '2026-07-15', status: 'paid', dueDate: '2026-08-15', paidAmount: 15000000 },
+  { id: 'inv2', client: 'Radisson', amount: 22000000, date: '2026-07-01', status: 'paid', dueDate: '2026-08-01', paidAmount: 22000000 },
+  { id: 'inv3', client: 'UN', amount: 28000000, date: '2026-06-15', status: 'paid', dueDate: '2026-07-15', paidAmount: 28000000 },
+  { id: 'inv4', client: 'BNP', amount: 8500000, date: '2026-08-01', status: 'pending', dueDate: '2026-09-01', paidAmount: 0 },
+  { id: 'inv5', client: 'Ministère', amount: 5200000, date: '2026-08-05', status: 'pending', dueDate: '2026-09-05', paidAmount: 0 },
+  { id: 'inv6', client: 'BCG', amount: 18500000, date: '2026-08-10', status: 'partial', dueDate: '2026-09-10', paidAmount: 9000000 },
+  { id: 'inv7', client: 'Radisson', amount: 32000000, date: '2026-08-12', status: 'pending', dueDate: '2026-09-12', paidAmount: 0 },
 ];
 
 export const SEED_BILLS: Bill[] = [
-  { id: 'bl1', supplier: 'Steelcase EU', amount: 12500000, date: '2026-06-15', status: 'Paid', dueDate: '2026-07-15' },
-  { id: 'bl2', supplier: 'Frezza IT', amount: 18200000, date: '2026-07-01', status: 'Pending', dueDate: '2026-08-30' },
-  { id: 'bl3', supplier: 'Mali Lumière', amount: 4500000, date: '2026-07-10', status: 'Paid', dueDate: '2026-08-10' },
+  { id: 'bl1', supplier: 'Steelcase EU', amount: 12500000, date: '2026-06-15', status: 'paid', dueDate: '2026-07-15' },
+  { id: 'bl2', supplier: 'Frezza IT', amount: 18200000, date: '2026-07-01', status: 'pending', dueDate: '2026-08-30' },
+  { id: 'bl3', supplier: 'Mali Lumière', amount: 4500000, date: '2026-07-10', status: 'paid', dueDate: '2026-08-10' },
 ];
 
 export const SEED_RECURRING: RecurringExpense[] = [

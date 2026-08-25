@@ -29,7 +29,7 @@ export function DashboardView() {
   const criticalAlerts = products.filter((p) => p.inStock / p.stock <= 0.2).length + afterSalesTickets.filter((t) => t.priority === 'High' && t.status !== 'Resolved').length;
 
   // Widgets
-  const revenueMTD = invoices.filter((i) => i.status === 'Paid').reduce((s, i) => s + i.paidAmount, 0);
+  const revenueMTD = invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + i.paidAmount, 0);
   const expensesMTD = expenses.reduce((s, e) => s + e.amount, 0);
   const openTickets = afterSalesTickets.filter((t) => t.status === 'Open' || t.status === 'In Progress').length;
 

@@ -62,16 +62,46 @@ export function mockService(): IAppService {
   let bills: Bill[] = load<Bill[]>('bills', SEED_BILLS);
   let recurringExpenses: RecurringExpense[] = load<RecurringExpense[]>('recurring', SEED_RECURRING);
   let teamMembers: TeamMember[] = load<TeamMember[]>('team', SEED_TEAM);
+  let projects: Project[] = load<Project[]>('projects', PROJECTS_DATA);
+  let products: Product[] = load<Product[]>('products', PRODUCTS);
+  let purchaseOrders: PurchaseOrder[] = load<PurchaseOrder[]>('purchase_orders', PURCHASE_ORDERS);
+  let afterSalesTickets: AfterSalesTicket[] = load<AfterSalesTicket[]>('after_sales', AFTER_SALES_TICKETS);
   let activityLog: ActivityEntry[] = load<ActivityEntry[]>('activity', SEED_ACTIVITY);
 
   return {
-    // ── Products (read-only from mock data) ──────────────────
-    getProducts() { return PRODUCTS; },
-    getProduct(id: string) { return PRODUCTS.find(p => p.id === id); },
+    // ── Products (CRUD) ───────────────────────────────────────
+    getProducts() { return products; },
+    getProduct(id: string) { return products.find(p => p.id === id); },
+    saveProduct(product: Product) {
+      const idx = products.findIndex(p => p.id === product.id);
+      if (idx >= 0) products[idx] = product;
+      else products.push(product);
+      save('products', products);
+    },
+    deleteProduct(id: string) {
+      products = products.filter(p => p.id !== id);
+      save('products', products);
+    },
+    adjustStock(id: string, delta: number) {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+      product.inStock = Math.max(0, product.inStock + delta);
+      save('products', products);
+    },
 
-    // ── Projects (read-only from mock data) ─────────────────
-    getProjects() { return PROJECTS_DATA; },
-    getProject(id: string) { return PROJECTS_DATA.find(p => p.id === id); },
+    // ── Projects (CRUD) ───────────────────────────────────────
+    getProjects() { return projects; },
+    getProject(id: string) { return projects.find(p => p.id === id); },
+    saveProject(project: Project) {
+      const idx = projects.findIndex(p => p.id === project.id);
+      if (idx >= 0) projects[idx] = project;
+      else projects.push(project);
+      save('projects', projects);
+    },
+    deleteProject(id: string) {
+      projects = projects.filter(p => p.id !== id);
+      save('projects', projects);
+    },
 
     // ── Logistics (read-only) ─────────────────────────────────
     getLogisticsEvents() { return LOGISTICS_EVENTS; },
@@ -91,8 +121,10 @@ export function mockService(): IAppService {
 
     // ── Expenses (CRUD) ─────────────────────────────────────
     getExpenses() { return expenses; },
-    addExpense(expense: Expense) {
-      expenses.push(expense);
+    saveExpense(expense: Expense) {
+      const idx = expenses.findIndex(e => e.id === expense.id);
+      if (idx >= 0) expenses[idx] = expense;
+      else expenses.unshift(expense);
       save('expenses', expenses);
     },
     deleteExpense(id: string) {
@@ -102,8 +134,10 @@ export function mockService(): IAppService {
 
     // ── Invoices (CRUD) ──────────────────────────────────────
     getInvoices() { return invoices; },
-    addInvoice(invoice: Invoice) {
-      invoices.push(invoice);
+    saveInvoice(invoice: Invoice) {
+      const idx = invoices.findIndex(i => i.id === invoice.id);
+      if (idx >= 0) invoices[idx] = invoice;
+      else invoices.unshift(invoice);
       save('invoices', invoices);
     },
     deleteInvoice(id: string) {
@@ -113,8 +147,10 @@ export function mockService(): IAppService {
 
     // ── Bills (CRUD) ──────────────────────────────────────────
     getBills() { return bills; },
-    addBill(bill: Bill) {
-      bills.push(bill);
+    saveBill(bill: Bill) {
+      const idx = bills.findIndex(b => b.id === bill.id);
+      if (idx >= 0) bills[idx] = bill;
+      else bills.unshift(bill);
       save('bills', bills);
     },
     deleteBill(id: string) {
@@ -124,20 +160,23 @@ export function mockService(): IAppService {
 
     // ── Recurring Expenses (CRUD) ────────────────────────────
     getRecurringExpenses() { return recurringExpenses; },
-    addRecurringExpense(re: RecurringExpense) {
-      recurringExpenses.push(re);
-      save('recurring', recurringExpenses);
-    },
-    updateRecurringExpense(re: RecurringExpense) {
+    saveRecurringExpense(re: RecurringExpense) {
       const idx = recurringExpenses.findIndex(r => r.id === re.id);
       if (idx >= 0) recurringExpenses[idx] = re;
+      else recurringExpenses.push(re);
+      save('recurring', recurringExpenses);
+    },
+    deleteRecurringExpense(id: string) {
+      recurringExpenses = recurringExpenses.filter(r => r.id !== id);
       save('recurring', recurringExpenses);
     },
 
     // ── Team (CRUD) ──────────────────────────────────────────
     getTeamMembers() { return teamMembers; },
-    addTeamMember(member: TeamMember) {
-      teamMembers.push(member);
+    saveTeamMember(member: TeamMember) {
+      const idx = teamMembers.findIndex(m => m.id === member.id);
+      if (idx >= 0) teamMembers[idx] = member;
+      else teamMembers.push(member);
       save('team', teamMembers);
     },
     deleteTeamMember(id: string) {
@@ -157,11 +196,31 @@ export function mockService(): IAppService {
       save('activity', activityLog);
     },
 
-    // ── Purchase Orders (read-only) ──────────────────────────
-    getPurchaseOrders() { return PURCHASE_ORDERS; },
+    // ── Purchase Orders (CRUD) ────────────────────────────────
+    getPurchaseOrders() { return purchaseOrders; },
+    savePurchaseOrder(po: PurchaseOrder) {
+      const idx = purchaseOrders.findIndex(p => p.id === po.id);
+      if (idx >= 0) purchaseOrders[idx] = po;
+      else purchaseOrders.unshift(po);
+      save('purchase_orders', purchaseOrders);
+    },
+    deletePurchaseOrder(id: string) {
+      purchaseOrders = purchaseOrders.filter(p => p.id !== id);
+      save('purchase_orders', purchaseOrders);
+    },
 
-    // ── After-Sales (read-only) ──────────────────────────────
-    getAfterSalesTickets() { return AFTER_SALES_TICKETS; },
+    // ── After-Sales (CRUD) ────────────────────────────────────
+    getAfterSalesTickets() { return afterSalesTickets; },
+    saveTicket(ticket: AfterSalesTicket) {
+      const idx = afterSalesTickets.findIndex(t => t.id === ticket.id);
+      if (idx >= 0) afterSalesTickets[idx] = ticket;
+      else afterSalesTickets.unshift(ticket);
+      save('after_sales', afterSalesTickets);
+    },
+    deleteTicket(id: string) {
+      afterSalesTickets = afterSalesTickets.filter(t => t.id !== id);
+      save('after_sales', afterSalesTickets);
+    },
 
     // ── Budget (read-only) ───────────────────────────────────
     getBudgetData() { return BUDGET_DATA as Record<string, BudgetItem>; },
