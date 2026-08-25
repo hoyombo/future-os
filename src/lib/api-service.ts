@@ -24,6 +24,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
   try {
     const res = await fetch(path, {
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       ...init,
     });
