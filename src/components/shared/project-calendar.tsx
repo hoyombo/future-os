@@ -2,14 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import {
-  startOfMonth, endOfMonth, eachDayOfInterval, differenceInDays,
-  format, isSameDay, addMonths, subMonths, isToday, isWeekend,
-  startOfWeek, endOfWeek, isBefore, isAfter,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  startOfYear, endOfYear, eachDayOfInterval, eachMonthOfInterval,
+  format, isToday, isWeekend,
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
-import { useAppStore, formatPrice } from '@/lib/store';
+import { useAppStore } from '@/lib/store';
 import { ProjectDetailContent } from '@/components/shared/project-detail-content';
-import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
 import type { Project, Status } from '@/lib/types';
 
@@ -25,8 +24,28 @@ const STATUS_LABELS: Record<string, { status: Status; label: string }> = {
   'on-hold': { status: 'orange', label: 'On Hold' },
 };
 
+type CalendarMode = 'week' | 'month' | 'year';
+
+const MODES: { id: CalendarMode; label: string }[] = [
+  { id: 'week', label: 'Week' },
+  { id: 'month', label: 'Month' },
+  { id: 'year', label: 'Year' },
+];
+
 const ROW_HEIGHT = 40;
 const LABEL_WIDTH = 180;
+const DAY_MS = 86400000;
+
+interface CalendarColumn {
+  key: string;
+  startMs: number;
+  endMs: number;
+  top?: string;
+  main: string;
+  shaded?: boolean;
+  dimmed?: boolean;
+  today?: boolean;
+}
 
 interface ProjectCalendarProps {
   projects: Project[];
@@ -34,43 +53,98 @@ interface ProjectCalendarProps {
 
 export function ProjectCalendar({ projects }: ProjectCalendarProps) {
   const openModal = useAppStore((s) => s.openModal);
-  const currency = useAppStore((s) => s.currency);
-  const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
+  const [mode, setMode] = useState<CalendarMode>('month');
+  const [cursor, setCursor] = useState(() => new Date());
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // ── Visible range + columns per mode ───────────────────────────
+  const { rangeStartMs, rangeEndMs, columns, title, colMinWidth } = useMemo(() => {
+    if (mode === 'week') {
+      const s = startOfWeek(cursor, { weekStartsOn: 1 });
+      const e = endOfWeek(cursor, { weekStartsOn: 1 });
+      const cols: CalendarColumn[] = eachDayOfInterval({ start: s, end: e }).map((day) => ({
+        key: day.toISOString(),
+        startMs: day.getTime(),
+        endMs: day.getTime() + DAY_MS,
+        top: format(day, 'EEE'),
+        main: format(day, 'd'),
+        shaded: isWeekend(day),
+        today: isToday(day),
+      }));
+      return {
+        rangeStartMs: s.getTime(), rangeEndMs: e.getTime() + DAY_MS,
+        columns: cols, title: `${format(s, 'MMM d')} – ${format(e, 'MMM d, yyyy')}`,
+        colMinWidth: 36,
+      };
+    }
 
-  const days = useMemo(
-    () => eachDayOfInterval({ start: calendarStart, end: calendarEnd }),
-    [calendarStart.getTime(), calendarEnd.getTime()],
-  );
+    if (mode === 'month') {
+      const mStart = startOfMonth(cursor);
+      const mEnd = endOfMonth(cursor);
+      const s = startOfWeek(mStart, { weekStartsOn: 1 });
+      const e = endOfWeek(mEnd, { weekStartsOn: 1 });
+      const cols: CalendarColumn[] = eachDayOfInterval({ start: s, end: e }).map((day) => ({
+        key: day.toISOString(),
+        startMs: day.getTime(),
+        endMs: day.getTime() + DAY_MS,
+        top: format(day, 'EEE'),
+        main: format(day, 'd'),
+        shaded: isWeekend(day),
+        dimmed: day.getMonth() !== cursor.getMonth(),
+        today: isToday(day),
+      }));
+      return {
+        rangeStartMs: s.getTime(), rangeEndMs: e.getTime() + DAY_MS,
+        columns: cols, title: format(cursor, 'MMMM yyyy'),
+        colMinWidth: 36,
+      };
+    }
 
-  const totalDays = days.length;
+    // year
+    const yStart = startOfYear(cursor);
+    const yEnd = endOfYear(cursor);
+    const months = eachMonthOfInterval({ start: yStart, end: yEnd });
+    const thisMonthKey = format(new Date(), 'yyyy-MM');
+    const cols: CalendarColumn[] = months.map((m, i) => ({
+      key: format(m, 'yyyy-MM'),
+      startMs: m.getTime(),
+      endMs: i < months.length - 1 ? months[i + 1].getTime() : yEnd.getTime() + DAY_MS,
+      main: format(m, 'MMM'),
+      today: format(m, 'yyyy-MM') === thisMonthKey,
+    }));
+    return {
+      rangeStartMs: yStart.getTime(), rangeEndMs: yEnd.getTime() + DAY_MS,
+      columns: cols, title: format(cursor, 'yyyy'),
+      colMinWidth: 72,
+    };
+  }, [mode, cursor]);
 
-  const today = new Date();
-  const todayOffset = useMemo(() => {
-    if (isBefore(today, calendarStart) || isAfter(today, calendarEnd)) return -1;
-    return differenceInDays(today, calendarStart);
-  }, [calendarStart.getTime(), calendarEnd.getTime(), today]);
+  const rangeSpan = rangeEndMs - rangeStartMs;
+
+  function msToPct(ms: number): number {
+    return ((ms - rangeStartMs) / rangeSpan) * 100;
+  }
 
   function getBarStyle(project: Project) {
-    const pStart = new Date(project.startDate);
-    const pEnd = new Date(project.endDate);
+    const startMs = new Date(project.startDate).getTime();
+    const endExMs = new Date(project.endDate).getTime() + DAY_MS; // inclusive end date
 
-    const effectiveStart = isBefore(pStart, calendarStart) ? calendarStart : pStart;
-    const effectiveEnd = isAfter(pEnd, calendarEnd) ? calendarEnd : pEnd;
+    const clampedStart = Math.max(startMs, rangeStartMs);
+    const clampedEnd = Math.min(endExMs, rangeEndMs);
+    if (clampedStart >= clampedEnd) return null;
 
-    if (isAfter(effectiveStart, effectiveEnd)) return null;
+    const left = msToPct(clampedStart);
+    const width = msToPct(clampedEnd) - left;
+    return { left: `${left}%`, width: `${Math.max(width, 0.5)}%` };
+  }
 
-    const startOffset = differenceInDays(effectiveStart, calendarStart);
-    const span = differenceInDays(effectiveEnd, effectiveStart) + 1;
-
-    const leftPct = (startOffset / totalDays) * 100;
-    const widthPct = (span / totalDays) * 100;
-
-    return { left: `${leftPct}%`, width: `${widthPct}%` };
+  function navigate(dir: 1 | -1) {
+    setCursor((c) => {
+      if (mode === 'week') return new Date(c.getTime() + dir * 7 * DAY_MS);
+      const n = new Date(c);
+      if (mode === 'month') n.setMonth(n.getMonth() + dir);
+      else n.setFullYear(n.getFullYear() + dir);
+      return n;
+    });
   }
 
   function handleProjectClick(project: Project) {
@@ -80,39 +154,42 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
     );
   }
 
+  const now = new Date();
+  const todayPct = msToPct(now.getTime());
+  const showTodayLine = todayPct >= 0 && todayPct <= 100;
+  const colWidthPct = 100 / columns.length;
+
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      {/* Header: month navigator */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+      {/* Header: navigator + mode switch */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-gold" />
-          <span className="font-semibold text-sm text-foreground">
-            {format(currentMonth, 'MMMM yyyy')}
-          </span>
+          <span className="font-semibold text-sm text-foreground">{title}</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          >
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            {MODES.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setMode(m.id)}
+                className={`px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  mode === m.id
+                    ? 'bg-gold text-os-dark'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={() => setCurrentMonth(startOfMonth(new Date()))}
-          >
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setCursor(new Date())}>
             Today
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -124,8 +201,8 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <div style={{ minWidth: LABEL_WIDTH + totalDays * 36 }}>
-            {/* Day header row */}
+          <div style={{ minWidth: LABEL_WIDTH + columns.length * colMinWidth }}>
+            {/* Column header row */}
             <div className="flex border-b border-border sticky top-0 bg-card z-10">
               <div
                 className="flex-shrink-0 border-r border-border px-3 py-2 flex items-center"
@@ -134,47 +211,33 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
                 <span className="text-xs font-medium text-muted-foreground">Project</span>
               </div>
               <div className="flex flex-1">
-                {days.map((day, i) => {
-                  const dayNum = day.getDate();
-                  const weekend = isWeekend(day);
-                  const inMonth = day.getMonth() === currentMonth.getMonth();
-                  const todayCol = isToday(day);
-                  return (
-                    <div
-                      key={i}
-                      className={`flex-shrink-0 flex flex-col items-center justify-center py-1.5 border-r border-border/50 ${
-                        weekend ? 'bg-muted/30' : ''
-                      } ${todayCol ? 'bg-gold/10' : ''}`}
-                      style={{ width: totalDays > 0 ? `${100 / totalDays}%` : 36, minWidth: 36 }}
-                    >
+                {columns.map((col) => (
+                  <div
+                    key={col.key}
+                    className={`flex-shrink-0 flex flex-col items-center justify-center py-1.5 border-r border-border/50 ${
+                      col.shaded ? 'bg-muted/30' : ''
+                    } ${col.today ? 'bg-gold/10' : ''}`}
+                    style={{ width: `${colWidthPct}%`, minWidth: colMinWidth }}
+                  >
+                    {col.top && (
                       <span className={`text-[10px] leading-none ${
-                        inMonth ? 'text-muted-foreground' : 'text-muted-foreground/40'
+                        col.dimmed ? 'text-muted-foreground/40' : 'text-muted-foreground'
                       }`}>
-                        {format(day, 'EEE')}
+                        {col.top}
                       </span>
-                      <span className={`text-xs font-medium leading-tight mt-0.5 ${
-                        todayCol ? 'text-gold font-bold' : inMonth ? 'text-foreground' : 'text-muted-foreground/40'
-                      }`}>
-                        {dayNum}
-                      </span>
-                    </div>
-                  );
-                })}
+                    )}
+                    <span className={`font-medium leading-tight ${col.top ? 'text-xs mt-0.5' : 'text-[11px]'} ${
+                      col.today ? 'text-gold font-bold' : col.dimmed ? 'text-muted-foreground/40' : 'text-foreground'
+                    }`}>
+                      {col.main}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Project rows */}
             <div className="relative">
-              {/* Today line */}
-              {todayOffset >= 0 && (
-                <div
-                  className="absolute top-0 bottom-0 w-px bg-gold z-20 pointer-events-none"
-                  style={{ left: LABEL_WIDTH + (todayOffset + 0.5) * (100 / totalDays) + '%' }}
-                >
-                  <div className="absolute -top-0 -left-1.5 w-3 h-3 rounded-full bg-gold" />
-                </div>
-              )}
-
               {projects.map((project) => {
                 const bar = getBarStyle(project);
                 const sm = STATUS_LABELS[project.status] || STATUS_LABELS.active;
@@ -191,6 +254,7 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
                       className="flex-shrink-0 border-r border-border px-3 py-2 flex flex-col justify-center cursor-pointer"
                       style={{ width: LABEL_WIDTH }}
                       onClick={() => handleProjectClick(project)}
+                      title={`${project.client} — ${project.name} (${sm.label})`}
                     >
                       <span className="text-xs font-medium text-foreground truncate group-hover:text-gold transition-colors">
                         {project.client}
@@ -202,18 +266,16 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
 
                     {/* Bar area */}
                     <div className="flex-1 relative">
-                      {/* Weekend shading */}
-                      {days.map((day, i) => {
-                        if (!isWeekend(day)) return null;
-                        const leftPct = (i / totalDays) * 100;
-                        return (
+                      {/* Shaded/dimmed/today columns */}
+                      {columns.map((col, i) =>
+                        col.shaded || col.dimmed || col.today ? (
                           <div
-                            key={i}
-                            className="absolute top-0 bottom-0 bg-muted/20"
-                            style={{ left: `${leftPct}%`, width: `${100 / totalDays}%` }}
+                            key={col.key}
+                            className={`absolute top-0 bottom-0 ${col.today ? 'bg-gold/10' : 'bg-muted/20'}`}
+                            style={{ left: `${i * colWidthPct}%`, width: `${colWidthPct}%` }}
                           />
-                        );
-                      })}
+                        ) : null,
+                      )}
 
                       {/* Project bar */}
                       {bar && (
@@ -221,6 +283,7 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
                           className={`absolute top-2 bottom-2 rounded-md ${barColor} cursor-pointer opacity-80 group-hover:opacity-100 transition-opacity flex items-center px-2 overflow-hidden`}
                           style={{ left: bar.left, width: bar.width }}
                           onClick={() => handleProjectClick(project)}
+                          title={`${formatDateRange(project)} · ${sm.label}`}
                         >
                           <span className="text-[10px] font-medium text-white truncate drop-shadow-sm">
                             {project.name}
@@ -231,6 +294,19 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
                   </div>
                 );
               })}
+
+              {/* Today line — spans label offset plus fraction of the remaining width */}
+              {showTodayLine && (
+                <div
+                  className="absolute top-0 bottom-0 pointer-events-none z-20"
+                  style={{
+                    left: `calc(${todayPct}% + ${((100 - todayPct) / 100) * LABEL_WIDTH}px)`,
+                  }}
+                >
+                  <div className="absolute inset-y-0 -left-px w-px bg-gold" />
+                  <div className="absolute top-0 -left-[5px] w-[11px] h-[11px] rounded-full bg-gold" />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -253,4 +329,13 @@ export function ProjectCalendar({ projects }: ProjectCalendarProps) {
       </div>
     </div>
   );
+}
+
+function formatDateRange(project: Project): string {
+  const fmt = (d: string) => {
+    try {
+      return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch { return d; }
+  };
+  return `${fmt(project.startDate)} – ${fmt(project.endDate)}`;
 }
