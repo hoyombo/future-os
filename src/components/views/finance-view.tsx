@@ -6,10 +6,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Plus, Trash2, TrendingUp, TrendingDown, DollarSign,
   Receipt, FileText, ArrowUpRight, ArrowDownRight, Repeat, Calculator, Search,
-  Loader2, Wallet,
+  Loader2, Wallet, Printer, ChevronDown, Users,
 } from 'lucide-react';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
+import {
+  InvoicePrintPreview, daysOverdue, agingKey, AGING_LABELS,
+  type StatementGroup, type InvoicePrintRequest,
+} from '@/components/shared/invoice-print';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,7 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { expenseSchema, invoiceSchema, billSchema, recurringExpenseSchema } from '@/lib/validations';
 import type {
-  Status, Expense, Invoice, Bill, RecurringExpense, Currency,
+  Status, Expense, Invoice, InvoiceItem, Bill, RecurringExpense, Currency,
   ExpenseStatus, InvoiceStatus, BillStatus,
 } from '@/lib/types';
 
@@ -74,6 +78,20 @@ function isInvoiceOverdue(inv: Invoice): boolean {
 function effectiveInvoiceStatus(inv: Invoice): InvoiceStatus {
   return inv.status !== 'paid' && inv.dueDate < TODAY() ? 'overdue' : inv.status;
 }
+
+export interface ClientInvoiceGroup {
+  client: string;
+  invoices: Invoice[];
+  invoiced: number;
+  paid: number;
+  balance: number;
+  overdueAmount: number;
+  oldestOverdueDays: number;
+  buckets: Record<'current' | 'd30' | 'd60' | 'd60p', number>;
+}
+
+const EMPTY_BUCKETS = (): Record<'current' | 'd30' | 'd60' | 'd60p', number> =>
+  ({ current: 0, d30: 0, d60: 0, d60p: 0 });
 
 export function FinanceView() {
   const [activeTab, setActiveTab] = useState<FinanceTab>('expenses');
@@ -457,12 +475,192 @@ function InvoicesTab() {
 
   const paymentForm = useForm<{ payment: number }>({ defaultValues: { payment: 0 } });
 
+  // ── Invoice line-item builder ──────────────────────────────────
+  const [invItems, setInvItems] = useState<InvoiceItem[]>([]);
+  const [itemDesc, setItemDesc] = useState('');
+  const [itemQty, setItemQty] = useState(1);
+  const [itemPrice, setItemPrice] = useState(0);
+
+  function addInvItem() {
+    if (!itemDesc.trim() || itemQty < 1 || itemPrice <= 0) return;
+    setInvItems((prev) => [...prev, { description: itemDesc.trim(), qty: itemQty, unitPrice: itemPrice }]);
+    setItemDesc('');
+    setItemQty(1);
+    setItemPrice(0);
+  }
+
+  const invItemsTotal = useMemo(
+    () => invItems.reduce((s, i) => s + i.qty * i.unitPrice, 0),
+    [invItems],
+  );
+
   const filtered = useMemo(() => invoices.filter(i => {
     const eff = effectiveInvoiceStatus(i);
     if (statusFilter !== 'all' && eff !== statusFilter) return false;
     if (!search) return true;
     return i.client.toLowerCase().includes(search.toLowerCase());
   }), [invoices, search, statusFilter]);
+
+  // ── Debt management state ──────────────────────────────────────
+  const [viewMode, setViewMode] = useState<'grouped' | 'flat'>('grouped');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [printReq, setPrintReq] = useState<InvoicePrintRequest | null>(null);
+
+  const clientGroups = useMemo<ClientInvoiceGroup[]>(() => {
+    const map = new Map<string, Invoice[]>();
+    for (const inv of filtered) {
+      const arr = map.get(inv.client);
+      if (arr) arr.push(inv); else map.set(inv.client, [inv]);
+    }
+    return [...map.entries()].map(([client, invs]) => {
+      let invoiced = 0, paid = 0, balance = 0, overdueAmount = 0, oldestOverdueDays = 0;
+      const buckets = EMPTY_BUCKETS();
+      for (const inv of invs) {
+        invoiced += inv.amount;
+        paid += inv.paidAmount;
+        if (inv.status !== 'paid') {
+          const bal = Math.max(0, inv.amount - inv.paidAmount);
+          balance += bal;
+          buckets[agingKey(inv)] += bal;
+          const overdueDays = daysOverdue(inv.dueDate);
+          if (overdueDays > 0) {
+            overdueAmount += bal;
+            oldestOverdueDays = Math.max(oldestOverdueDays, overdueDays);
+          }
+        }
+      }
+      return { client, invoices: invs, invoiced, paid, balance, overdueAmount, oldestOverdueDays, buckets };
+    }).sort((a, b) => b.balance - a.balance);
+  }, [filtered]);
+
+  const receivables = useMemo(() => {
+    let outstanding = 0, overdueAmt = 0;
+    const debtors = new Set<string>();
+    for (const inv of invoices) {
+      if (inv.status === 'paid') continue;
+      const bal = Math.max(0, inv.amount - inv.paidAmount);
+      if (bal <= 0) continue;
+      outstanding += bal;
+      debtors.add(inv.client);
+      if (daysOverdue(inv.dueDate) > 0) overdueAmt += bal;
+    }
+    return { outstanding, overdueAmt, debtorCount: debtors.size };
+  }, [invoices]);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleGroupSelection(invs: Invoice[]) {
+    const ids = invs.map((i) => i.id);
+    const allSelected = ids.every((id) => selected.has(id));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (allSelected ? next.delete(id) : next.add(id)));
+      return next;
+    });
+  }
+
+  function toggleCollapse(client: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(client)) next.delete(client); else next.add(client);
+      return next;
+    });
+  }
+
+  function printSelectedInvoices() {
+    const invs = filtered.filter((i) => selected.has(i.id));
+    if (invs.length === 0) return;
+    setPrintReq({ kind: 'multi', invoices: invs });
+  }
+
+  function printSelectedStatements() {
+    const byClient = new Map<string, Invoice[]>();
+    for (const inv of filtered) {
+      if (!selected.has(inv.id)) continue;
+      const arr = byClient.get(inv.client);
+      if (arr) arr.push(inv); else byClient.set(inv.client, [inv]);
+    }
+    const groups: StatementGroup[] = [...byClient.entries()]
+      .map(([client, invs]) => ({ client, invoices: invs }));
+    if (groups.length === 0) return;
+    setPrintReq({ kind: 'statement', groups });
+  }
+
+  const AGING_CHIP_CLASSES: Record<string, string> = {
+    current: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    d30: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    d60: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+    d60p: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  };
+
+  function renderRow(inv: Invoice, showClient: boolean) {
+    const eff = effectiveInvoiceStatus(inv);
+    const sm = INVOICE_STATUS_MAP[eff] ?? { status: 'gold' as Status, label: eff };
+    const isOverdue = eff === 'overdue';
+    const fullyPaid = inv.status === 'paid';
+    const isSelected = selected.has(inv.id);
+    return (
+      <tr
+        key={inv.id}
+        onClick={() => openDetail(inv)}
+        className={`hover:bg-muted/50 cursor-pointer transition-colors group ${isSelected ? 'bg-gold/5' : ''}`}
+      >
+        <td className="pl-3 py-2 w-8" onClick={(ev) => ev.stopPropagation()}>
+          <input
+            type="checkbox"
+            className="h-3.5 w-3.5 accent-gold cursor-pointer"
+            checked={isSelected}
+            onChange={() => toggleSelect(inv.id)}
+            aria-label={`Select invoice ${inv.id.toUpperCase()} for ${inv.client}`}
+          />
+        </td>
+        <td className="py-2">
+          {showClient && (
+            <p className="font-medium text-foreground text-xs group-hover:text-gold transition-colors leading-tight">{inv.client}</p>
+          )}
+          <p className="font-mono text-[10px] text-muted-foreground">{inv.id.toUpperCase()} · {formatDate(inv.date)}</p>
+        </td>
+        <td className="py-2 text-right font-mono text-xs">{formatPrice(inv.amount, currency)}</td>
+        <td className="py-2 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
+        <td className={`py-2 text-right text-xs hidden sm:table-cell ${isOverdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+          {isOverdue ? `${daysOverdue(inv.dueDate)}d late · ` : ''}{formatDate(inv.dueDate)}
+        </td>
+        <td className="py-2 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 hidden md:table-cell">
+          {formatPrice(inv.paidAmount, currency)}
+        </td>
+        <td className="py-2 pr-3 text-right" onClick={(ev) => ev.stopPropagation()}>
+          <div className="flex items-center justify-end gap-1">
+            {!fullyPaid && (
+              <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openPaymentDialog(inv)}>
+                <Wallet className="h-3 w-3" /> Pay
+              </Button>
+            )}
+            <button
+              onClick={() => setPrintReq({ kind: 'single', invoice: inv })}
+              className="p-1 text-muted-foreground hover:text-gold transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+              aria-label={`Print invoice ${inv.id.toUpperCase()}`}
+            >
+              <Printer className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setDeleteTarget(inv)}
+              className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+              aria-label={`Delete invoice for ${inv.client}`}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  }
 
   function openDetail(inv: Invoice) {
     const eff = effectiveInvoiceStatus(inv);
@@ -478,6 +676,23 @@ function InvoicesTab() {
           <div><span className="text-muted-foreground">Paid:</span> <span className="font-mono text-emerald-600 dark:text-emerald-400">{formatPrice(inv.paidAmount, currency)}</span></div>
           <div className="col-span-2"><span className="text-muted-foreground">Remaining:</span> <span className="font-mono font-medium">{formatPrice(remaining, currency)}</span></div>
         </div>
+        {inv.items.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Items</p>
+            <table className="w-full text-xs">
+              <tbody className="divide-y divide-border">
+                {inv.items.map((item, i) => (
+                  <tr key={i}>
+                    <td className="py-1.5 text-foreground">{item.description}</td>
+                    <td className="py-1.5 text-right text-muted-foreground whitespace-nowrap">×{item.qty}</td>
+                    <td className="py-1.5 text-right font-mono whitespace-nowrap">{formatPrice(item.unitPrice, currency)}</td>
+                    <td className="py-1.5 text-right font-mono font-medium whitespace-nowrap">{formatPrice(item.qty * item.unitPrice, currency)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     ));
   }
@@ -516,18 +731,21 @@ function InvoicesTab() {
   async function onSubmit(data: InvoiceFormData) {
     setIsSaving(true);
     try {
+      const amount = invItems.length > 0 ? invItemsTotal : data.amount;
       saveInvoice({
         id: generateId(), client: data.client.trim(),
-        amount: data.amount, date: data.date, dueDate: data.dueDate,
+        amount, date: data.date, dueDate: data.dueDate,
         status: 'pending', paidAmount: 0,
+        items: invItems,
       });
       addToast('success', '✅', 'Invoice created');
       addActivity({
         id: generateId(), text: 'Invoice created',
-        detail: `${data.client.trim()} · ${formatPrice(data.amount, currency)}`,
+        detail: `${data.client.trim()} · ${formatPrice(amount, currency)}`,
         icon: '📄', timestamp: getTimestamp(),
       });
       form.reset({ client: '', amount: 0, date: TODAY(), dueDate: PLUS_30_DAYS() });
+      setInvItems([]);
       setBuilderOpen(false);
     } finally {
       setIsSaving(false);
@@ -543,20 +761,66 @@ function InvoicesTab() {
         </Button>
       </div>
 
+      {/* Receivables strip */}
+      {invoices.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="rounded-lg border border-border bg-card px-3 py-2.5 flex items-center gap-2.5">
+            <Wallet className="h-4 w-4 text-gold flex-shrink-0" />
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Outstanding</p>
+              <p className="text-sm font-mono font-bold text-foreground">{formatPrice(receivables.outstanding, currency)}</p>
+            </div>
+          </div>
+          <div className="rounded-lg border border-border bg-card px-3 py-2.5 flex items-center gap-2.5">
+            <Users className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Clients with debt</p>
+              <p className="text-sm font-bold text-foreground">{receivables.debtorCount}</p>
+            </div>
+          </div>
+          <div className={`rounded-lg border bg-card px-3 py-2.5 flex items-center gap-2.5 ${receivables.overdueAmt > 0 ? 'border-red-500/30' : 'border-border'}`}>
+            <Receipt className={`h-4 w-4 flex-shrink-0 ${receivables.overdueAmt > 0 ? 'text-red-500' : 'text-muted-foreground'}`} />
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Overdue</p>
+              <p className={`text-sm font-mono font-bold ${receivables.overdueAmt > 0 ? 'text-red-500' : 'text-foreground'}`}>
+                {formatPrice(receivables.overdueAmt, currency)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {invoices.length > 0 && (
         <>
           <SearchBar placeholder="Search by client..." value={search} onChange={setSearch} />
-          <FilterChips
-            options={[
-              { key: 'all', label: 'All' },
-              { key: 'pending', label: 'Pending' },
-              { key: 'partial', label: 'Partial' },
-              { key: 'overdue', label: 'Overdue' },
-              { key: 'paid', label: 'Paid' },
-            ]}
-            value={statusFilter}
-            onChange={setStatusFilter}
-          />
+          <div className="flex items-start justify-between gap-2 flex-wrap">
+            <FilterChips
+              options={[
+                { key: 'all', label: 'All' },
+                { key: 'pending', label: 'Pending' },
+                { key: 'partial', label: 'Partial' },
+                { key: 'overdue', label: 'Overdue' },
+                { key: 'paid', label: 'Paid' },
+              ]}
+              value={statusFilter}
+              onChange={setStatusFilter}
+            />
+            <div className="flex rounded-lg border border-border overflow-hidden">
+              {(['grouped', 'flat'] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setViewMode(m)}
+                  className={`px-2.5 py-1.5 text-xs font-medium transition-all ${
+                    viewMode === m
+                      ? 'bg-gold text-os-dark'
+                      : 'bg-muted text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {m === 'grouped' ? 'By Client' : 'List'}
+                </button>
+              ))}
+            </div>
+          </div>
         </>
       )}
 
@@ -569,60 +833,124 @@ function InvoicesTab() {
         </div>
       ) : filtered.length === 0 ? (
         <p className="py-8 text-center text-muted-foreground text-xs">No invoices match your search.</p>
+      ) : viewMode === 'grouped' ? (
+        <div className="space-y-3">
+          {clientGroups.map((g) => {
+            const allSelected = g.invoices.every((i) => selected.has(i.id));
+            const isCollapsed = collapsed.has(g.client);
+            return (
+              <div key={g.client} className="rounded-lg border border-border overflow-hidden">
+                {/* Group header */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/40 flex-wrap">
+                  <input
+                    type="checkbox"
+                    className="h-3.5 w-3.5 accent-gold cursor-pointer"
+                    checked={allSelected}
+                    onChange={() => toggleGroupSelection(g.invoices)}
+                    aria-label={`Select all invoices for ${g.client}`}
+                  />
+                  <button
+                    onClick={() => toggleCollapse(g.client)}
+                    className="flex items-center gap-1 min-w-0"
+                    aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${g.client}`}
+                  >
+                    <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                    <span className="font-semibold text-xs text-foreground truncate">{g.client}</span>
+                    <span className="text-[10px] text-muted-foreground">({g.invoices.length})</span>
+                  </button>
+
+                  {/* Aging chips */}
+                  <div className="flex gap-1">
+                    {(['current', 'd30', 'd60', 'd60p'] as const).map((k) =>
+                      g.buckets[k] > 0 ? (
+                        <span key={k} className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${AGING_CHIP_CLASSES[k]}`}>
+                          {AGING_LABELS[k]} {formatPrice(g.buckets[k], currency)}
+                        </span>
+                      ) : null,
+                    )}
+                  </div>
+
+                  <div className="ml-auto flex items-center gap-2">
+                    {g.oldestOverdueDays > 0 && (
+                      <span className="text-[10px] text-red-500 font-medium">
+                        oldest {g.oldestOverdueDays}d
+                      </span>
+                    )}
+                    <span className="font-mono text-xs text-muted-foreground hidden sm:inline">
+                      Balance{' '}
+                      <b className={g.balance > 0 ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'}>
+                        {formatPrice(g.balance, currency)}
+                      </b>
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => setPrintReq({ kind: 'statement', groups: [{ client: g.client, invoices: g.invoices }] })}
+                    >
+                      <Printer className="h-3 w-3" /> Statement
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Rows */}
+                {!isCollapsed && (
+                  <table className="w-full text-sm">
+                    <tbody className="divide-y divide-border">
+                      {g.invoices.map((inv) => renderRow(inv, false))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted-foreground">
+              <th className="pl-3 pb-2 w-8"></th>
               <th className="text-left pb-2 font-medium">Client</th>
               <th className="text-right pb-2 font-medium">Amount</th>
               <th className="text-center pb-2 font-medium">Status</th>
               <th className="text-right pb-2 font-medium hidden sm:table-cell">Due</th>
               <th className="text-right pb-2 font-medium hidden md:table-cell">Paid</th>
-              <th className="text-right pb-2 font-medium w-32"></th>
+              <th className="pr-3 pb-2 text-right font-medium w-32"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filtered.map((inv) => {
-              const eff = effectiveInvoiceStatus(inv);
-              const sm = INVOICE_STATUS_MAP[eff] ?? { status: 'gold' as Status, label: eff };
-              const overdue = eff === 'overdue';
-              const fullyPaid = inv.status === 'paid';
-              return (
-                <tr key={inv.id} onClick={() => openDetail(inv)} className="hover:bg-muted/50 cursor-pointer transition-colors group">
-                  <td className="py-2.5 font-medium text-foreground text-xs group-hover:text-gold transition-colors">{inv.client}</td>
-                  <td className="py-2.5 text-right font-mono text-xs">{formatPrice(inv.amount, currency)}</td>
-                  <td className="py-2.5 text-center"><StatusBadge status={sm.status} label={sm.label} /></td>
-                  <td className={`py-2.5 text-right text-xs hidden sm:table-cell ${overdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-                    {overdue ? 'Overdue · ' : ''}{formatDate(inv.dueDate)}
-                  </td>
-                  <td className="py-2.5 text-right font-mono text-xs text-emerald-600 dark:text-emerald-400 hidden md:table-cell">
-                    {formatPrice(inv.paidAmount, currency)}
-                  </td>
-                  <td className="py-2.5 text-right" onClick={(ev) => ev.stopPropagation()}>
-                    <div className="flex items-center justify-end gap-1">
-                      {!fullyPaid && (
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => openPaymentDialog(inv)}>
-                          <Wallet className="h-3 w-3" /> Pay
-                        </Button>
-                      )}
-                      <button
-                        onClick={() => setDeleteTarget(inv)}
-                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                        aria-label={`Delete invoice for ${inv.client}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+            {filtered.map((inv) => renderRow(inv, true))}
           </tbody>
         </table>
       )}
 
+      {/* Selection action bar */}
+      {selected.size > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-xl border border-border bg-card shadow-2xl px-4 py-2.5 flex items-center gap-2 animate-fade-up">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">{selected.size} invoice{selected.size === 1 ? '' : 's'} selected</span>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={printSelectedInvoices}>
+            <Printer className="h-3 w-3" /> Print Invoices
+          </Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={printSelectedStatements}>
+            <FileText className="h-3 w-3" /> Statements
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setSelected(new Set())}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       {/* Add Invoice Dialog */}
-      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+      <Dialog open={builderOpen} onOpenChange={(open) => {
+        if (!open) {
+          form.reset();
+          setInvItems([]);
+          setItemDesc('');
+          setItemQty(1);
+          setItemPrice(0);
+        }
+        setBuilderOpen(open);
+      }}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Invoice</DialogTitle>
@@ -637,13 +965,77 @@ function InvoicesTab() {
                   <FormMessage />
                 </FormItem>
               )} />
+
+              {/* Line items builder */}
+              <div className="space-y-2">
+                <FormLabel>Items</FormLabel>
+                <div className="flex gap-1.5">
+                  <Input
+                    placeholder="Description e.g. Aeron chairs"
+                    value={itemDesc}
+                    onChange={(e) => setItemDesc(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addInvItem(); } }}
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number" min={1} placeholder="Qty"
+                    value={itemQty || ''} onChange={(e) => setItemQty(parseInt(e.target.value) || 0)}
+                    className="w-16"
+                  />
+                  <Input
+                    type="number" min={0} placeholder="Unit price"
+                    value={itemPrice || ''} onChange={(e) => setItemPrice(parseInt(e.target.value) || 0)}
+                    className="w-28"
+                  />
+                  <Button type="button" variant="outline" size="icon" onClick={addInvItem} disabled={!itemDesc.trim() || itemQty < 1 || itemPrice <= 0}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {invItems.length > 0 ? (
+                  <div className="space-y-1">
+                    {invItems.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 rounded-md bg-muted px-3 py-1.5 text-xs">
+                        <span className="flex-1 truncate">{item.description}</span>
+                        <span className="text-muted-foreground whitespace-nowrap">×{item.qty}</span>
+                        <span className="font-mono text-muted-foreground whitespace-nowrap">{formatPrice(item.unitPrice, currency)}</span>
+                        <span className="font-mono font-medium whitespace-nowrap">{formatPrice(item.qty * item.unitPrice, currency)}</span>
+                        <button
+                          type="button"
+                          onClick={() => setInvItems(invItems.filter((_, j) => j !== i))}
+                          className="text-muted-foreground hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground">Optional — leave empty to bill a single lump-sum amount.</p>
+                )}
+              </div>
+
               <FormField control={form.control} name="amount" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount (XOF) *</FormLabel>
+                  <FormLabel>
+                    Amount (XOF) *
+                    {invItems.length > 0 && (
+                      <span className="ml-2 font-mono text-xs text-gold font-bold">{formatPrice(invItemsTotal, currency)}</span>
+                    )}
+                  </FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      disabled={invItems.length > 0}
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    />
                   </FormControl>
                   <FormMessage />
+                  {invItems.length > 0 && (
+                    <p className="text-[10px] text-muted-foreground">Auto-calculated from items above.</p>
+                  )}
                 </FormItem>
               )} />
               <div className="grid grid-cols-2 gap-2">
@@ -717,6 +1109,10 @@ function InvoicesTab() {
           setDeleteTarget(null);
         }}
       />
+
+      {printReq && (
+        <InvoicePrintPreview request={printReq} onClose={() => setPrintReq(null)} />
+      )}
     </div>
   );
 }

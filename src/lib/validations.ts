@@ -10,6 +10,12 @@ export const expenseSchema = z.object({
   createdBy: z.string().min(1).max(200),
 });
 
+export const invoiceItemSchema = z.object({
+  description: z.string().min(1).max(500),
+  qty: z.number().int().positive(),
+  unitPrice: z.number().int().min(0),
+});
+
 export const invoiceSchema = z.object({
   client: z.string().min(1).max(200),
   amount: z.number().int().positive(),
@@ -17,6 +23,7 @@ export const invoiceSchema = z.object({
   status: z.enum(['pending', 'partial', 'paid']).optional(),
   dueDate: z.string().min(1),
   paidAmount: z.number().int().min(0).optional(),
+  items: z.array(invoiceItemSchema).optional(),
 });
 
 export const billSchema = z.object({

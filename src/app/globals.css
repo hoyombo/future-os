@@ -204,4 +204,16 @@
   .print-break-before-auto { break-before: auto; break-inside: auto; page-break-before: auto; page-break-inside: auto; }
 
   @page { margin: 1cm; size: A4; }
+
+  /* ── Invoice printing: scope page to the print document only ── */
+  body.printing-invoice > *:not(.invoice-print-portal) { display: none !important; }
+  body.printing-invoice .invoice-print-portal {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  body.printing-invoice .invoice-print-toolbar { display: none !important; }
+  body.printing-invoice .invoice-print-doc { background: #fff !important; }
 }

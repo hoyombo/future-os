@@ -14,7 +14,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!parsed.success) {
       return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
     }
-    const invoice = await prisma.invoice.update({ where: { id }, data: parsed.data });
+    const { items, ...data } = parsed.data;
+
+    if (items) {
+      await prisma.invoiceItem.deleteMany({ where: { invoiceId: id } });
+    }
+
+    const invoice = await prisma.invoice.update({
+      where: { id },
+      data: { ...data, ...(items ? { items: { create: items } } : {}) },
+      include: { items: true },
+    });
     return NextResponse.json(invoice);
   } catch (e) {
     console.error('[API] PUT /api/invoices/[id] failed:', e);
@@ -28,6 +38,7 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
 
   try {
     const { id } = await params;
+    await prisma.invoiceItem.deleteMany({ where: { invoiceId: id } });
     await prisma.invoice.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e) {

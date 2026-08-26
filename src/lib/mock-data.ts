@@ -316,13 +316,43 @@ export const SEED_EXPENSES: Expense[] = [
 ];
 
 export const SEED_INVOICES: Invoice[] = [
-  { id: 'inv1', client: 'BCG', amount: 15000000, date: '2026-07-15', status: 'paid', dueDate: '2026-08-15', paidAmount: 15000000 },
-  { id: 'inv2', client: 'Radisson', amount: 22000000, date: '2026-07-01', status: 'paid', dueDate: '2026-08-01', paidAmount: 22000000 },
-  { id: 'inv3', client: 'UN', amount: 28000000, date: '2026-06-15', status: 'paid', dueDate: '2026-07-15', paidAmount: 28000000 },
-  { id: 'inv4', client: 'BNP', amount: 8500000, date: '2026-08-01', status: 'pending', dueDate: '2026-09-01', paidAmount: 0 },
-  { id: 'inv5', client: 'Ministère', amount: 5200000, date: '2026-08-05', status: 'pending', dueDate: '2026-09-05', paidAmount: 0 },
-  { id: 'inv6', client: 'BCG', amount: 18500000, date: '2026-08-10', status: 'partial', dueDate: '2026-09-10', paidAmount: 9000000 },
-  { id: 'inv7', client: 'Radisson', amount: 32000000, date: '2026-08-12', status: 'pending', dueDate: '2026-09-12', paidAmount: 0 },
+  { id: 'inv1', client: 'BCG', amount: 15000000, date: '2026-07-15', status: 'paid', dueDate: '2026-08-15', paidAmount: 15000000,
+    items: [
+      { description: 'Steelcase Gesture — executive chairs', qty: 20, unitPrice: 600000 },
+      { description: 'Delivery & installation', qty: 1, unitPrice: 3000000 },
+    ] },
+  { id: 'inv2', client: 'Radisson', amount: 22000000, date: '2026-07-01', status: 'paid', dueDate: '2026-08-01', paidAmount: 22000000,
+    items: [
+      { description: 'Dieffebi Glass Wall partitions', qty: 30, unitPrice: 500000 },
+      { description: 'Installation & sealing', qty: 1, unitPrice: 7000000 },
+    ] },
+  { id: 'inv3', client: 'UN', amount: 28000000, date: '2026-06-15', status: 'paid', dueDate: '2026-07-15', paidAmount: 28000000,
+    items: [
+      { description: 'Herman Miller OE1 workstations', qty: 40, unitPrice: 550000 },
+      { description: 'Steelcase storage cabinets', qty: 24, unitPrice: 250000 },
+    ] },
+  { id: 'inv4', client: 'BNP', amount: 8500000, date: '2026-08-01', status: 'pending', dueDate: '2026-09-01', paidAmount: 0,
+    items: [
+      { description: 'SmartTrack lighting system', qty: 50, unitPrice: 130000 },
+      { description: 'Luxury LED panels 600×600', qty: 10, unitPrice: 200000 },
+    ] },
+  { id: 'inv5', client: 'Ministère', amount: 5200000, date: '2026-08-05', status: 'pending', dueDate: '2026-09-05', paidAmount: 0,
+    items: [
+      { description: 'Kinnarps 6000 task chairs', qty: 4, unitPrice: 800000 },
+      { description: 'Mobile drawer units', qty: 8, unitPrice: 250000 },
+    ] },
+  { id: 'inv6', client: 'BCG', amount: 18500000, date: '2026-08-10', status: 'partial', dueDate: '2026-09-10', paidAmount: 9000000,
+    items: [
+      { description: 'Frezza meeting tables 300×120', qty: 5, unitPrice: 2500000 },
+      { description: 'Frezza sideboards', qty: 10, unitPrice: 380000 },
+      { description: 'Delivery & installation', qty: 1, unitPrice: 2200000 },
+    ] },
+  { id: 'inv7', client: 'Radisson', amount: 32000000, date: '2026-08-12', status: 'pending', dueDate: '2026-09-12', paidAmount: 0,
+    items: [
+      { description: 'Hush phone booths', qty: 4, unitPrice: 2200000 },
+      { description: 'Dieffebi acoustic wall panels', qty: 100, unitPrice: 120000 },
+      { description: 'Frezza F1 desks', qty: 14, unitPrice: 800000 },
+    ] },
 ];
 
 export const SEED_BILLS: Bill[] = [

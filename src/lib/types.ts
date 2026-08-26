@@ -93,6 +93,12 @@ export interface Expense {
   createdBy: string;
 }
 
+export interface InvoiceItem {
+  description: string;
+  qty: number;
+  unitPrice: number;
+}
+
 export interface Invoice {
   id: string;
   client: string;
@@ -101,6 +107,7 @@ export interface Invoice {
   status: InvoiceStatus;
   dueDate: string;
   paidAmount: number;
+  items: InvoiceItem[];
 }
 
 export interface Bill {

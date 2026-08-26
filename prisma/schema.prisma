@@ -154,12 +154,26 @@ model Invoice {
   dueDate   DateTime
   paidAmount Int   @default(0)
 
+  items     InvoiceItem[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([client])
   @@index([createdAt])
+}
+
+model InvoiceItem {
+  id          String @id @default(cuid())
+  invoiceId   String
+  description String
+  qty         Int    @default(1)
+  unitPrice   Int
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
 }
 
 model Bill {

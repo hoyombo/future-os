@@ -8,7 +8,7 @@ export async function GET() {
   if (error) return error;
 
   try {
-    const invoices = await prisma.invoice.findMany({ orderBy: { createdAt: 'desc' } });
+    const invoices = await prisma.invoice.findMany({ orderBy: { createdAt: 'desc' }, include: { items: true } });
     return NextResponse.json(invoices);
   } catch (e) {
     console.error('[API] GET /api/invoices failed:', e);
@@ -26,7 +26,11 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
     }
-    const invoice = await prisma.invoice.create({ data: parsed.data });
+    const { items, ...data } = parsed.data;
+    const invoice = await prisma.invoice.create({
+      data: { ...data, items: { create: items ?? [] } },
+      include: { items: true },
+    });
     return NextResponse.json(invoice, { status: 201 });
   } catch (e) {
     console.error('[API] POST /api/invoices failed:', e);
