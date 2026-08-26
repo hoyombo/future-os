@@ -8,7 +8,7 @@ export async function GET() {
   if (error) return error;
 
   try {
-    const pos = await prisma.purchaseOrder.findMany({ orderBy: { createdAt: 'desc' } });
+    const pos = await prisma.purchaseOrder.findMany({ orderBy: { createdAt: 'desc' }, include: { items: true } });
     return NextResponse.json(pos);
   } catch (e) {
     console.error('[API] GET /api/purchase-orders failed:', e);

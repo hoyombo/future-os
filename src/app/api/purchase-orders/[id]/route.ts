@@ -14,7 +14,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!parsed.success) {
       return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
     }
-    const po = await prisma.purchaseOrder.update({ where: { id }, data: parsed.data });
+    const { items, ...data } = parsed.data;
+
+    if (items) {
+      await prisma.purchaseOrderItem.deleteMany({ where: { purchaseOrderId: id } });
+    }
+
+    const po = await prisma.purchaseOrder.update({
+      where: { id },
+      data: { ...data, ...(items ? { items: { create: items } } : {}) },
+      include: { items: true },
+    });
     return NextResponse.json(po);
   } catch (e) {
     console.error('[API] PUT /api/purchase-orders/[id] failed:', e);
@@ -28,6 +38,7 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
 
   try {
     const { id } = await params;
+    await prisma.purchaseOrderItem.deleteMany({ where: { purchaseOrderId: id } });
     await prisma.purchaseOrder.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (e) {

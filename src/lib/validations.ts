@@ -54,6 +54,8 @@ export const productSchema = z.object({
   name: z.string().min(1).max(200),
   supplier: z.string().min(1).max(200),
   category: z.enum(['seating', 'desks', 'walls', 'lighting', 'storage']),
+  emoji: z.string().max(10).optional(),
+  imageUrl: z.string().url().max(500).optional().or(z.literal('')),
   cost: z.number().int().min(0),
   price: z.number().int().min(0),
   stock: z.number().int().min(0),
@@ -87,9 +89,14 @@ export const teamMemberSchema = z.object({
   status: z.enum(['Active', 'On Leave', 'Inactive']).optional(),
 });
 
+export const purchaseOrderItemSchema = z.object({
+  productId: z.string().min(1),
+  qty: z.number().int().positive(),
+});
+
 export const purchaseOrderSchema = z.object({
   supplier: z.string().min(1).max(200),
-  items: z.string().min(1),
+  items: z.array(purchaseOrderItemSchema).min(1),
   totalAmount: z.number().int().positive(),
   status: z.enum(['draft', 'processing', 'in-transit', 'delivered']).optional(),
   date: z.string().min(1),

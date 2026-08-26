@@ -3,7 +3,8 @@
 import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Search, Trash2, Plus, Loader2, Truck, AlertTriangle, Wallet } from 'lucide-react';
+import { Search, Trash2, Plus, Loader2, Truck, AlertTriangle, Wallet, X } from 'lucide-react';
+import Image from 'next/image';
 import { useAppStore, formatPrice, formatDate, generateId, getTimestamp } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { purchaseOrderSchema } from '@/lib/validations';
-import type { PurchaseOrder, PurchaseOrderStatus, Status } from '@/lib/types';
+import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, Status } from '@/lib/types';
 
 const PO_STATUS_MAP: Record<PurchaseOrderStatus, { status: Status; label: string }> = {
   draft: { status: 'gold', label: 'Draft' },
@@ -35,17 +36,10 @@ const STATUS_FLOW: PurchaseOrderStatus[] = ['draft', 'processing', 'in-transit',
 
 type POFormData = {
   supplier: string;
-  items: string;
   totalAmount: number;
   date: string;
   expectedDelivery: string;
 };
-
-function parsePOLine(line: string): { name: string; qty: number } | null {
-  const match = line.trim().match(/^(.+?)\s*[×x]\s*(\d+)$/);
-  if (!match) return null;
-  return { name: match[1].trim().toLowerCase(), qty: parseInt(match[2], 10) };
-}
 
 export function ProcurementView() {
   const purchaseOrders = useAppStore((s) => s.purchaseOrders);
@@ -64,9 +58,14 @@ export function ProcurementView() {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Item builder state
+  const [orderItems, setOrderItems] = useState<PurchaseOrderItem[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [selectedQty, setSelectedQty] = useState(1);
+
   const form = useForm<POFormData>({
-    resolver: zodResolver(purchaseOrderSchema.omit({ status: true })) as any,
-    defaultValues: { supplier: '', items: '', totalAmount: 0, date: '', expectedDelivery: '' },
+    resolver: zodResolver(purchaseOrderSchema.omit({ status: true, items: true })) as any,
+    defaultValues: { supplier: '', totalAmount: 0, date: '', expectedDelivery: '' },
   });
 
   const filteredPOs = useMemo(() => {
@@ -74,11 +73,16 @@ export function ProcurementView() {
       if (statusFilter !== 'all' && po.status !== statusFilter) return false;
       if (search) {
         const q = search.toLowerCase();
-        if (!po.supplier.toLowerCase().includes(q) && !po.items.toLowerCase().includes(q)) return false;
+        if (!po.supplier.toLowerCase().includes(q)) return false;
+        const itemMatch = po.items.some((item) => {
+          const prod = products.find((p) => p.id === item.productId);
+          return prod?.name.toLowerCase().includes(q);
+        });
+        if (!itemMatch) return false;
       }
       return true;
     });
-  }, [purchaseOrders, statusFilter, search]);
+  }, [purchaseOrders, statusFilter, search, products]);
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -91,6 +95,34 @@ export function ProcurementView() {
     ).length;
     return { committed, inTransit, overdue };
   }, [purchaseOrders]);
+
+  function addItem() {
+    if (!selectedProductId) return;
+    const existing = orderItems.find((i) => i.productId === selectedProductId);
+    if (existing) {
+      setOrderItems(orderItems.map((i) =>
+        i.productId === selectedProductId ? { ...i, qty: i.qty + selectedQty } : i
+      ));
+    } else {
+      setOrderItems([...orderItems, { productId: selectedProductId, qty: selectedQty }]);
+    }
+    setSelectedProductId('');
+    setSelectedQty(1);
+  }
+
+  function removeItem(productId: string) {
+    setOrderItems(orderItems.filter((i) => i.productId !== productId));
+  }
+
+  function updateItemQty(productId: string, qty: number) {
+    if (qty <= 0) {
+      removeItem(productId);
+      return;
+    }
+    setOrderItems(orderItems.map((i) =>
+      i.productId === productId ? { ...i, qty } : i
+    ));
+  }
 
   function openDetail(po: PurchaseOrder) {
     const sm = PO_STATUS_MAP[po.status as PurchaseOrderStatus] ?? { status: 'gold' as Status, label: po.status || 'Draft' };
@@ -109,9 +141,14 @@ export function ProcurementView() {
         <div>
           <p className="text-xs text-muted-foreground mb-1">Items</p>
           <div className="flex flex-wrap gap-1">
-            {po.items.split(',').map((item, i) => (
-              <span key={i} className="rounded-md bg-muted px-2 py-0.5 text-xs">{item.trim()}</span>
-            ))}
+            {po.items.map((item, i) => {
+              const prod = products.find((p) => p.id === item.productId);
+              return (
+                <span key={i} className="rounded-md bg-muted px-2 py-0.5 text-xs">
+                  {prod ? prod.name : 'Unknown'} × {item.qty}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -133,16 +170,11 @@ export function ProcurementView() {
     });
 
     if (next === 'delivered') {
-      const lines = po.items.split(',').map(parsePOLine).filter(Boolean) as { name: string; qty: number }[];
       const bumped: string[] = [];
-      for (const line of lines) {
-        const product = products.find(
-          (p) => p.name.toLowerCase().includes(line.name) || line.name.includes(p.name.toLowerCase())
-        );
-        if (product) {
-          adjustStock(product.id, line.qty);
-          bumped.push(`${product.name} +${line.qty}`);
-        }
+      for (const item of po.items) {
+        adjustStock(item.productId, item.qty);
+        const prod = products.find((p) => p.id === item.productId);
+        bumped.push(`${prod?.name ?? 'Unknown'} +${item.qty}`);
       }
       if (bumped.length > 0) {
         addToast('info', '📦', `Stock updated: ${bumped.join(', ')}`);
@@ -158,12 +190,16 @@ export function ProcurementView() {
   }
 
   async function onSubmit(data: POFormData) {
+    if (orderItems.length === 0) {
+      addToast('warning', '⚠️', 'Please add at least one item to the order.');
+      return;
+    }
     setIsSaving(true);
     try {
       const po: PurchaseOrder = {
         id: generateId(),
         supplier: data.supplier.trim(),
-        items: data.items.trim(),
+        items: orderItems,
         totalAmount: data.totalAmount,
         status: 'draft',
         date: data.date,
@@ -178,7 +214,8 @@ export function ProcurementView() {
         icon: '🚚',
         timestamp: getTimestamp(),
       });
-      form.reset({ supplier: '', items: '', totalAmount: 0, date: '', expectedDelivery: '' });
+      form.reset({ supplier: '', totalAmount: 0, date: '', expectedDelivery: '' });
+      setOrderItems([]);
       setBuilderOpen(false);
     } catch {
       addToast('error', '❌', 'Failed to create purchase order. Please try again.');
@@ -286,7 +323,6 @@ export function ProcurementView() {
             const sm = PO_STATUS_MAP[po.status as PurchaseOrderStatus] ?? { status: 'gold' as Status, label: po.status || 'Draft' };
             const today = new Date().toISOString().slice(0, 10);
             const isOverdue = po.status !== 'delivered' && po.expectedDelivery < today;
-            const itemNames = po.items.split(',').map((i) => i.trim()).filter(Boolean);
 
             return (
               <div
@@ -305,12 +341,17 @@ export function ProcurementView() {
                 </div>
 
                 <div className="flex flex-wrap gap-1 mb-3">
-                  {itemNames.slice(0, 3).map((item, i) => (
-                    <span key={i} className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{item}</span>
-                  ))}
-                  {itemNames.length > 3 && (
+                  {po.items.slice(0, 3).map((item, i) => {
+                    const prod = products.find((p) => p.id === item.productId);
+                    return (
+                      <span key={i} className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                        {prod ? prod.name : 'Unknown'} × {item.qty}
+                      </span>
+                    );
+                  })}
+                  {po.items.length > 3 && (
                     <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                      +{itemNames.length - 3} more
+                      +{po.items.length - 3} more
                     </span>
                   )}
                 </div>
@@ -352,7 +393,15 @@ export function ProcurementView() {
       )}
 
       {/* New Purchase Order Dialog */}
-      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+      <Dialog open={builderOpen} onOpenChange={(open) => {
+        if (!open) {
+          form.reset({ supplier: '', totalAmount: 0, date: '', expectedDelivery: '' });
+          setOrderItems([]);
+          setSelectedProductId('');
+          setSelectedQty(1);
+        }
+        setBuilderOpen(open);
+      }}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Purchase Order</DialogTitle>
@@ -369,13 +418,80 @@ export function ProcurementView() {
                 </FormItem>
               )} />
 
-              <FormField control={form.control} name="items" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Items *</FormLabel>
-                  <FormControl><Input placeholder="e.g. Aeron ×18, OE1 Desk ×10" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
+              {/* Item Builder */}
+              <div className="space-y-2">
+                <FormLabel>Items *</FormLabel>
+                <div className="flex gap-2">
+                  <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          <span className="flex items-center gap-2">
+                            {p.imageUrl ? (
+                              <div className="relative h-5 w-5 rounded overflow-hidden bg-muted flex-shrink-0">
+                                <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="20px" />
+                              </div>
+                            ) : (
+                              <span className="text-sm">{p.emoji}</span>
+                            )}
+                            {p.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={selectedQty}
+                    onChange={(e) => setSelectedQty(parseInt(e.target.value) || 1)}
+                    className="w-20"
+                  />
+                  <Button type="button" variant="outline" size="icon" onClick={addItem} disabled={!selectedProductId}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {orderItems.length > 0 && (
+                  <div className="space-y-1 mt-2">
+                    {orderItems.map((item) => {
+                      const prod = products.find((p) => p.id === item.productId);
+                      return (
+                        <div key={item.productId} className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm">
+                          {prod?.imageUrl ? (
+                            <div className="relative h-6 w-6 rounded overflow-hidden bg-background flex-shrink-0">
+                              <Image src={prod.imageUrl} alt={prod.name} fill className="object-cover" sizes="24px" />
+                            </div>
+                          ) : (
+                            <span className="text-base">{prod?.emoji ?? '📦'}</span>
+                          )}
+                          <span className="flex-1 truncate">{prod?.name ?? 'Unknown'}</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={item.qty}
+                            onChange={(e) => updateItemQty(item.productId, parseInt(e.target.value) || 0)}
+                            className="w-16 h-7 text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeItem(item.productId)}
+                            className="text-muted-foreground hover:text-red-500 transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {orderItems.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No items added yet. Select a product and quantity above.</p>
+                )}
+              </div>
 
               <FormField control={form.control} name="totalAmount" render={({ field }) => (
                 <FormItem>

@@ -265,12 +265,12 @@ export const LOGISTICS_EVENTS: LogisticsEvent[] = [
 
 // ── PURCHASE ORDERS ──────────────────────────────────────────
 export const PURCHASE_ORDERS: PurchaseOrder[] = [
-  { id: 'po-001', supplier: 'Steelcase EU', items: 'Steelcase Gesture ×22, Steelcase Please ×10, Storage Cabinet ×15', totalAmount: 31250000, status: 'delivered', date: '2026-06-15', expectedDelivery: '2026-07-20' },
-  { id: 'po-002', supplier: 'Frezza IT', items: 'F1 Desk ×12, Meeting Table ×6, Sideboard ×8', totalAmount: 42600000, status: 'in-transit', date: '2026-07-01', expectedDelivery: '2026-08-10' },
-  { id: 'po-003', supplier: 'Dieffebi FR', items: 'Wall System ×50, Glass Wall ×20', totalAmount: 25900000, status: 'processing', date: '2026-07-20', expectedDelivery: '2026-08-25' },
-  { id: 'po-004', supplier: 'Mali Lumière', items: 'LED Panel ×30, SmartTrack ×60', totalAmount: 10800000, status: 'delivered', date: '2026-06-10', expectedDelivery: '2026-06-20' },
-  { id: 'po-005', supplier: 'Herman Miller US', items: 'Aeron ×18, OE1 Desk ×10', totalAmount: 52400000, status: 'processing', date: '2026-08-05', expectedDelivery: '2026-09-10' },
-  { id: 'po-006', supplier: 'Vitra DE', items: 'Soft Pad ×8, Slow Desk ×4, Drawer Unit ×20', totalAmount: 45200000, status: 'draft', date: '2026-08-10', expectedDelivery: '2026-09-25' },
+  { id: 'po-001', supplier: 'Steelcase EU', items: [{ productId: 'p1', qty: 22 }, { productId: 'p5', qty: 10 }, { productId: 'p9', qty: 15 }], totalAmount: 31250000, status: 'delivered', date: '2026-06-15', expectedDelivery: '2026-07-20' },
+  { id: 'po-002', supplier: 'Frezza IT', items: [{ productId: 'p2', qty: 12 }, { productId: 'p6', qty: 6 }, { productId: 'p10', qty: 8 }], totalAmount: 42600000, status: 'in-transit', date: '2026-07-01', expectedDelivery: '2026-08-10' },
+  { id: 'po-003', supplier: 'Dieffebi FR', items: [{ productId: 'p3', qty: 50 }, { productId: 'p7', qty: 20 }], totalAmount: 25900000, status: 'processing', date: '2026-07-20', expectedDelivery: '2026-08-25' },
+  { id: 'po-004', supplier: 'Mali Lumière', items: [{ productId: 'p4', qty: 30 }, { productId: 'p8', qty: 60 }], totalAmount: 10800000, status: 'delivered', date: '2026-06-10', expectedDelivery: '2026-06-20' },
+  { id: 'po-005', supplier: 'Herman Miller US', items: [{ productId: 'p11', qty: 18 }, { productId: 'p14', qty: 10 }], totalAmount: 52400000, status: 'processing', date: '2026-08-05', expectedDelivery: '2026-09-10' },
+  { id: 'po-006', supplier: 'Vitra DE', items: [{ productId: 'p12', qty: 8 }, { productId: 'p15', qty: 4 }, { productId: 'p23', qty: 20 }], totalAmount: 45200000, status: 'draft', date: '2026-08-10', expectedDelivery: '2026-09-25' },
 ];
 
 // ── AFTER-SALES TICKETS ───────────────────────────────────────

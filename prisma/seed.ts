@@ -174,16 +174,27 @@ async function main() {
 
   // ── PURCHASE ORDERS ─────────────────────────────────────────
   const poData = [
-    { id: 'po-001', supplier: 'Steelcase EU', items: 'Steelcase Gesture ×22, Steelcase Please ×10, Storage Cabinet ×15', totalAmount: 31250000, status: 'Delivered', date: new Date('2026-06-15'), expectedDelivery: new Date('2026-07-20') },
-    { id: 'po-002', supplier: 'Frezza IT', items: 'F1 Desk ×12, Meeting Table ×6, Sideboard ×8', totalAmount: 42600000, status: 'In Transit', date: new Date('2026-07-01'), expectedDelivery: new Date('2026-08-10') },
-    { id: 'po-003', supplier: 'Dieffebi FR', items: 'Wall System ×50, Glass Wall ×20', totalAmount: 25900000, status: 'Processing', date: new Date('2026-07-20'), expectedDelivery: new Date('2026-08-25') },
-    { id: 'po-004', supplier: 'Mali Lumière', items: 'LED Panel ×30, SmartTrack ×60', totalAmount: 10800000, status: 'Delivered', date: new Date('2026-06-10'), expectedDelivery: new Date('2026-06-20') },
-    { id: 'po-005', supplier: 'Herman Miller US', items: 'Aeron ×18, OE1 Desk ×10', totalAmount: 52400000, status: 'Processing', date: new Date('2026-08-05'), expectedDelivery: new Date('2026-09-10') },
-    { id: 'po-006', supplier: 'Vitra DE', items: 'Soft Pad ×8, Slow Desk ×4, Drawer Unit ×20', totalAmount: 45200000, status: 'Draft', date: new Date('2026-08-10'), expectedDelivery: new Date('2026-09-25') },
+    { id: 'po-001', supplier: 'Steelcase EU', totalAmount: 31250000, status: 'Delivered', date: new Date('2026-06-15'), expectedDelivery: new Date('2026-07-20'),
+      items: [{ productId: 'p1', qty: 22 }, { productId: 'p5', qty: 10 }, { productId: 'p9', qty: 15 }] },
+    { id: 'po-002', supplier: 'Frezza IT', totalAmount: 42600000, status: 'In Transit', date: new Date('2026-07-01'), expectedDelivery: new Date('2026-08-10'),
+      items: [{ productId: 'p2', qty: 12 }, { productId: 'p6', qty: 6 }, { productId: 'p10', qty: 8 }] },
+    { id: 'po-003', supplier: 'Dieffebi FR', totalAmount: 25900000, status: 'Processing', date: new Date('2026-07-20'), expectedDelivery: new Date('2026-08-25'),
+      items: [{ productId: 'p3', qty: 50 }, { productId: 'p7', qty: 20 }] },
+    { id: 'po-004', supplier: 'Mali Lumière', totalAmount: 10800000, status: 'Delivered', date: new Date('2026-06-10'), expectedDelivery: new Date('2026-06-20'),
+      items: [{ productId: 'p4', qty: 30 }, { productId: 'p8', qty: 60 }] },
+    { id: 'po-005', supplier: 'Herman Miller US', totalAmount: 52400000, status: 'Processing', date: new Date('2026-08-05'), expectedDelivery: new Date('2026-09-10'),
+      items: [{ productId: 'p11', qty: 18 }, { productId: 'p14', qty: 10 }] },
+    { id: 'po-006', supplier: 'Vitra DE', totalAmount: 45200000, status: 'Draft', date: new Date('2026-08-10'), expectedDelivery: new Date('2026-09-25'),
+      items: [{ productId: 'p12', qty: 8 }, { productId: 'p15', qty: 4 }, { productId: 'p23', qty: 20 }] },
   ];
 
   for (const po of poData) {
-    await prisma.purchaseOrder.upsert({ where: { id: po.id }, update: po, create: po });
+    const { items, ...data } = po;
+    await prisma.purchaseOrder.upsert({
+      where: { id: po.id },
+      update: data,
+      create: { ...data, items: { create: items } },
+    });
   }
   console.log(`  ✓ ${poData.length} purchase orders`);
 

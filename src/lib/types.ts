@@ -129,10 +129,15 @@ export interface TeamMember {
 
 export type PurchaseOrderStatus = 'draft' | 'processing' | 'in-transit' | 'delivered';
 
+export interface PurchaseOrderItem {
+  productId: string;
+  qty: number;
+}
+
 export interface PurchaseOrder {
   id: string;
   supplier: string;
-  items: string;
+  items: PurchaseOrderItem[];
   totalAmount: number;
   status: PurchaseOrderStatus;
   date: string;
