@@ -8,6 +8,7 @@ export const expenseSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected']).optional(),
   approval: z.enum(['pending', 'approved', 'rejected']).optional(),
   createdBy: z.string().min(1).max(200),
+  projectId: z.string().optional().or(z.literal('')),
 });
 
 export const invoiceItemSchema = z.object({
@@ -108,6 +109,7 @@ export const purchaseOrderSchema = z.object({
   status: z.enum(['draft', 'processing', 'in-transit', 'delivered']).optional(),
   date: z.string().min(1),
   expectedDelivery: z.string().min(1),
+  projectId: z.string().optional().or(z.literal('')),
 });
 
 export const afterSalesTicketSchema = z.object({

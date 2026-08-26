@@ -218,10 +218,12 @@ type ExpenseFormData = { title: string; amount: number; category: string; date: 
 
 function ExpensesTab() {
   const expenses = useAppStore((s) => s.expenses);
+  const projects = useAppStore((s) => s.projects);
   const currency = useAppStore((s) => s.currency);
   const openModal = useAppStore((s) => s.openModal);
   const saveExpense = useAppStore((s) => s.saveExpense);
   const deleteExpense = useAppStore((s) => s.deleteExpense);
+  const updateProject = useAppStore((s) => s.updateProject);
   const addToast = useAppStore((s) => s.addToast);
   const addActivity = useAppStore((s) => s.addActivity);
 
@@ -230,11 +232,21 @@ function ExpensesTab() {
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [expenseProjectId, setExpenseProjectId] = useState('none');
 
   const form = useForm<ExpenseFormData>({
-    resolver: zodResolver(expenseSchema.omit({ status: true, approval: true, createdBy: true })) as any,
+    resolver: zodResolver(expenseSchema.omit({ status: true, approval: true, createdBy: true, projectId: true })) as any,
     defaultValues: { title: '', amount: 0, category: 'Operations', date: '' },
   });
+
+  // Adjust a linked project's spent when an approved expense changes
+  function applySpendDelta(e: Expense, wasApproved: boolean, nowApproved: boolean) {
+    if (!e.projectId || wasApproved === nowApproved) return;
+    const proj = projects.find((p) => p.id === e.projectId);
+    if (!proj) return;
+    const delta = nowApproved ? e.amount : -e.amount;
+    updateProject(proj.id, { spent: Math.max(0, proj.spent + delta) });
+  }
 
   const filtered = useMemo(() => expenses.filter(e => {
     if (statusFilter !== 'all' && e.status !== statusFilter) return false;
@@ -244,6 +256,7 @@ function ExpensesTab() {
   }), [expenses, search, statusFilter]);
 
   function openDetail(e: Expense) {
+    const proj = e.projectId ? projects.find((p) => p.id === e.projectId) : undefined;
     openModal(e.title, (
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-2 text-sm">
@@ -251,7 +264,8 @@ function ExpensesTab() {
           <div><span className="text-muted-foreground">Amount:</span> <span className="font-mono">{formatPrice(e.amount, currency)}</span></div>
           <div><span className="text-muted-foreground">Status:</span> <span className="capitalize">{e.approval}</span></div>
           <div><span className="text-muted-foreground">Date:</span> {formatDate(e.date)}</div>
-          <div className="col-span-2"><span className="text-muted-foreground">Requested by:</span> {e.createdBy}</div>
+          <div><span className="text-muted-foreground">Requested by:</span> {e.createdBy}</div>
+          <div><span className="text-muted-foreground">Project:</span> {proj ? `${proj.client} — ${proj.name}` : '—'}</div>
         </div>
       </div>
     ));
@@ -260,7 +274,9 @@ function ExpensesTab() {
   function handleApproval(e: Expense, nextRaw: string) {
     const next = nextRaw as Exclude<ExpenseStatus, 'pending'>;
     if (next === e.approval) return;
-    saveExpense({ ...e, status: next, approval: next });
+    const updated: Expense = { ...e, status: next, approval: next };
+    saveExpense(updated);
+    applySpendDelta(e, e.approval === 'approved', next === 'approved');
     addToast(next === 'approved' ? 'success' : 'info', next === 'approved' ? '✅' : '🚫', `${e.title} ${next}`);
     addActivity({
       id: generateId(),
@@ -274,14 +290,17 @@ function ExpensesTab() {
   async function onSubmit(data: ExpenseFormData) {
     setIsSaving(true);
     try {
+      const projectId = expenseProjectId !== 'none' ? expenseProjectId : undefined;
       saveExpense({
         id: generateId(), title: data.title.trim(),
         amount: data.amount, category: data.category, date: data.date,
         status: 'pending', approval: 'pending', createdBy: 'Moussa',
+        projectId,
       });
       addToast('success', '✅', 'Expense submitted for approval');
       addActivity({ id: generateId(), text: 'Expense added', detail: data.title.trim(), icon: '💰', timestamp: getTimestamp() });
       form.reset({ title: '', amount: 0, category: 'Operations', date: '' });
+      setExpenseProjectId('none');
       setBuilderOpen(false);
     } finally {
       setIsSaving(false);
@@ -374,7 +393,13 @@ function ExpensesTab() {
       )}
 
       {/* Add Expense Dialog */}
-      <Dialog open={builderOpen} onOpenChange={(open) => { if (!open) form.reset(); setBuilderOpen(open); }}>
+      <Dialog open={builderOpen} onOpenChange={(open) => {
+        if (!open) {
+          form.reset();
+          setExpenseProjectId('none');
+        }
+        setBuilderOpen(open);
+      }}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Expense</DialogTitle>
@@ -421,6 +446,25 @@ function ExpensesTab() {
                   <FormMessage />
                 </FormItem>
               )} />
+              <FormItem>
+                <FormLabel>Project</FormLabel>
+                <Select onValueChange={setExpenseProjectId} value={expenseProjectId}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="No project" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">No project (general)</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.client} — {p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  Approved expenses are added to the project&apos;s budget burn.
+                </p>
+              </FormItem>
               <div className="flex gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setBuilderOpen(false)} className="flex-1">Cancel</Button>
                 <Button type="submit" disabled={isSaving} className="flex-1 bg-gold text-os-dark hover:bg-gold-dark">
@@ -440,6 +484,7 @@ function ExpensesTab() {
         description={`This will permanently delete "${deleteTarget?.title}". This action cannot be undone.`}
         onConfirm={() => {
           if (!deleteTarget) return;
+          applySpendDelta(deleteTarget, deleteTarget.approval === 'approved', false);
           deleteExpense(deleteTarget.id);
           addToast('info', '🗑️', 'Expense deleted');
           setDeleteTarget(null);

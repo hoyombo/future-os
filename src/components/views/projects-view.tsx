@@ -33,6 +33,7 @@ const PROJECT_STATUS_LABELS: Record<string, string> = {
 export function ProjectsView() {
   const projects = useAppStore((s) => s.projects);
   const products = useAppStore((s) => s.products);
+  const invoices = useAppStore((s) => s.invoices);
   const currency = useAppStore((s) => s.currency);
   const openModal = useAppStore((s) => s.openModal);
   const deleteProject = useAppStore((s) => s.deleteProject);
@@ -150,8 +151,13 @@ export function ProjectsView() {
             const sm = PROJECT_STATUS_MAP[p.status] || PROJECT_STATUS_MAP.active;
             const pct = p.budget > 0 ? Math.round((p.spent / p.budget) * 100) : 0;
             const barClass = projectBudgetClass(p.spent, p.budget);
-            const margin = p.budget > 0 ? Math.round(((p.budget - p.spent) / p.budget) * 100) : 0;
-            const estimatedRevenue = p.spent + Math.round(p.spent * 0.2);
+            // Real financials: invoiced revenue = payments received from this project's client
+            const clientKey = p.client.trim().toLowerCase();
+            const invoicedPaid = invoices
+              .filter((i) => i.client.trim().toLowerCase() === clientKey)
+              .reduce((s, i) => s + i.paidAmount, 0);
+            const trueMargin = invoicedPaid - p.spent;
+            const marginPct = invoicedPaid > 0 ? Math.round((trueMargin / invoicedPaid) * 100) : 0;
 
             const cardProducts = p.items
               .map((id) => products.find((pr) => pr.id === id))
@@ -247,13 +253,14 @@ export function ProjectsView() {
                         <p className="text-xs font-medium text-foreground truncate">{p.phase}</p>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] text-muted-foreground">Revenue</p>
-                        <p className="text-[10px] sm:text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 truncate">{formatPrice(estimatedRevenue, currency)}</p>
+                        <p className="text-[10px] text-muted-foreground">Invoiced (paid)</p>
+                        <p className="text-[10px] sm:text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400 truncate">{formatPrice(invoicedPaid, currency)}</p>
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] text-muted-foreground">Margin</p>
-                        <p className={`text-xs font-mono font-medium ${margin >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                          {margin}%
+                        <p className={`text-xs font-mono font-medium ${trueMargin >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                          {formatPrice(trueMargin, currency)}
+                          {invoicedPaid > 0 && <span className="text-[10px] text-muted-foreground"> · {marginPct}%</span>}
                         </p>
                       </div>
                     </div>

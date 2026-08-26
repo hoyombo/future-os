@@ -15,7 +15,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 });
     }
     const { items, ...projectData } = parsed.data;
-    const project = await prisma.project.update({ where: { id }, data: projectData });
+
+    if (items) {
+      await prisma.projectItem.deleteMany({ where: { projectId: id } });
+    }
+
+    const project = await prisma.project.update({
+      where: { id },
+      data: {
+        ...projectData,
+        ...(items ? { items: { create: items.map((item) => ({ productId: item.productId })) } } : {}),
+      },
+      include: { items: { include: { product: true } } },
+    });
     return NextResponse.json(project);
   } catch (e) {
     console.error('[API] PUT /api/projects/[id] failed:', e);

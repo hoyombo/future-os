@@ -98,6 +98,13 @@ export function mockService(): IAppService {
       else projects.push(project);
       save('projects', projects);
     },
+    updateProject(id: string, patch: Partial<Project>) {
+      const idx = projects.findIndex(p => p.id === id);
+      if (idx >= 0) {
+        projects[idx] = { ...projects[idx], ...patch };
+        save('projects', projects);
+      }
+    },
     deleteProject(id: string) {
       projects = projects.filter(p => p.id !== id);
       save('projects', projects);

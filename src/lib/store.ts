@@ -125,6 +125,7 @@ interface AppState {
   adjustStock: (id: string, delta: number) => void;
   setProjects: (p: Project[]) => void;
   addProject: (project: Project) => void;
+  updateProject: (id: string, patch: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   setLogisticsEvents: (e: LogisticsEvent[]) => void;
   setProposals: (p: Proposal[]) => void;
@@ -269,6 +270,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     set({ projects: [...state.projects, project] });
     state._service?.saveProject(project);
+  },
+  updateProject: (id, patch) => {
+    const state = get();
+    set({
+      projects: state.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    });
+    state._service?.updateProject(id, patch);
   },
   deleteProject: (id) => {
     const state = get();

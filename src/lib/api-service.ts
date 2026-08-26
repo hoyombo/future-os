@@ -68,6 +68,9 @@ export function apiService(): IAppService {
       const path = project.id ? `/api/projects/${project.id}` : '/api/projects';
       api(path, { method, body: JSON.stringify(project) });
     },
+    updateProject(id: string, patch: Partial<Project>) {
+      api(`/api/projects/${id}`, { method: 'PUT', body: JSON.stringify(patch) });
+    },
     deleteProject(id: string) {
       api(`/api/projects/${id}`, { method: 'DELETE' });
     },

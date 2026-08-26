@@ -44,6 +44,7 @@ type POFormData = {
 export function ProcurementView() {
   const purchaseOrders = useAppStore((s) => s.purchaseOrders);
   const products = useAppStore((s) => s.products);
+  const projects = useAppStore((s) => s.projects);
   const currency = useAppStore((s) => s.currency);
   const openModal = useAppStore((s) => s.openModal);
   const savePurchaseOrder = useAppStore((s) => s.savePurchaseOrder);
@@ -62,6 +63,7 @@ export function ProcurementView() {
   const [orderItems, setOrderItems] = useState<PurchaseOrderItem[]>([]);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
+  const [poProjectId, setPoProjectId] = useState('none');
 
   const form = useForm<POFormData>({
     resolver: zodResolver(purchaseOrderSchema.omit({ status: true, items: true })) as any,
@@ -137,6 +139,7 @@ export function ProcurementView() {
           <div><span className="text-muted-foreground">Total:</span> <span className="font-mono">{formatPrice(po.totalAmount, currency)}</span></div>
           <div><span className="text-muted-foreground">Ordered:</span> {formatDate(po.date)}</div>
           <div><span className="text-muted-foreground">Expected:</span> {formatDate(po.expectedDelivery)}</div>
+          <div className="col-span-2"><span className="text-muted-foreground">Project:</span> {po.projectId ? (() => { const proj = projects.find((p) => p.id === po.projectId); return proj ? `${proj.client} — ${proj.name}` : '—'; })() : '—'}</div>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1">Items</p>
@@ -204,6 +207,7 @@ export function ProcurementView() {
         status: 'draft',
         date: data.date,
         expectedDelivery: data.expectedDelivery,
+        projectId: poProjectId !== 'none' ? poProjectId : undefined,
       };
       savePurchaseOrder(po);
       addToast('success', '✅', `Purchase order created`);
@@ -216,6 +220,7 @@ export function ProcurementView() {
       });
       form.reset({ supplier: '', totalAmount: 0, date: '', expectedDelivery: '' });
       setOrderItems([]);
+      setPoProjectId('none');
       setBuilderOpen(false);
     } catch {
       addToast('error', '❌', 'Failed to create purchase order. Please try again.');
@@ -336,6 +341,10 @@ export function ProcurementView() {
                       {po.id.toUpperCase()}
                     </p>
                     <p className="text-xs text-muted-foreground">{po.supplier}</p>
+                    {po.projectId && (() => {
+                      const proj = projects.find((p) => p.id === po.projectId);
+                      return proj ? <p className="text-[10px] text-blue-600 dark:text-blue-400 truncate">🏗 {proj.name}</p> : null;
+                    })()}
                   </div>
                   <StatusBadge status={sm.status} label={sm.label} />
                 </div>
@@ -399,6 +408,7 @@ export function ProcurementView() {
           setOrderItems([]);
           setSelectedProductId('');
           setSelectedQty(1);
+          setPoProjectId('none');
         }
         setBuilderOpen(open);
       }}>
@@ -417,6 +427,21 @@ export function ProcurementView() {
                   <FormMessage />
                 </FormItem>
               )} />
+
+              <FormItem>
+                <FormLabel>Project</FormLabel>
+                <Select value={poProjectId} onValueChange={setPoProjectId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="No project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No project (stock replenishment)</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.client} — {p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
 
               {/* Item Builder */}
               <div className="space-y-2">

@@ -42,6 +42,7 @@ type ProposalFormData = {
 export function ProposalsView() {
   const proposals = useAppStore((s) => s.proposals);
   const products = useAppStore((s) => s.products);
+  const projects = useAppStore((s) => s.projects);
   const setProposals = useAppStore((s) => s.setProposals);
   const addToast = useAppStore((s) => s.addToast);
   const addActivity = useAppStore((s) => s.addActivity);
@@ -659,7 +660,17 @@ export function ProposalsView() {
                     <FormField control={form.control} name="project" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Project</FormLabel>
-                        <FormControl><Input placeholder="Project name (optional)" {...field} /></FormControl>
+                        <FormControl>
+                          <>
+                            <Input placeholder="Project name (optional)" list="project-names-autocomplete" {...field} />
+                            <datalist id="project-names-autocomplete">
+                              {projects.map((p) => (
+                                <option key={p.id} value={p.name}>{p.client}</option>
+                              ))}
+                            </datalist>
+                          </>
+                        </FormControl>
+                        <p className="text-[10px] text-muted-foreground">Start typing to autocomplete from existing projects — matching projects link to their financials.</p>
                         <FormMessage />
                       </FormItem>
                     )} />

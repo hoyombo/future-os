@@ -91,6 +91,7 @@ export interface Expense {
   status: ExpenseStatus;
   approval: ExpenseStatus;
   createdBy: string;
+  projectId?: string;   // optional link to a project — approved amounts feed project.spent
 }
 
 export interface InvoiceItem {
@@ -149,6 +150,7 @@ export interface PurchaseOrder {
   status: PurchaseOrderStatus;
   date: string;
   expectedDelivery: string;
+  projectId?: string;   // optional link for procurement-per-project reporting
 }
 
 export type TicketPriority = 'Low' | 'Medium' | 'High';
@@ -202,6 +204,7 @@ export interface IAppService {
   getProjects(): Project[];
   getProject(id: string): Project | undefined;
   saveProject(project: Project): void;
+  updateProject(id: string, patch: Partial<Project>): void;
   deleteProject(id: string): void;
 
   // Logistics
