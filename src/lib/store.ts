@@ -79,6 +79,10 @@ interface AppState {
   currency: Currency;
   setCurrency: (c: Currency) => void;
 
+  // Projects view mode
+  projectsViewMode: 'cards' | 'calendar';
+  setProjectsViewMode: (m: 'cards' | 'calendar') => void;
+
   // Toast notifications
   toasts: Toast[];
   addToast: (type: ToastType, icon: string, message: string) => void;
@@ -172,6 +176,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Currency
   currency: 'XOF',
   setCurrency: (c) => set({ currency: c }),
+
+  // Projects view mode
+  projectsViewMode: (typeof window !== 'undefined' && localStorage.getItem('future_os_projects_view') === 'calendar') ? 'calendar' : 'cards',
+  setProjectsViewMode: (m) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('future_os_projects_view', m);
+    }
+    set({ projectsViewMode: m });
+  },
 
   // Toasts
   toasts: [],

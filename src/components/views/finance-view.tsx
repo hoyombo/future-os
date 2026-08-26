@@ -471,7 +471,7 @@ function InvoicesTab() {
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div><span className="text-muted-foreground">Client:</span> {inv.client}</div>
-          <div><span className="text-muted-foreground">Status:</span> {INVOICE_STATUS_MAP[eff].label}</div>
+          <div><span className="text-muted-foreground">Status:</span> {INVOICE_STATUS_MAP[eff]?.label ?? eff}</div>
           <div><span className="text-muted-foreground">Issued:</span> {formatDate(inv.date)}</div>
           <div><span className="text-muted-foreground">Due:</span> {formatDate(inv.dueDate)}</div>
           <div><span className="text-muted-foreground">Total:</span> <span className="font-mono">{formatPrice(inv.amount, currency)}</span></div>
@@ -584,7 +584,7 @@ function InvoicesTab() {
           <tbody className="divide-y divide-border">
             {filtered.map((inv) => {
               const eff = effectiveInvoiceStatus(inv);
-              const sm = INVOICE_STATUS_MAP[eff];
+              const sm = INVOICE_STATUS_MAP[eff] ?? { status: 'gold' as Status, label: eff };
               const overdue = eff === 'overdue';
               const fullyPaid = inv.status === 'paid';
               return (
@@ -758,7 +758,7 @@ function BillsTab() {
     openModal(`Bill · ${b.supplier}`, (
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div><span className="text-muted-foreground">Supplier:</span> {b.supplier}</div>
-        <div><span className="text-muted-foreground">Status:</span> {BILL_STATUS_MAP[effectiveBillStatus(b)].label}</div>
+        <div><span className="text-muted-foreground">Status:</span> {BILL_STATUS_MAP[effectiveBillStatus(b)]?.label ?? effectiveBillStatus(b)}</div>
         <div><span className="text-muted-foreground">Amount:</span> <span className="font-mono">{formatPrice(b.amount, currency)}</span></div>
         <div><span className="text-muted-foreground">Due:</span> {formatDate(b.dueDate)}</div>
       </div>
@@ -843,7 +843,7 @@ function BillsTab() {
           <tbody className="divide-y divide-border">
             {filtered.map((b) => {
               const eff = effectiveBillStatus(b);
-              const sm = BILL_STATUS_MAP[eff];
+              const sm = BILL_STATUS_MAP[eff] ?? { status: 'gold' as Status, label: eff };
               return (
                 <tr key={b.id} onClick={() => openDetail(b)} className="hover:bg-muted/50 cursor-pointer transition-colors group">
                   <td className="py-2.5 font-medium text-foreground text-xs group-hover:text-gold transition-colors">{b.supplier}</td>

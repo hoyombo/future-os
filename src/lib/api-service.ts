@@ -185,6 +185,12 @@ export function apiService(): IAppService {
 }
 
 // ── Async fetchers for hydration ───────────────────────────────
+// DB rows may carry PascalCase statuses from seed data ('Paid', 'In Transit');
+// the frontend expects lowercase kebab-case. Normalize on hydration.
+function normalizeStatus<T extends string>(value: unknown): T {
+  return String(value ?? '').trim().toLowerCase().replace(/\s+/g, '-') as T;
+}
+
 export async function fetchProducts(): Promise<Product[]> {
   return api<Product[]>('/api/products');
 }
@@ -198,15 +204,18 @@ export async function fetchProposals(): Promise<Proposal[]> {
 }
 
 export async function fetchExpenses(): Promise<Expense[]> {
-  return api<Expense[]>('/api/expenses');
+  const rows = await api<Expense[]>('/api/expenses');
+  return rows.map((r) => ({ ...r, status: normalizeStatus(r.status), approval: normalizeStatus(r.approval) }));
 }
 
 export async function fetchInvoices(): Promise<Invoice[]> {
-  return api<Invoice[]>('/api/invoices');
+  const rows = await api<Invoice[]>('/api/invoices');
+  return rows.map((r) => ({ ...r, status: normalizeStatus(r.status), dueDate: String(r.dueDate).slice(0, 10), date: String(r.date).slice(0, 10) }));
 }
 
 export async function fetchBills(): Promise<Bill[]> {
-  return api<Bill[]>('/api/bills');
+  const rows = await api<Bill[]>('/api/bills');
+  return rows.map((r) => ({ ...r, status: normalizeStatus(r.status), dueDate: String(r.dueDate).slice(0, 10), date: String(r.date).slice(0, 10) }));
 }
 
 export async function fetchRecurringExpenses(): Promise<RecurringExpense[]> {
@@ -218,7 +227,8 @@ export async function fetchTeamMembers(): Promise<TeamMember[]> {
 }
 
 export async function fetchPurchaseOrders(): Promise<PurchaseOrder[]> {
-  return api<PurchaseOrder[]>('/api/purchase-orders');
+  const rows = await api<PurchaseOrder[]>('/api/purchase-orders');
+  return rows.map((r) => ({ ...r, status: normalizeStatus(r.status), date: String(r.date).slice(0, 10), expectedDelivery: String(r.expectedDelivery).slice(0, 10) }));
 }
 
 export async function fetchAfterSalesTickets(): Promise<AfterSalesTicket[]> {
