@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { MapPin, Calendar, Search, Trash2, Plus } from 'lucide-react';
+import { MapPin, Calendar, Search, Trash2, Plus, LayoutGrid, CalendarDays } from 'lucide-react';
 import Image from 'next/image';
 import { useAppStore, formatPrice, formatDate, projectBudgetClass } from '@/lib/store';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ProjectBuilder } from '@/components/shared/project-builder';
+import { ProjectDetailContent } from '@/components/shared/project-detail-content';
+import { ProjectCalendar } from '@/components/shared/project-calendar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +37,8 @@ export function ProjectsView() {
   const openModal = useAppStore((s) => s.openModal);
   const deleteProject = useAppStore((s) => s.deleteProject);
   const addToast = useAppStore((s) => s.addToast);
+  const projectsViewMode = useAppStore((s) => s.projectsViewMode);
+  const setProjectsViewMode = useAppStore((s) => s.setProjectsViewMode);
 
   const [projectSearch, setProjectSearch] = useState('');
   const [projectStatusFilter, setProjectStatusFilter] = useState<string>('all');
@@ -68,12 +72,38 @@ export function ProjectsView() {
     <div className="animate-fade-up space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground">Projects</h2>
-        <Button
-          onClick={() => setBuilderOpen(true)}
-          className="bg-gold text-os-dark hover:bg-gold-dark"
-        >
-          <Plus className="h-4 w-4" /> New Project
-        </Button>
+        <div className="flex items-center gap-2">
+          {projects.length > 0 && (
+            <div className="flex rounded-lg border border-border overflow-hidden">
+              <button
+                onClick={() => setProjectsViewMode('cards')}
+                className={`px-2.5 py-1.5 text-xs font-medium transition-all flex items-center gap-1 ${
+                  projectsViewMode === 'cards'
+                    ? 'bg-gold text-os-dark'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Cards
+              </button>
+              <button
+                onClick={() => setProjectsViewMode('calendar')}
+                className={`px-2.5 py-1.5 text-xs font-medium transition-all flex items-center gap-1 ${
+                  projectsViewMode === 'calendar'
+                    ? 'bg-gold text-os-dark'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <CalendarDays className="h-3.5 w-3.5" /> Calendar
+              </button>
+            </div>
+          )}
+          <Button
+            onClick={() => setBuilderOpen(true)}
+            className="bg-gold text-os-dark hover:bg-gold-dark"
+          >
+            <Plus className="h-4 w-4" /> New Project
+          </Button>
+        </div>
       </div>
 
       {projects.length > 0 && (
@@ -112,6 +142,8 @@ export function ProjectsView() {
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-muted-foreground">No projects match your search.</p>
         </div>
+      ) : projectsViewMode === 'calendar' ? (
+        <ProjectCalendar projects={filteredProjects} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredProjects.map((p) => {
@@ -119,7 +151,6 @@ export function ProjectsView() {
             const pct = p.budget > 0 ? Math.round((p.spent / p.budget) * 100) : 0;
             const barClass = projectBudgetClass(p.spent, p.budget);
             const margin = p.budget > 0 ? Math.round(((p.budget - p.spent) / p.budget) * 100) : 0;
-            const itemNames = p.items.map((id) => products.find((pr) => pr.id === id)?.name).filter(Boolean);
             const estimatedRevenue = p.spent + Math.round(p.spent * 0.2);
 
             const cardProducts = p.items
@@ -131,27 +162,8 @@ export function ProjectsView() {
             return (
               <div
                 key={p.id}
-                onClick={() => openModal(p.name, (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-muted-foreground">Client:</span> {p.client}</div>
-                      <div><span className="text-muted-foreground">Status:</span> {p.status}</div>
-                      <div><span className="text-muted-foreground">Phase:</span> {p.phase}</div>
-                      <div><span className="text-muted-foreground">Location:</span> {p.location}</div>
-                      <div><span className="text-muted-foreground">Start:</span> {formatDate(p.startDate)}</div>
-                      <div><span className="text-muted-foreground">End:</span> {formatDate(p.endDate)}</div>
-                      <div><span className="text-muted-foreground">Budget:</span> <span className="font-mono">{formatPrice(p.budget, currency)}</span></div>
-                      <div><span className="text-muted-foreground">Spent:</span> <span className="font-mono">{formatPrice(p.spent, currency)}</span></div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Products ({itemNames.length})</p>
-                      <div className="flex flex-wrap gap-1">
-                        {itemNames.map((n) => (
-                          <span key={n} className="rounded-md bg-muted px-2 py-0.5 text-xs">{n}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                onClick={() => openModal(`${p.client} — ${p.name}`, (
+                  <ProjectDetailContent project={p} />
                 ))}
                 className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-md hover:shadow-xl hover:border-gold/30 transition-all duration-300 group cursor-pointer"
               >
