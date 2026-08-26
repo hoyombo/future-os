@@ -50,6 +50,7 @@ type ProductFormData = {
   stock: number;
   leadTime?: number;
   origin?: string;
+  imageUrl?: string;
 };
 
 export function InventoryView() {
@@ -70,10 +71,10 @@ export function InventoryView() {
   const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema.omit({ specs: true, description: true, inStock: true })) as any,
+    resolver: zodResolver(productSchema.omit({ specs: true, description: true, inStock: true, emoji: true })) as any,
     defaultValues: {
       name: '', supplier: '', category: 'seating', cost: 0, price: 0,
-      stock: 0, leadTime: 0, origin: '',
+      stock: 0, leadTime: 0, origin: '', imageUrl: '',
     },
   });
 
@@ -106,6 +107,15 @@ export function InventoryView() {
     const marginPct = p.price > 0 ? Math.round(((p.price - p.cost) / p.price) * 100) : 0;
     openModal(p.name, (
       <div className="space-y-4">
+        {p.imageUrl ? (
+          <div className="relative h-40 w-full rounded-lg overflow-hidden bg-muted">
+            <Image src={p.imageUrl} alt={p.name} fill className="object-cover" sizes="400px" />
+          </div>
+        ) : (
+          <div className="flex h-24 items-center justify-center rounded-lg bg-muted text-4xl">
+            {p.emoji}
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div><span className="text-muted-foreground">Supplier:</span> {p.supplier}</div>
           <div><span className="text-muted-foreground">Category:</span> <span className="capitalize">{p.category}</span></div>
@@ -172,6 +182,7 @@ export function InventoryView() {
         description: '',
         origin: data.origin?.trim() ?? '',
         leadTime: data.leadTime ?? 0,
+        imageUrl: data.imageUrl?.trim() || undefined,
       };
       saveProduct(product);
       addToast('success', '✅', `Product "${product.name}" added`);
@@ -182,7 +193,7 @@ export function InventoryView() {
         icon: '📦',
         timestamp: getTimestamp(),
       });
-      form.reset({ name: '', supplier: '', category: 'seating', cost: 0, price: 0, stock: 0, leadTime: 0, origin: '' });
+      form.reset({ name: '', supplier: '', category: 'seating', cost: 0, price: 0, stock: 0, leadTime: 0, origin: '', imageUrl: '' });
       setBuilderOpen(false);
     } catch {
       addToast('error', '❌', 'Failed to add product. Please try again.');
@@ -420,6 +431,14 @@ export function InventoryView() {
                   </FormItem>
                 )} />
               </div>
+
+              <FormField control={form.control} name="imageUrl" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL</FormLabel>
+                  <FormControl><Input placeholder="https://example.com/photo.jpg" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
 
               <div className="flex gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setBuilderOpen(false)} className="flex-1">

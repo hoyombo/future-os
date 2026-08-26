@@ -41,7 +41,8 @@ export async function POST(request: Request) {
         description: data.description ?? '',
         origin: data.origin ?? '',
         leadTime: data.leadTime ?? 0,
-        emoji: '📦',
+        emoji: data.emoji || '📦',
+        imageUrl: data.imageUrl || null,
       },
     });
 
